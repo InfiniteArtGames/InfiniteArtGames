@@ -1,326 +1,177 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Art Games | Sét-su</title>
-  <style>
-    :root {
-      --primary: #a020f0;
-      --accent: #00d4ff;
-      --neon-ball: #39ff14;
-      --bg: #050010;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Arañitas∞ | Infinite Art Games</title>
+    <style>
+        :root {
+            --primary: #a020f0;
+            --accent: #00d4ff;
+            --neon-ball: #39ff14;
+        }
+        body { 
+            margin: 0; 
+            background: #050010; 
+            overflow: hidden; 
+            font-family: 'Segoe UI', sans-serif; 
+            touch-action: none; /* Evita el scroll del navegador al jugar */
+        }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        
+        #ui { 
+            position: absolute; 
+            top: 20px; 
+            left: 20px; 
+            color: var(--accent); 
+            text-shadow: 0 0 10px var(--accent); 
+            font-size: clamp(16px, 4vw, 24px); 
+            pointer-events: none; 
+            z-index: 5;
+        }
 
-    body {
-      margin: 0;
-      padding: 0;
-      background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
-      background-attachment: fixed;
-      background-color: #000;
-      color: #fff;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      text-align: center;
-      overflow-x: hidden;
-    }
-
-    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-
-    h1 {
-      color: var(--primary);
-      font-size: clamp(2.5em, 8vw, 4em);
-      margin: 0;
-      text-shadow: 0 0 20px var(--primary);
-      letter-spacing: 2px;
-      animation: glow 3s infinite alternate;
-    }
-
-    @keyframes glow {
-      from { text-shadow: 0 0 10px var(--primary); }
-      to { text-shadow: 0 0 30px var(--primary), 0 0 60px var(--primary); }
-    }
-
-    .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
-
-    .bienvenida {
-      font-size: 1.3em; line-height: 1.6;
-      margin-bottom: 50px; padding: 20px;
-      background: rgba(160, 32, 240, 0.1);
-      border-radius: 15px;
-    }
-
-    .main-card {
-      margin: 40px auto; padding: 30px;
-      background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
-      border-radius: 30px; border: 2px solid var(--primary);
-      box-shadow: 0 0 30px rgba(160, 32, 240, 0.5);
-      max-width: 700px;
-    }
-
-    .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
-    
-    .btn-nav {
-      background: linear-gradient(45deg, var(--primary), var(--accent));
-      color: white; border: none; padding: 12px 24px;
-      border-radius: 50px; cursor: pointer; font-weight: bold;
-      margin: 5px; transition: 0.3s;
-      box-shadow: 0 0 10px var(--primary);
-    }
-
-    .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
-
-    .content-section {
-      display: none; margin-top: 25px; padding: 20px;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      animation: fadeIn 0.5s;
-    }
-
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-    /* CORRECCIÓN RESPONSIVA PARA JUEGOS */
-    .game-viewport {
-      position: relative;
-      width: 100%;
-      padding-top: 56.25%; /* Relación de aspecto 16:9 */
-      background: #000;
-      border: 2px solid var(--primary);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
-    }
-
-    .game-viewport iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: none;
-      transition: opacity 0.5s;
-    }
-
-    .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
-    .personaje { width: 220px; }
-    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
-
-    footer { margin-top: 80px; font-size: 0.95em; color: #777; }
-    a { color: var(--primary); text-decoration: none; }
-  </style>
+        /* Botón de Pantalla Completa Interno */
+        #fsBtn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(160, 32, 240, 0.3);
+            color: white;
+            border: 1px solid var(--primary);
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            z-index: 10;
+            text-transform: uppercase;
+        }
+    </style>
 </head>
 <body>
+    <div id="ui">PUNTOS ∞: <span id="score">0</span></div>
+    <button id="fsBtn" onclick="toggleFS()">Pantalla Completa ∞</button>
+    <canvas id="canvas"></canvas>
 
-  <div class="container">
-    <h1>Infinite Art Games</h1>
-    <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
-    
-    <div class="bienvenida">
-      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
-      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
-      Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
-    </div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let score = 0;
+        const spiders = [];
+        const mouse = { x: -100, y: -100 };
 
-    <div class="main-card">
-      <div id="status" style="color:var(--accent); font-weight:bold;">Sinfonía del Infinito</div>
-      <div id="trackName" style="font-size:1.2em; margin:10px 0;">Listo para iniciar</div>
-      
-      <div class="controls">
-        <button onclick="prevTrack()" class="btn-nav">⏮</button>
-        <button id="playBtn" onclick="togglePlay()" class="btn-nav">▶ PLAY</button>
-        <button onclick="stopAudio()" class="btn-nav">■</button>
-        <button onclick="nextTrack()" class="btn-nav">⏭</button>
-      </div>
+        // AJUSTE DINÁMICO DE PANTALLA [cite: 2025-07-23]
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            // Reposicionar arañas si es necesario para que no queden fuera tras girar
+        }
 
-      <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
-        <button class="btn-nav" onclick="showTab('musica')">🎵 Música</button>
-        <button class="btn-nav" onclick="showTab('juegos')">🎮 Juegos</button>
-        <button class="btn-nav" onclick="showTab('diosas')">✨ Diosas</button>
-        <button class="btn-nav" onclick="showTab('arte')">🎨 Arte ∞</button>
-      </div>
+        window.addEventListener('resize', resize);
+        window.addEventListener('orientationchange', () => setTimeout(resize, 200));
+        resize();
 
-      <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">Playlist Épica</h3>
-        <p>01. Melodía de Sét-su (Sintetizada - 60s)</p>
-        <p>02. El Eco del Infinito (Sintetizada - 60s)</p>
-        <p>03. Bad Wolf (MP3)</p>
-        <p>04. El Lobo Feroz (MP3)</p>
+        // CONTROL DE PANTALLA COMPLETA REAL [cite: 2025-07-23]
+        function toggleFS() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    alert("Error al activar pantalla completa: " + e.message);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
 
-        <audio id="playerMP3" style="display:none;"></audio>
+        class Spider {
+            constructor() { this.reset(); }
+            reset() {
+                const angle = Math.random() * Math.PI * 2;
+                const dist = Math.max(canvas.width, canvas.height) * 0.8;
+                this.x = canvas.width/2 + Math.cos(angle) * dist;
+                this.y = canvas.height/2 + Math.sin(angle) * dist;
+                this.speed = 1.5 + Math.random() * 2.5;
+                this.size = canvas.width * 0.015 + 5; 
+            }
+            update() {
+                const dx = canvas.width/2 - this.x;
+                const dy = canvas.height/2 - this.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                this.x += (dx/dist) * this.speed;
+                this.y += (dy/dist) * this.speed;
 
-        <div style="margin-top:25px; text-align:center;">
-          <h4 style="color:#00d4ff; margin-bottom:10px;">Shadows In The Night</h4>
-          <iframe width="100%" height="315" 
-            src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk?autoplay=0&controls=1&rel=0&modestbranding=1" 
-            title="Shadows In The Night - Infinite Art Games" 
-            frameborder="0" 
-            allowfullscreen></iframe>
-          <p style="margin-top:10px; font-size:0.9em; opacity:0.8;">Tu soundtrack oscuro para el infinito. ¡Play y siente el caos ♾️</p>
-        </div>
-      </div>
+                // COLISIÓN TÁCTIL/MOUSE MEJORADA [cite: 2025-07-23]
+                const mDx = mouse.x - this.x;
+                const mDy = mouse.y - this.y;
+                if(Math.sqrt(mDx*mDx + mDy*mDy) < this.size * 3) {
+                    score += 10;
+                    document.getElementById('score').innerText = score;
+                    this.reset();
+                }
 
-      <div id="juegos" class="content-section">
-        <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
-        
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞ Neón')">🎮 Bing-Bang∞</button>
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
-        </div>
+                if(dist < 20) { 
+                    score = 0; 
+                    document.getElementById('score').innerText = "ERROR ∞"; 
+                    this.reset(); 
+                }
+            }
+            draw() {
+                ctx.strokeStyle = 'rgba(160, 32, 240, 0.2)';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(canvas.width/2, canvas.height/2);
+                ctx.stroke();
+                
+                ctx.fillStyle = '#39ff14';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#39ff14';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+        }
 
-        <div class="game-viewport">
-          <iframe id="activeGameFrame" src="about:blank" allowfullscreen></iframe>
-        </div>
+        // Inicializar horda
+        for(let i=0; i<12; i++) spiders.push(new Spider());
 
-        <div style="margin-top: 15px;">
-          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold;">Selecciona un desafío</p>
-          <p style="font-size: 0.8em; color: #777;">Experiencia completa en pantalla gigante mediante el botón ∞ FS [cite: 2025-07-23].</p>
-        </div>
-      </div>
+        // MANEJO DE CONTROLES TÁCTILES PRECISOS [cite: 2025-07-23]
+        function updateMousePos(e) {
+            let clientX, clientY;
+            if(e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = clientX - rect.left;
+            mouse.y = clientY - rect.top;
+        }
 
-      <div id="diosas" class="content-section">
-        <h3 style="color:var(--accent);">Diosas del Infinito</h3>
-        <p>Aisha · Shana · Katy · Merlina · Camila</p>
-      </div>
+        canvas.addEventListener('mousemove', updateMousePos);
+        canvas.addEventListener('touchstart', (e) => { updateMousePos(e); e.preventDefault(); }, {passive: false});
+        canvas.addEventListener('touchmove', (e) => { updateMousePos(e); e.preventDefault(); }, {passive: false});
 
-      <div id="arte" class="content-section">
-        <h3 style="color:var(--accent);">Arte Infinito ∞</h3>
-        <p>Obras generadas por Infinite Art Games</p>
-      </div>
-    </div>
+        function animate() {
+            ctx.fillStyle = 'rgba(5, 0, 16, 0.3)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Núcleo del Infinito (Centro)
+            ctx.shadowBlur = 20; 
+            ctx.shadowColor = '#a020f0';
+            ctx.strokeStyle = '#a020f0';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.arc(canvas.width/2, canvas.height/2, 20, 0, Math.PI*2);
+            ctx.stroke();
 
-    <div class="carousel" style="position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; box-shadow:0 0 30px rgba(0,212,255,0.4);">
-      <div class="slides" id="slides" style="display:flex; transition:transform 0.5s ease;">
-        <img src="Imágenes/chica-dragon.jpg" alt="1" style="width:100%; height:auto;">
-        <img src="Imágenes/retro-game2.jpg" alt="2" style="width:100%; height:auto;">
-        <img src="Imágenes/retro-game3.jpg" alt="3" style="width:100%; height:auto;">
-      </div>
-      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">←</button>
-      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">→</button>
-    </div>
+            spiders.forEach(s => { s.update(); s.draw(); });
+            requestAnimationFrame(animate);
+        }
 
-    <div class="galeria">
-      <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Alma de lobo</p></div>
-      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
-      <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas del infinito</p></div>
-    </div>
-    
-    <footer>
-      © 2026 Sét-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
-      Contacto: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
-    </footer>
-  </div>
-
-  <script>
-    /* NAVEGACIÓN Y ESCALADO DINÁMICO */
-    function showTab(id) {
-      const sections = document.getElementsByClassName('content-section');
-      for (let s of sections) { s.style.display = 'none'; }
-      document.getElementById(id).style.display = 'block';
-      
-      const frame = document.getElementById('activeGameFrame');
-      if (id !== 'juegos') {
-        frame.dataset.savedSrc = frame.src;
-        frame.src = "about:blank";
-      } else if (frame.src === "about:blank" && frame.dataset.savedSrc) {
-        frame.src = frame.dataset.savedSrc;
-      }
-    }
-
-    function cargarJuego(ruta, nombre) {
-      const frame = document.getElementById('activeGameFrame');
-      const desc = document.getElementById('gameDescription');
-      frame.style.opacity = "0";
-      
-      // Ajuste automático para móvil al cargar [cite: 2025-07-23]
-      frame.onload = function() {
-          const style = frame.contentDocument.createElement('style');
-          style.textContent = `
-              #ui, #pongScore, .ui-panel { font-size: 5vw !important; }
-              canvas { width: 100% !important; height: auto !important; max-height: 100vh !important; }
-          `;
-          frame.contentDocument.head.appendChild(style);
-          frame.style.opacity = "1";
-      };
-
-      setTimeout(() => {
-        frame.src = ruta;
-        desc.innerText = "Cargando: " + nombre;
-      }, 200);
-    }
-
-    /* AUDIO HÍBRIDO API (60s) + MP3 */
-    let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
-    let audioTimeout, startTime;
-    const playerMP3 = document.getElementById('playerMP3');
-    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
-    
-    const playlist = [
-      { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
-      { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
-      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }
-    ];
-
-    function playNote(f, d) {
-      if (!audioCtx || isPaused) return;
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + d);
-    }
-
-    function sequence() {
-      if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
-      const melody = playlist[currentTrack].data;
-      playNote(melody[currentNote].f, melody[currentNote].d);
-      let dur = melody[currentNote].d;
-      currentNote = (currentNote + 1) % melody.length;
-      if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
-      audioTimeout = setTimeout(sequence, dur * 1000);
-    }
-
-    function togglePlay() {
-      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const track = playlist[currentTrack];
-      if (!isPlaying) {
-        isPlaying = true; isPaused = false;
-        startTime = Date.now();
-        document.getElementById('playBtn').innerText = "⏸ PAUSE";
-        document.getElementById('trackName').innerText = track.name;
-        if (track.type === 'api') sequence();
-        else { playerMP3.src = track.url; playerMP3.load(); playerMP3.play().catch(e => nextTrack()); playerMP3.onended = nextTrack; }
-      } else {
-        isPaused = !isPaused;
-        document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        if (track.type === 'api' && !isPaused) sequence();
-        else isPaused ? playerMP3.pause() : playerMP3.play();
-      }
-    }
-
-    function stopAudio() {
-      isPlaying = false; isPaused = false;
-      clearTimeout(audioTimeout);
-      playerMP3.pause(); playerMP3.currentTime = 0;
-      currentNote = 0;
-      document.getElementById('playBtn').innerText = "▶ PLAY";
-      document.getElementById('trackName').innerText = "Listo para iniciar";
-    }
-
-    function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
-    function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
-
-    /* CAROUSEL */
-    let currentS = 0;
-    function showSlide(i) {
-      const s = document.getElementById('slides');
-      if (i >= 3) i = 0; if (i < 0) i = 2;
-      s.style.transform = `translateX(-${i * 100}%)`;
-      currentS = i;
-    }
-    function nextSlide() { showSlide(currentS + 1); }
-    function prevSlide() { showSlide(currentS - 1); }
-    setInterval(nextSlide, 5000);
-
-    showTab('musica');
-  </script>
+        animate();
+    </script>
 </body>
 </html>
