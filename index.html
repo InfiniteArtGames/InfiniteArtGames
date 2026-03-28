@@ -252,27 +252,30 @@
       o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    function sequence() {
-      if (!isPlaying || isPaused) return;
-      const melody = playlist[currentTrack];
-      playNote(melody[currentNote].f, melody[currentNote].d);
-      let dur = melody[currentNote].d;
-      currentNote = (currentNote + 1) % melody.length;
-      if (currentNote === 0 && (Date.now() - startTime > 60000)) {
-  if (currentTrack === 1) {  // después de la segunda track
-    stopAudio();  // pausa sintetizador
-    const badwolf = document.getElementById('badwolfPlayer');
-    if (badwolf) {
-      badwolf.play();  // reproduce MP3
-      document.getElementById('trackName').innerText = "badwolf-Cover";
+function sequence() {
+  if (!isPlaying || isPaused) return;
+
+  const melody = playlist ;
+  playNote(melody .f, melody .d);
+  let dur = melody .d;
+  currentNote = (currentNote + 1) % melody.length;
+
+  if (currentNote === 0 && (Date.now() - startTime > 60000)) {
+    if (currentTrack === 1) {  // después de la segunda track
+      stopAudio();  // pausa sintetizador
+      const badwolf = document.getElementById('badwolfPlayer');
+      if (badwolf) {
+        badwolf.play();  // reproduce MP3
+        document.getElementById('trackName').innerText = "Bad Wolf (Cover)";
+      }
+    } else {
+      nextTrack();  // sigue normal para la primera
     }
-  } else {
-    nextTrack();  // sigue normal para la primera
+    return;
   }
-  return;
+
+  audioTimeout = setTimeout(sequence, dur * 1000);
 }
-      audioTimeout = setTimeout(sequence, dur * 1000);
-    }
 
     function togglePlay() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
