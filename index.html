@@ -8,310 +8,269 @@
     :root {
       --primary: #a020f0;
       --accent: #00d4ff;
+      --neon-ball: #39ff14;
       --bg: #050010;
-      --glass: rgba(160, 32, 240, 0.15);
     }
 
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: var(--bg);
       color: #fff;
-      font-family: 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       overflow-x: hidden;
-    }
-
-    /* Fondo con partículas sutiles */
-    body::after {
-      content: "";
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background-image: radial-gradient(circle at 2px 2px, var(--primary) 1px, transparent 0);
-      background-size: 50px 50px;
-      opacity: 0.05;
-      z-index: -1;
     }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
     h1 {
       color: var(--primary);
-      font-size: clamp(2.5em, 8vw, 4.5em);
+      font-size: clamp(2.5em, 8vw, 4em);
       margin: 0;
       text-shadow: 0 0 20px var(--primary);
-      letter-spacing: 5px;
-      font-weight: 900;
-      text-transform: uppercase;
+      letter-spacing: 2px;
+      animation: glow 3s infinite alternate;
     }
 
-    .poema {
-      font-size: 1.4em;
-      font-style: italic;
-      margin: 15px 0 40px;
-      color: #bbb;
-      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    @keyframes glow {
+      from { text-shadow: 0 0 10px var(--primary); }
+      to { text-shadow: 0 0 30px var(--primary), 0 0 60px var(--primary); }
     }
+
+    .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
 
     .bienvenida {
-      font-size: 1.15em;
-      line-height: 1.8;
-      max-width: 850px;
-      margin: 0 auto 50px;
-      padding: 30px;
-      background: var(--glass);
-      border-radius: 20px;
-      border: 1px solid rgba(160, 32, 240, 0.3);
-      backdrop-filter: blur(10px);
+      font-size: 1.3em; line-height: 1.6;
+      margin-bottom: 50px; padding: 20px;
+      background: rgba(160, 32, 240, 0.1);
+      border-radius: 15px;
     }
 
-    /* REPRODUCTOR AVANZADO */
-    .music-player {
-      margin: 40px auto;
-      padding: 35px;
-      background: linear-gradient(145deg, rgba(20,0,45,0.9), rgba(5,0,15,1));
-      border-radius: 35px;
-      border: 2px solid var(--primary);
-      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(160, 32, 240, 0.4);
-      max-width: 550px;
+    .main-card {
+      margin: 40px auto; padding: 30px;
+      background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
+      border-radius: 30px; border: 2px solid var(--primary);
+      box-shadow: 0 0 30px rgba(160, 32, 240, 0.5);
+      max-width: 600px;
     }
 
-    .track-info { margin-bottom: 25px; }
-    .track-status { color: var(--accent); font-size: 0.85em; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; }
-    .track-name { font-size: 1.6em; display: block; margin-top: 8px; font-weight: bold; color: #fff; text-shadow: 0 0 10px var(--primary); }
-
-    .controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
-
-    button {
-      background: rgba(255,255,255,0.05);
-      color: white;
-      border: 1px solid var(--primary);
-      padding: 14px 22px;
-      border-radius: 12px;
-      cursor: pointer;
-      font-weight: bold;
-      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      font-size: 0.9em;
-      min-width: 100px;
+    .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+    
+    .btn-nav {
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: white; border: none; padding: 12px 24px;
+      border-radius: 50px; cursor: pointer; font-weight: bold;
+      margin: 5px; transition: 0.3s;
+      box-shadow: 0 0 10px var(--primary);
     }
 
-    button:hover {
-      background: var(--primary);
-      box-shadow: 0 0 20px var(--primary);
-      transform: translateY(-5px);
+    .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
+
+    .content-section {
+      display: none; margin-top: 25px; padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      animation: fadeIn 0.5s;
     }
 
-    button:active { transform: scale(0.95); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    .galeria {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 30px;
-      margin: 60px 0;
+    #pongContainer {
+      position: relative; margin: 20px auto;
+      width: 400px; max-width: 100%;
+      touch-action: none;
     }
 
-    .personaje {
-      background: rgba(255,255,255,0.02);
-      padding: 20px;
-      border-radius: 25px;
-      border: 1px solid rgba(160, 32, 240, 0.1);
-      transition: 0.4s;
+    #pongCanvas {
+      background: #000; border: 3px solid var(--accent);
+      border-radius: 15px; width: 100%;
     }
 
-    .personaje:hover {
-      border-color: var(--accent);
-      background: rgba(0, 212, 255, 0.05);
-      transform: scale(1.05);
-      box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
-    }
+    .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
+    .personaje { width: 220px; }
+    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
 
-    .personaje img {
-      width: 100%;
-      border-radius: 20px;
-      border: 2px solid var(--primary);
-      margin-bottom: 15px;
-    }
-
-    footer {
-      margin-top: 80px;
-      padding: 40px;
-      font-size: 0.9em;
-      border-top: 1px solid rgba(160, 32, 240, 0.2);
-      color: #666;
-    }
-
-    a { color: var(--accent); text-decoration: none; font-weight: bold; }
+    footer { margin-top: 80px; font-size: 0.95em; color: #777; }
+    a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <header>
-      <h1>Infinite Art Games</h1>
-      <div class="poema">"El arte es magia liberada de la mentira de ser verdad"</div>
-    </header>
-
-    <section class="bienvenida">
-      Bienvenidos al cruce digital donde la imaginación de <strong>Sét-su</strong> cobra vida.<br>
+    <h1>Infinite Art Games</h1>
+    <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
+    
+    <div class="bienvenida">
+      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
       Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
       Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
-    </section>
+    </div>
 
-    <div class="music-player">
-      <div class="track-info">
-        <span class="track-status" id="status">Sinfonía Infinita</span>
-        <span class="track-name" id="trackName">Selecciona una Melodía</span>
+    <div class="main-card">
+      <div id="status" style="color:var(--accent); font-weight:bold;">Sinfonía del Infinito</div>
+      <div id="trackName" style="font-size:1.2em; margin:10px 0;">Listo para iniciar</div>
+      
+      <div class="controls">
+        <button onclick="prevTrack()" class="btn-nav">⏮</button>
+        <button id="playBtn" onclick="togglePlay()" class="btn-nav">▶ PLAY</button>
+        <button onclick="stopAudio()" class="btn-nav">■</button>
+        <button onclick="nextTrack()" class="btn-nav">⏭</button>
       </div>
 
-      <div class="controls">
-        <button onclick="prevTrack()">⏮ ANTERIOR</button>
-        <button id="playBtn" onclick="togglePlay()">▶ PLAY</button>
-        <button onclick="stopAudio()">■ STOP</button>
-        <button onclick="nextTrack()">⏭ SIGUIENTE</button>
+      <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
+        <button class="btn-nav" onclick="showTab('musica')">🎵 Música</button>
+        <button class="btn-nav" onclick="showTab('juegos')">🎮 Juegos</button>
+        <button class="btn-nav" onclick="showTab('diosas')">✨ Diosas</button>
+        <button class="btn-nav" onclick="showTab('arte')">🎨 Arte ∞</button>
+      </div>
+
+      <div id="musica" class="content-section">
+        <h3 style="color:var(--accent);">Playlist Épica</h3>
+        <p>01. Melodía de Sét-su</p>
+        <p>02. El Eco del Infinito</p>
+      </div>
+
+      <div id="juegos" class="content-section">
+        <h3 style="color:var(--accent);">Pong Neón ∞</h3>
+        <div id="pongContainer">
+          <canvas id="pongCanvas" width="400" height="300"></canvas>
+        </div>
+        <div id="pongScore" style="font-size:1.5em;">0 - 0</div>
+        <div id="winnerAnnounce" style="color:var(--neon-ball); font-weight:bold; height:20px;"></div>
+      </div>
+
+      <div id="diosas" class="content-section">
+        <h3 style="color:var(--accent);">Diosas del Infinito</h3>
+        <p>Aisha · Shana · Katy · Merlina · Camila</p>
+      </div>
+
+      <div id="arte" class="content-section">
+        <h3 style="color:var(--accent);">Arte Infinito ∞</h3>
+        <p>Obras generadas por Infinite Art Games</p>
       </div>
     </div>
 
     <div class="galeria">
-      <div class="personaje">
-        <img src="images/alma-de-lobo.jpg" alt="Setsu - Lobo Negro">
-        <p><strong>Alma de lobo</strong><br>Setsu, el lado animal</p>
-      </div>
-      <div class="personaje">
-        <img src="images/shana-infinito.jpg" alt="Shana - Diosa">
-        <p><strong>Shana ∞</strong><br>Diosa del Infinito</p>
-      </div>
-      <div class="personaje">
-        <img src="images/diosas-del-infinito.jpg" alt="Diosas">
-        <p><strong>Diosas del Infinito</strong><br>Creaciones de Art Games</p>
-      </div>
+      <div class="personaje"><img src="images/alma-de-lobo.jpg" alt="Setsu"><p>Alma de lobo</p></div>
+      <div class="personaje"><img src="images/shana-infinito.jpg" alt="Shana"><p>Shana ∞</p></div>
+      <div class="personaje"><img src="images/diosas-del-infinito.jpg" alt="Diosas"><p>Diosas del infinito</p></div>
     </div>
     
     <footer>
-      © 2026 <strong>Sét-su</strong> - Infinite Art Games S.A. - Todos los derechos reservados.<br><br>
-      Explora más en: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
+      © 2026 Sét-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
+      Contacto: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
     </footer>
   </div>
 
   <script>
-    let audioCtx = null;
-    let isPlaying = false;
-    let isPaused = false;
-    let currentTrackIndex = 0;
-    let currentNoteIndex = 0;
-    let nextNoteTimeout = null;
-    let melodyStartTime = 0;
-
-    const pianoNotes = {
-      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88, 
-      C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880.00, B5: 987.77
-    };
-
-    const track1 = [
-      {f: pianoNotes.A4, d: 0.6}, {f: pianoNotes.C5, d: 0.6}, {f: pianoNotes.E5, d: 1.0},
-      {f: pianoNotes.G4, d: 0.6}, {f: pianoNotes.B4, d: 0.6}, {f: pianoNotes.D5, d: 1.0},
-      {f: pianoNotes.F4, d: 0.6}, {f: pianoNotes.A4, d: 0.6}, {f: pianoNotes.C5, d: 1.0},
-      {f: pianoNotes.C4, d: 0.4}, {f: pianoNotes.E4, d: 0.4}, {f: pianoNotes.G4, d: 0.4}, {f: pianoNotes.B4, d: 1.2}
-    ];
-
-    const track2 = [
-      {f: pianoNotes.E4, d: 0.8}, {f: pianoNotes.A4, d: 0.8}, {f: pianoNotes.C5, d: 1.2},
-      {f: pianoNotes.D5, d: 0.6}, {f: pianoNotes.C5, d: 0.6}, {f: pianoNotes.B4, d: 0.6}, {f: pianoNotes.G4, d: 1.0},
-      {f: pianoNotes.F4, d: 0.5}, {f: pianoNotes.G4, d: 0.5}, {f: pianoNotes.A4, d: 0.5}, {f: pianoNotes.B4, d: 0.5}, {f: pianoNotes.C5, d: 1.5}
-    ];
-
-    const playlist = [track1, track2];
-    const trackTitles = ["01. Melodía de Sét-su", "02. El Eco del Infinito"];
-
-    function createPianoSound(freq, duration) {
-      if (!audioCtx || isPaused) return;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = 'triangle';
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-      gain.gain.setValueAtTime(0, audioCtx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); 
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-
-      osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start();
-      osc.stop(audioCtx.currentTime + duration);
+    /* NAVEGACIÓN CORREGIDA */
+    function showTab(id) {
+      const sections = document.getElementsByClassName('content-section');
+      for (let s of sections) { s.style.display = 'none'; }
+      document.getElementById(id).style.display = 'block';
+      
+      // Control del juego
+      if (id === 'juegos') {
+        isPongPaused = false;
+        resetBall();
+      } else {
+        isPongPaused = true;
+      }
     }
 
-    function playSequence() {
+    /* AUDIO SINTETIZADO */
+    let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
+    let audioTimeout, startTime;
+    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
+    const playlist = [
+      [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}, {f: notes.G4, d: 0.6}, {f: notes.B4, d: 1.2}],
+      [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}, {f: notes.D5, d: 1.1}]
+    ];
+    const titles = ["Melodía de Sét-su", "Eco del Infinito"];
+
+    function playNote(f, d) {
+      if (!audioCtx || isPaused) return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + d);
+    }
+
+    function sequence() {
       if (!isPlaying || isPaused) return;
-
-      const currentMelody = playlist[currentTrackIndex];
-      const note = currentMelody[currentNoteIndex];
-      createPianoSound(note.f, note.d);
-
-      currentNoteIndex++;
-
-      // Lógica de duración de 1 minuto (60,000 ms)
-      const elapsedTime = Date.now() - melodyStartTime;
-
-      if (currentNoteIndex >= currentMelody.length) {
-        currentNoteIndex = 0; // Reinicia el bucle de la melodía actual
-        
-        if (elapsedTime > 60000) { // Si ya pasó un minuto, cambia de canción
-          nextTrack();
-          return;
-        }
-      }
-      
-      nextNoteTimeout = setTimeout(playSequence, note.d * 1000);
+      const melody = playlist[currentTrack];
+      playNote(melody[currentNote].f, melody[currentNote].d);
+      let dur = melody[currentNote].d;
+      currentNote = (currentNote + 1) % melody.length;
+      if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
+      audioTimeout = setTimeout(sequence, dur * 1000);
     }
 
     function togglePlay() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      
-      if (!isPlaying) {
-        isPlaying = true;
-        isPaused = false;
-        melodyStartTime = Date.now();
+      if (!isPlaying) { 
+        isPlaying = true; isPaused = false; startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
-        document.getElementById('trackName').innerText = trackTitles[currentTrackIndex];
-        document.getElementById('status').innerText = "Reproduciendo...";
-        playSequence();
-      } else {
-        isPaused = !isPaused;
+        document.getElementById('trackName').innerText = titles[currentTrack];
+        sequence(); 
+      } else { 
+        isPaused = !isPaused; 
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        document.getElementById('status').innerText = isPaused ? "En Pausa" : "Reproduciendo...";
-        if (!isPaused) playSequence();
+        if (!isPaused) sequence();
       }
     }
 
-    function stopAudio() {
-      isPlaying = false;
-      isPaused = false;
-      currentNoteIndex = 0;
-      clearTimeout(nextNoteTimeout);
-      document.getElementById('playBtn').innerText = "▶ PLAY";
-      document.getElementById('status').innerText = "Detenido";
-      document.getElementById('trackName').innerText = "Selecciona una Melodía";
+    function stopAudio() { isPlaying = false; isPaused = false; clearTimeout(audioTimeout); document.getElementById('playBtn').innerText = "▶ PLAY"; }
+    function nextTrack() { currentTrack = (currentTrack + 1) % playlist.length; currentNote = 0; stopAudio(); togglePlay(); }
+    function prevTrack() { currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; currentNote = 0; stopAudio(); togglePlay(); }
+
+    /* PONG INFINTIO REPARADO */
+    const canvas = document.getElementById('pongCanvas'), ctx = canvas.getContext('2d');
+    let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0, isPongPaused = true;
+    const WIN_SCORE = 10;
+
+    function resetBall() { bX = 200; bY = 150; bSX = 4; bSY = 3; }
+
+    function updatePong() {
+      if (isPongPaused) return;
+      bX += bSX; bY += bSY;
+      if (bY < 0 || bY > 300) bSY *= -1;
+      
+      // Infinito central (Acelerador)
+      if (Math.abs(bX - 200) < 30 && Math.abs(bY - 150) < 30) { bSX *= 1.01; bSY *= 1.01; }
+
+      if (bX < 25 && bY > aY && bY < aY + 80) bSX = Math.abs(bSX);
+      if (bX > 375 && bY > pY && bY < pY + 80) bSX = -Math.abs(bSX);
+      
+      if (bX < 0) { aS++; if(aS>=WIN_SCORE) endGame("IA"); resetBall(); } 
+      if (bX > 400) { pS++; if(pS>=WIN_SCORE) endGame("TÚ"); resetBall(); }
+      
+      if (aY + 40 < bY) aY += 2; else aY -= 2;
+      drawPong();
     }
 
-    function nextTrack() {
-      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
-      resetAndPlay();
+    function drawPong() {
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 400, 300);
+      ctx.strokeStyle = 'rgba(160, 32, 240, 0.4)'; ctx.strokeText('∞', 185, 160);
+      ctx.fillStyle = '#00d4ff'; ctx.fillRect(10, aY, 10, 80); ctx.fillRect(380, pY, 10, 80);
+      ctx.fillStyle = '#39ff14'; ctx.beginPath(); ctx.arc(bX, bY, 8, 0, Math.PI*2); ctx.fill();
+      document.getElementById('pongScore').innerText = pS + " - " + aS;
     }
 
-    function prevTrack() {
-      currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
-      resetAndPlay();
+    function endGame(winner) {
+      isPongPaused = true;
+      document.getElementById('winnerAnnounce').innerText = "¡GANADOR: " + winner + "!";
+      pS = 0; aS = 0;
+      setTimeout(() => { document.getElementById('winnerAnnounce').innerText = ""; isPongPaused = false; }, 3000);
     }
 
-    function resetAndPlay() {
-      clearTimeout(nextNoteTimeout);
-      currentNoteIndex = 0;
-      melodyStartTime = Date.now();
-      isPlaying = true;
-      isPaused = false;
-      document.getElementById('trackName').innerText = trackTitles[currentTrackIndex];
-      document.getElementById('playBtn').innerText = "⏸ PAUSE";
-      playSequence();
-    }
+    canvas.addEventListener('mousemove', e => { const r = canvas.getBoundingClientRect(); pY = e.clientY - r.top - 40; });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); const r = canvas.getBoundingClientRect(); pY = e.touches[0].clientY - r.top - 40; }, { passive: false });
+
+    setInterval(updatePong, 20);
+    showTab('musica'); // Inicialización
   </script>
 </body>
 </html>
