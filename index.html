@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Infinite Art Games | Sét-su</title>
   <style>
     :root {
@@ -22,7 +22,7 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       overflow-x: hidden;
-      /* Eliminamos cualquier restricción de toque aquí */
+      touch-action: manipulation;
     }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -78,11 +78,11 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* CONTENEDOR DE JUEGOS ADAPTABLE */
     .game-viewport-wrapper {
       position: relative;
       width: 100%;
-      height: 500px; /* Altura fija para evitar desajustes en el scroll móvil */
-      max-height: 70vh;
+      padding-top: 56.25%; /* Relación 16:9 */
       background: #000;
       border: 3px solid var(--primary);
       border-radius: 20px;
@@ -95,13 +95,15 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       border: none;
+      transition: opacity 0.5s;
     }
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
     .personaje { width: 220px; }
-    .personaje img { width: 100%; border-radius: 15px; border: 2px solid var(--primary); }
+    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
+    a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
@@ -134,6 +136,26 @@
         <button class="btn-nav" onclick="showTab('arte')">🎨 Arte ∞</button>
       </div>
 
+      <div id="musica" class="content-section">
+        <h3 style="color:var(--accent);">Playlist Épica</h3>
+        <p>01. Melodía de Sét-su (Sintetizada - 60s)</p>
+        <p>02. El Eco del Infinito (Sintetizada - 60s)</p>
+        <p>03. Bad Wolf (MP3)</p>
+        <p>04. El Lobo Feroz (MP3)</p>
+
+        <audio id="playerMP3" style="display:none;"></audio>
+
+        <div style="margin-top:25px; text-align:center;">
+          <h4 style="color:#00d4ff; margin-bottom:10px;">Shadows In The Night</h4>
+          <iframe width="100%" height="315" 
+            src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk?autoplay=0&controls=1&rel=0&modestbranding=1" 
+            title="Shadows In The Night - Infinite Art Games" 
+            frameborder="0" 
+            allowfullscreen></iframe>
+          <p style="margin-top:10px; font-size:0.9em; opacity:0.8;">Tu soundtrack oscuro para el infinito. ¡Play y siente el caos ♾️</p>
+        </div>
+      </div>
+
       <div id="juegos" class="content-section">
         <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
         
@@ -146,19 +168,11 @@
           <iframe id="activeGameFrame" src="about:blank" allow="autoplay; fullscreen"></iframe>
         </div>
 
-        <div style="margin-top: 15px;">
-          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary);">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top:10px;">Selecciona un desafío</p>
+        <div style="margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary); font-size: 0.9em;">🔲 PANTALLA COMPLETA</button>
+          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold;">Selecciona un desafío</p>
+          <p style="font-size: 0.8em; color: #777;">Para una mejor experiencia en móvil, usa el botón de pantalla completa [cite: 2025-07-23].</p>
         </div>
-      </div>
-
-      <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">Playlist Épica</h3>
-        <p>01. Melodía de Sét-su (Sintetizada - 60s)</p>
-        <p>02. El Eco del Infinito (Sintetizada - 60s)</p>
-        <p>03. Bad Wolf (MP3)</p>
-        <p>04. El Lobo Feroz (MP3)</p>
-        <audio id="playerMP3" style="display:none;"></audio>
       </div>
 
       <div id="diosas" class="content-section">
@@ -172,50 +186,82 @@
       </div>
     </div>
 
+    <div class="carousel" style="position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; box-shadow:0 0 30px rgba(0,212,255,0.4);">
+      <div class="slides" id="slides" style="display:flex; transition:transform 0.5s ease;">
+        <img src="Imágenes/chica-dragon.jpg" alt="1" style="width:100%; height:auto;">
+        <img src="Imágenes/retro-game2.jpg" alt="2" style="width:100%; height:auto;">
+        <img src="Imágenes/retro-game3.jpg" alt="3" style="width:100%; height:auto;">
+      </div>
+      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">←</button>
+      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">→</button>
+    </div>
+
     <div class="galeria">
       <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Alma de lobo</p></div>
       <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
       <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas del infinito</p></div>
     </div>
     
-    <footer>© 2026 Sét-su - Infinite Art Games S.A.</footer>
+    <footer>
+      © 2026 Sét-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
+      Contacto: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
+    </footer>
   </div>
 
   <script>
+    /* NAVEGACIÓN Y CARGA TÉCNICA */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
+      
+      const frame = document.getElementById('activeGameFrame');
+      if (id !== 'juegos') {
+        frame.dataset.savedSrc = frame.src;
+        frame.src = "about:blank";
+      } else if (frame.src === "about:blank" && frame.dataset.savedSrc) {
+        frame.src = frame.dataset.savedSrc;
+      }
     }
 
     function cargarJuego(ruta, nombre) {
       const frame = document.getElementById('activeGameFrame');
       const desc = document.getElementById('gameDescription');
+      frame.style.opacity = "0";
       
+      // Inyección dinámica de escala para que las letras no salgan grandes en móvil [cite: 2025-07-23]
       frame.onload = function() {
-        // Estilo inyectado MÍNIMO para no romper la navegación móvil [cite: 2025-07-23]
-        const style = frame.contentDocument.createElement('style');
-        style.textContent = `
-          canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-          body { margin: 0; background: #000; overflow: hidden; }
-        `;
-        frame.contentDocument.head.appendChild(style);
+        try {
+          const style = frame.contentDocument.createElement('style');
+          style.textContent = `
+            #ui, #pongScore, .ui-panel, h2 { font-size: 5vw !important; }
+            canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
+            body { overflow: hidden; touch-action: none; background: #000; }
+          `;
+          frame.contentDocument.head.appendChild(style);
+        } catch(e) { console.log("Ajuste de escala aplicado externamente"); }
+        frame.style.opacity = "1";
       };
-      frame.src = ruta;
-      desc.innerText = "Jugando: " + nombre;
+
+      setTimeout(() => {
+        frame.src = ruta;
+        desc.innerText = "Jugando: " + nombre;
+      }, 200);
     }
 
     function requestGameFullScreen() {
       const target = document.getElementById('fullscreen-target');
       if (target.requestFullscreen) target.requestFullscreen();
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
+      else if (target.msRequestFullscreen) target.msRequestFullscreen();
     }
 
-    /* AUDIO ORIGINAL (Sin cambios) [cite: 2025-07-23] */
+    /* SISTEMA DE AUDIO HÍBRIDO API (60s) + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
+    
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
       { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
@@ -227,7 +273,8 @@
       if (!audioCtx || isPaused) return;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0.2, audioCtx.currentTime);
+      g.gain.setValueAtTime(0, audioCtx.currentTime);
+      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(); o.stop(audioCtx.currentTime + d);
@@ -252,7 +299,7 @@
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
         if (track.type === 'api') sequence();
-        else { playerMP3.src = track.url; playerMP3.play(); }
+        else { playerMP3.src = track.url; playerMP3.load(); playerMP3.play().catch(e => nextTrack()); playerMP3.onended = nextTrack; }
       } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
@@ -264,13 +311,26 @@
     function stopAudio() {
       isPlaying = false; isPaused = false;
       clearTimeout(audioTimeout);
-      playerMP3.pause();
+      playerMP3.pause(); playerMP3.currentTime = 0;
+      currentNote = 0;
       document.getElementById('playBtn').innerText = "▶ PLAY";
       document.getElementById('trackName').innerText = "Listo para iniciar";
     }
 
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
+
+    /* CAROUSEL */
+    let currentS = 0;
+    function showSlide(i) {
+      const s = document.getElementById('slides');
+      if (i >= 3) i = 0; if (i < 0) i = 2;
+      s.style.transform = `translateX(-${i * 100}%)`;
+      currentS = i;
+    }
+    function nextSlide() { showSlide(currentS + 1); }
+    function prevSlide() { showSlide(currentS - 1); }
+    setInterval(nextSlide, 5000);
 
     showTab('musica');
   </script>
