@@ -16,6 +16,7 @@
       margin: 0;
       padding: 0;
       background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
+      background-attachment: fixed;
       background-color: #000;
       color: #fff;
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -102,13 +103,14 @@
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
     
     <div class="bienvenida">
-      Bienvenidos al cruce digital de <strong>David Rodríguez</strong>.<br>
-      Donde la IA se fusiona con el arte para crear experiencias de <strong>Infinite Art Games</strong>.
+      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
+      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
+      Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
     </div>
 
     <div class="main-card">
       <div id="status" style="color:var(--accent); font-weight:bold;">Sinfonía del Infinito</div>
-      <div id="trackName" style="font-size:1.2em; margin:10px 0; min-height: 1.5em;">Listo para iniciar</div>
+      <div id="trackName" style="font-size:1.2em; margin:10px 0;">Listo para iniciar</div>
       
       <div class="controls">
         <button onclick="prevTrack()" class="btn-nav">⏮</button>
@@ -125,24 +127,27 @@
       </div>
 
       <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">Playlist del Infinito</h3>
-        <p>01. Melodía de Sét-su (Sintetizada)</p>
-        <p>02. El Eco del Infinito (Sintetizada)</p>
-        <p>03. Bad Wolf (MP3)</p>
-        <p>04. Aguadulce (Próximamente)</p>
-        
-        <audio id="mainAudioPlayer" style="display:none;"></audio>
+        <h3 style="color:var(--accent);">Playlist Épica</h3>
+        <p>01. Melodía de Sét-su</p>
+        <p>02. El Eco del Infinito</p>
+        <p>03. Bad Wolf</p>
+        <p>04. El Lobo Feroz (Próximamente)</p>
+
+        <audio id="playerMP3" style="display:none;"></audio>
 
         <div style="margin-top:25px; text-align:center;">
-          <h4 style="color:#00d4ff;">Shadows In The Night</h4>
-          <iframe width="100%" height="200" 
-            src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" 
-            frameborder="0" allowfullscreen></iframe>
+          <h4 style="color:#00d4ff; margin-bottom:10px;">Shadows In The Night</h4>
+          <iframe width="100%" height="315" 
+            src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk?autoplay=0&controls=1&rel=0&modestbranding=1" 
+            title="Shadows In The Night - Infinite Art Games" 
+            frameborder="0" 
+            allowfullscreen></iframe>
+          <p style="margin-top:10px; font-size:0.9em; opacity:0.8;">Tu soundtrack oscuro para el infinito. ¡Play y siente el caos ♾️</p>
         </div>
       </div>
 
       <div id="juegos" class="content-section">
-        <h3 style="color:var(--accent);">Bing-Bang∞ Neón</h3>
+        <h3 style="color:var(--accent);">Bing-Bang∞ Neón </h3>
         <div id="pongContainer">
           <canvas id="pongCanvas" width="400" height="300"></canvas>
         </div>
@@ -157,7 +162,7 @@
 
       <div id="arte" class="content-section">
         <h3 style="color:var(--accent);">Arte Infinito ∞</h3>
-        <p>Obras de Sét-su</p>
+        <p>Obras generadas por Infinite Art Games</p>
       </div>
     </div>
 
@@ -167,13 +172,14 @@
         <img src="Imágenes/retro-game2.jpg" alt="2" style="width:100%; height:auto;">
         <img src="Imágenes/retro-game3.jpg" alt="3" style="width:100%; height:auto;">
       </div>
-      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; background:rgba(0,0,0,0.5); color:white; border:none; padding:15px; cursor:pointer; border-radius:50%;">←</button>
-      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; background:rgba(0,0,0,0.5); color:white; border:none; padding:15px; cursor:pointer; border-radius:50%;">→</button>
+      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">←</button>
+      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">→</button>
     </div>
 
     <div class="galeria">
-      <div class="personaje"><img src="images/alma-de-lobo.jpg" alt="Setsu"><p>Setsu</p></div>
+      <div class="personaje"><img src="images/alma-de-lobo.jpg" alt="Setsu"><p>Alma de lobo</p></div>
       <div class="personaje"><img src="images/shana-infinito.jpg" alt="Shana"><p>Shana ∞</p></div>
+      <div class="personaje"><img src="images/diosas-del-infinito.jpg" alt="Diosas"><p>Diosas del infinito</p></div>
     </div>
     
     <footer>
@@ -183,20 +189,26 @@
   </div>
 
   <script>
-    /* --- LÓGICA DE AUDIO HÍBRIDA (API + MP3) --- */
+    /* NAVEGACIÓN */
+    function showTab(id) {
+      const sections = document.getElementsByClassName('content-section');
+      for (let s of sections) { s.style.display = 'none'; }
+      document.getElementById(id).style.display = 'block';
+      isPongPaused = (id !== 'juegos');
+    }
+
+    /* SISTEMA DE AUDIO HÍBRIDO API + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout;
-    const audioTag = document.getElementById('mainAudioPlayer');
+    const playerMP3 = document.getElementById('playerMP3');
 
-    // Notas para la API
-    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, E4: 329 };
+    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
     
-    // PLAYLIST MAESTRA
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
       { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
       { type: 'mp3', name: "Bad Wolf", url: "https://github.com/InfiniteArtGames/InfiniteArtGames/main/Música/badwolf-cover.mp3" },
-      { type: 'mp3', name: "Aguadulce", url: "URL_DE_AGUADULCE_AQUI.mp3" } // Solo cambia la URL cuando la tengas
+      { type: 'mp3', name: "El Lobo Feroz", url: "URL_DE_TU_NUEVO_MP3_AQUI.mp3" }
     ];
 
     function playNote(f, d) {
@@ -216,10 +228,8 @@
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
       currentNote++;
-
       if (currentNote >= melody.length) {
         currentNote = 0;
-        // Esperamos un poco antes de pasar a la siguiente pista automáticamente
         audioTimeout = setTimeout(nextTrack, dur * 1000 + 500);
       } else {
         audioTimeout = setTimeout(sequence, dur * 1000);
@@ -227,62 +237,36 @@
     }
 
     function togglePlay() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const track = playlist[currentTrack];
       
       if (!isPlaying) {
-        isPlaying = true;
-        isPaused = false;
+        isPlaying = true; isPaused = false;
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-
-        if (track.type === 'api') {
-          if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-          sequence();
-        } else {
-          audioTag.src = track.url;
-          audioTag.play();
-          audioTag.onended = () => nextTrack();
-        }
+        if (track.type === 'api') sequence();
+        else { playerMP3.src = track.url; playerMP3.play(); playerMP3.onended = nextTrack; }
       } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
         if (track.type === 'api' && !isPaused) sequence();
-        else isPaused ? audioTag.pause() : audioTag.play();
+        else isPaused ? playerMP3.pause() : playerMP3.play();
       }
     }
 
     function stopAudio() {
-      isPlaying = false;
-      isPaused = false;
+      isPlaying = false; isPaused = false;
       clearTimeout(audioTimeout);
-      audioTag.pause();
-      audioTag.currentTime = 0;
+      playerMP3.pause(); playerMP3.currentTime = 0;
       currentNote = 0;
       document.getElementById('playBtn').innerText = "▶ PLAY";
-      document.getElementById('trackName').innerText = "Reposo...";
+      document.getElementById('trackName').innerText = "Listo para iniciar";
     }
 
-    function nextTrack() {
-      stopAudio();
-      currentTrack = (currentTrack + 1) % playlist.length;
-      togglePlay();
-    }
+    function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
+    function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
-    function prevTrack() {
-      stopAudio();
-      currentTrack = (currentTrack - 1 + playlist.length) % playlist.length;
-      togglePlay();
-    }
-
-    /* --- RESTO DE FUNCIONES (PONG, TABS, CAROUSEL) --- */
-    function showTab(id) {
-      const sections = document.getElementsByClassName('content-section');
-      for (let s of sections) s.style.display = 'none';
-      document.getElementById(id).style.display = 'block';
-      isPongPaused = (id !== 'juegos');
-    }
-
-    // Pong y Carrusel se mantienen igual para no alterar tu diseño...
+    /* PONG */
     const canvas = document.getElementById('pongCanvas'), ctx = canvas.getContext('2d');
     let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0, isPongPaused = true;
     function updatePong() {
@@ -301,15 +285,17 @@
     canvas.addEventListener('mousemove', e => { pY = e.clientY - canvas.getBoundingClientRect().top - 40; });
     setInterval(updatePong, 20);
 
+    /* CAROUSEL */
     let currentS = 0;
-    function showSlide(index) {
+    function showSlide(i) {
       const s = document.getElementById('slides');
-      if (index >= 3) index = 0; if (index < 0) index = 2;
-      s.style.transform = `translateX(-${index * 100}%)`;
-      currentS = index;
+      if (i >= 3) i = 0; if (i < 0) i = 2;
+      s.style.transform = `translateX(-${i * 100}%)`;
+      currentS = i;
     }
     function nextSlide() { showSlide(currentS + 1); }
     function prevSlide() { showSlide(currentS - 1); }
+    setInterval(nextSlide, 5000);
 
     showTab('musica');
   </script>
