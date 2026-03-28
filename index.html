@@ -258,7 +258,19 @@
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
       currentNote = (currentNote + 1) % melody.length;
-      if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
+      if (currentNote === 0 && (Date.now() - startTime > 60000)) {
+  if (currentTrack === 1) {  // después de la segunda track
+    stopAudio();  // pausa sintetizador
+    const badwolf = document.getElementById('badwolfPlayer');
+    if (badwolf) {
+      badwolf.play();  // reproduce MP3
+      document.getElementById('trackName').innerText = "Bad Wolf (Cover)";
+    }
+  } else {
+    nextTrack();  // sigue normal para la primera
+  }
+  return;
+}
       audioTimeout = setTimeout(sequence, dur * 1000);
     }
 
