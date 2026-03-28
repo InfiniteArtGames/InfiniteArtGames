@@ -77,10 +77,11 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* CORRECCIÓN RESPONSIVA PARA JUEGOS */
     .game-viewport {
       position: relative;
       width: 100%;
-      padding-top: 56.25%;
+      padding-top: 56.25%; /* Relación de aspecto 16:9 */
       background: #000;
       border: 2px solid var(--primary);
       border-radius: 20px;
@@ -159,7 +160,7 @@
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
           <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞ Neón')">🎮 Bing-Bang∞</button>
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Aranitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
         </div>
 
         <div class="game-viewport">
@@ -206,14 +207,13 @@
   </div>
 
   <script>
-    /* NAVEGACIÓN Y CONTROL DE JUEGOS EXTERNOS */
+    /* NAVEGACIÓN Y ESCALADO DINÁMICO */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
       
       const frame = document.getElementById('activeGameFrame');
-      // Pausa dinámica: limpia el frame al salir de la pestaña [cite: 2025-07-23]
       if (id !== 'juegos') {
         frame.dataset.savedSrc = frame.src;
         frame.src = "about:blank";
@@ -226,14 +226,25 @@
       const frame = document.getElementById('activeGameFrame');
       const desc = document.getElementById('gameDescription');
       frame.style.opacity = "0";
+      
+      // Ajuste automático para móvil al cargar [cite: 2025-07-23]
+      frame.onload = function() {
+          const style = frame.contentDocument.createElement('style');
+          style.textContent = `
+              #ui, #pongScore, .ui-panel { font-size: 5vw !important; }
+              canvas { width: 100% !important; height: auto !important; max-height: 100vh !important; }
+          `;
+          frame.contentDocument.head.appendChild(style);
+          frame.style.opacity = "1";
+      };
+
       setTimeout(() => {
         frame.src = ruta;
         desc.innerText = "Cargando: " + nombre;
-        frame.style.opacity = "1";
       }, 200);
     }
 
-    /* SISTEMA DE AUDIO HÍBRIDO API (60s) + MP3 */
+    /* AUDIO HÍBRIDO API (60s) + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
@@ -263,7 +274,6 @@
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
       currentNote = (currentNote + 1) % melody.length;
-      // Lógica de 60 segundos por pista API [cite: 2025-07-23]
       if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
       audioTimeout = setTimeout(sequence, dur * 1000);
     }
