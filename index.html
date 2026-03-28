@@ -14,9 +14,7 @@
 
     body {
       margin: 0; padding: 0;
-      background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
-      background-attachment: fixed;
-      background-color: #000; /* por si la imagen falla, queda negro */
+      background: var(--bg);
       color: #fff;
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
@@ -150,6 +148,36 @@
         <p>Obras generadas por Infinite Art Games</p>
       </div>
     </div>
+
+<!-- Carousel de imágenes retro (debajo de música) -->
+<div class="carousel" style="position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; box-shadow:0 0 30px rgba(0,212,255,0.4);">
+  <div class="slides" id="slides" style="display:flex; transition:transform 0.5s ease;">
+    <img src="Imágenes/retro-game1.jpg" alt="Juego retro 1" style="width:100%; height:auto; border-radius:20px;">
+    <img src="Imágenes/retro-game2.jpg" alt="Juego retro 2" style="width:100%; height:auto; border-radius:20px;">
+    <img src="Imágenes/retro-game3.jpg" alt="Juego retro 3" style="width:100%; height:auto; border-radius:20px;">
+  </div>
+
+  <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer; font-size:1.5em;">←</button>
+  <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer; font-size:1.5em;">→</button>
+</div>
+
+<script>
+  let current = 0;
+  const slides = document.getElementById('slides');
+  const total = slides.children.length;
+
+  function showSlide(index) {
+    if (index >= total) index = 0;
+    if (index < 0) index = total - 1;
+    slides.style.transform = `translateX(-${index * 100}%)`;
+    current = index;
+  }
+
+  function nextSlide() { showSlide(current + 1); }
+  function prevSlide() { showSlide(current - 1); }
+
+  setInterval(nextSlide, 5000); // auto cada 5 seg
+</script>
 
     <div class="galeria">
       <div class="personaje"><img src="images/alma-de-lobo.jpg" alt="Setsu"><p>Alma de lobo</p></div>
