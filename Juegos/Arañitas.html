@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Arañitas Multicolor</title>
+    <style>
+        body {
+            background-color: #111;
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: none;
+        }
+        #gameContainer {
+            position: relative;
+            width: 800px;
+            height: 600px;
+        }
+        canvas {
+            border: 2px solid #555;
+            background-color: #000;
+            cursor: pointer;
+            display: block;
+        }
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        #analogStick {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            pointer-events: all;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        #analogStick.active {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: #fff;
+        }
+        #stickKnob {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(100, 200, 255, 0.7);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            position: absolute;
+            transition: none;
+        }
+        #fireButton {
+            width: 80px;
+            height: 80px;
+            background-color: rgba(255, 0, 0, 0.5);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: all;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        #fireButton:active, #fireButton.active {
+            background-color: rgba(255, 0, 0, 0.8);
+            transform: scale(0.95);
+        }
+        #gameInfo {
+            margin-top: 10px;
+            font-size: 24px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div id="controls">
+            <div id="analogStick">
+                <div id="stickKnob"></div>
+            </div>
+            <div id="fireButton">FUEGO</div>
+        </div>
+    </div>
+
+    <div id="gameInfo">
+        <div>Puntuación: <span id="score">0</span></div>
+        <div>Enemigos Destruidos: <span id="kills">0</span></div>
+        <div>Vidas: <span id="lives">3</span></div>
+        <div>Tiempo: <span id="timer">00:00</span></div>
+        <div id="powerUpTimer" style="color:gold; display:none;">Triple Disparo: <span id="timerValue">15</span>s</div>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE AUDIO ---
+        let audioContext;
+        function initAudio() { if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
+        function playShootSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'square'; osc.frequency.setValueAtTime(800, audioContext.currentTime); osc.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1); gain.gain.setValueAtTime(0.3, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1); osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.1); }
+        function playSpiderSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); const lfo = audioContext.createOscillator(); lfo.connect(osc.frequency); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(150, audioContext.currentTime); lfo.type = 'sine'; lfo.frequency.setValueAtTime(8, audioContext.currentTime); gain.gain.setValueAtTime(0.2, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3); osc.start(audioContext.currentTime); lfo.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.3); lfo.stop(audioContext.currentTime + 0.3); }
+        function playPowerUpSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(523.25, audioContext.currentTime); osc.frequency.setValueAtTime(659.25, audioContext.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, audioContext.currentTime + 0.2); gain.gain.setValueAtTime(0.3, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4); osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.4); }
+        function playHealthSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sine'; osc.frequency.setValueAtTime(440, audioContext.currentTime); osc.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.2); gain.gain.setValueAtTime(0.3, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4); osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.4); }
+        function playHitSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(100, audioContext.currentTime); gain.gain.setValueAtTime(0.4, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2); osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.2); }
+        function playWebSound() { if (!audioContext) return; const osc = audioContext.createOscillator(); const gain = audioContext.createGain(); osc.connect(gain); gain.connect(audioContext.destination); osc.type = 'triangle'; osc.frequency.setValueAtTime(80, audioContext.currentTime); osc.frequency.exponentialRampToValueAtTime(40, audioContext.currentTime + 0.2); gain.gain.setValueAtTime(0.2, audioContext.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3); osc.start(audioContext.currentTime); osc.stop(audioContext.currentTime + 0.3); }
+
+        // --- CONFIGURACIÓN DEL CANVAS Y ELEMENTOS HTML ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreDisplay = document.getElementById('score');
+        const killsDisplay = document.getElementById('kills');
+        const livesDisplay = document.getElementById('lives');
+        const timerDisplay = document.getElementById('timer');
+        const powerUpTimerDisplay = document.getElementById('powerUpTimer');
+        const timerValueDisplay = document.getElementById('timerValue');
+        const ANCHO_VENTANA = canvas.width;
+        const ALTO_VENTANA = canvas.height;
+
+        // --- ESTADOS DEL JUEGO ---
+        const GameState = { START_SCREEN: 'START_SCREEN', MENU: 'MENU', PLAYING: 'PLAYING', GAME_OVER: 'GAME_OVER', OPTIONS: 'OPTIONS', CREATOR: 'CREATOR' };
+        let currentState = GameState.START_SCREEN;
+
+        // --- COLORES ---
+        const NEGRO = '#000000'; const BLANCO = '#FFFFFF'; const AZUL = '#3296FA'; const VERDE = '#32FF32';
+        const ROJO = '#FF3232'; const ROJO_OSCURO = '#8B0000'; const AMARILLO = '#FFFF32'; const MORADO = '#C832FF'; const CIAN = '#32FFFF';
+        const GRIS = '#AAAAAA'; const COLOR_TELARAÑA = 'rgba(220, 220, 220, 0.8)'; const ORO = '#FFD700'; const COLOR_CORAZON = '#FF1493';
+        const NEON_CYAN = '#00FFFF'; const NEON_MAGENTA = '#FF00FF';
+        const COLORES_ARANIA = [ROJO, AMARILLO, MORADO, CIAN, VERDE];
+
+        // --- VARIABLES DEL JUEGO ---
+        let jugador; let aranas = []; let balas = []; let telarañas = []; let powerUps = []; let stars = []; let redes = [];
+        let puntuacion = 0; let enemigosDestruidos = 0; let vidas = 3; const MAX_VIDAS = 5;
+        let jugando = false; let animacionId; let ultimoDisparo = 0;
+        let CADENCIA_DISPARO = 250; let powerUpActive = false; let powerUpEndTime = 0;
+        let gameStartTime = 0; let invincibleEndTime = 0;
+
+        // --- CONFIGURACIÓN DE DIFICULTAD Y OPCIONES ---
+        let dificultad = 'normal';
+        let currentSettings;
+        let webSpiderEnabled = true; // NUEVO: Opción para la araña de red
+        const difficultySettings = {
+            facil: { enemySpawnChance: 0.01, spiderSpeedMin: 1, spiderSpeedMax: 2, spiderFireChance: 0.01, powerUpDropChance: 0.02, healthDropChance: 0.08, webSpiderSpawnChance: 0.005 },
+            normal: { enemySpawnChance: 0.02, spiderSpeedMin: 1.5, spiderSpeedMax: 3.5, spiderFireChance: 0.02, powerUpDropChance: 0.03, healthDropChance: 0.10, webSpiderSpawnChance: 0.01 },
+            dificil: { enemySpawnChance: 0.04, spiderSpeedMin: 2.5, spiderSpeedMax: 5, spiderFireChance: 0.04, powerUpDropChance: 0.04, healthDropChance: 0.12, webSpiderSpawnChance: 0.02 }
+        };
+
+        // --- CONTROLADOR DE TECLADO Y TÁCTIL ---
+        const keysPressed = {}; let firing = false;
+        let mousePos = { x: 0, y: 0 };
+
+        // --- CLASES ---
+        class Star { constructor(layer) { this.x = Math.random() * ANCHO_VENTANA; this.y = Math.random() * ALTO_VENTANA; this.layer = layer; switch(layer){ case 1: this.size = 0.5; this.speed = 0.5; this.color = '#444444'; break; case 2: this.size = 1; this.speed = 1.5; this.color = '#888888'; break; case 3: this.size = 1.5; this.speed = 3; this.color = '#FFFFFF'; break; } } update() { this.y += this.speed; if (this.y > ALTO_VENTANA) { this.y = -10; this.x = Math.random() * ANCHO_VENTANA; } } draw() { ctx.fillStyle = this.color; ctx.fillRect(this.x, this.y, this.size, this.size); } }
+        class Jugador {
+            constructor() { this.width = 40; this.height = 40; this.x = ANCHO_VENTANA / 2 - this.width / 2; this.y = ALTO_VENTANA - 80; this.velocidad = 6; this.color = AZUL; this.isTrapped = false; this.trapSlowdownFactor = 0.3; }
+            update() {
+                let speed = this.velocidad;
+                if (this.isTrapped) speed *= this.trapSlowdownFactor;
+                if (keysPressed['ArrowLeft'] && this.x > 0) this.x -= speed;
+                if (keysPressed['ArrowRight'] && this.x < ANCHO_VENTANA - this.width) this.x += speed;
+                if (keysPressed['ArrowUp'] && this.y > ALTO_VENTANA / 2) this.y -= speed;
+                if (keysPressed['ArrowDown'] && this.y < ALTO_VENTANA - this.height) this.y += speed;
+            }
+            draw(timestamp) {
+                const isInvincible = timestamp < invincibleEndTime;
+                if (isInvincible && Math.floor(timestamp / 100) % 2 === 0) return;
+                this.color = powerUpActive ? ORO : AZUL;
+                if (this.isTrapped) {
+                    ctx.fillStyle = 'rgba(255, 100, 100, 0.5)';
+                    ctx.beginPath();
+                    ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.fillStyle = this.color;
+                ctx.beginPath(); ctx.moveTo(this.x + this.width / 2, this.y); ctx.lineTo(this.x, this.y + this.height); ctx.lineTo(this.x + this.width, this.y + this.height); ctx.closePath(); ctx.fill();
+            }
+        }
+        class Bala { constructor(x, y) { this.x = x; this.y = y; this.radius = 4; this.velocidad_y = 10; this.color = GRIS; } update() { this.y -= this.velocidad_y; if (this.y < -this.radius) return true; return false; } draw() { ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); } }
+        class Telaraña { constructor(x, y) { this.x = x; this.y = y; this.radius = 6; this.velocidad_y = 4; this.color = COLOR_TELARAÑA; } update() { this.y += this.velocidad_y; if (this.y > ALTO_VENTANA + this.radius) return true; return false; } draw() { ctx.fillStyle = this.color; ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2); ctx.fill(); ctx.stroke(); } }
+        class PowerUp { constructor(x, y) { this.x = x; this.y = y; this.radius = 15; this.velocidad_y = 2; this.rotation = 0; this.type = 'tripleShot'; } update() { this.y += this.velocidad_y; this.rotation += 0.05; if (this.y > ALTO_VENTANA + this.radius) return true; return false; } draw() { ctx.save(); ctx.translate(this.x, this.y); ctx.rotate(this.rotation); ctx.fillStyle = ORO; ctx.strokeStyle = BLANCO; ctx.lineWidth = 2; ctx.beginPath(); for (let i = 0; i < 5; i++) { ctx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * this.radius, -Math.sin((18 + i * 72) * Math.PI / 180) * this.radius); ctx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * this.radius * 0.5, -Math.sin((54 + i * 72) * Math.PI / 180) * this.radius * 0.5); } ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore(); } }
+        class HealthPowerUp { constructor(x, y) { this.x = x; this.y = y; this.size = 20; this.radius = this.size / 2; this.velocidad_y = 2; this.pulse = 0; this.type = 'health'; } update() { this.y += this.velocidad_y; this.pulse += 0.1; if (this.y > ALTO_VENTANA + this.size) return true; return false; } draw() { const scale = 1 + Math.sin(this.pulse) * 0.1; ctx.save(); ctx.translate(this.x, this.y); ctx.scale(scale, scale); ctx.fillStyle = COLOR_CORAZON; ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -this.size/4); ctx.bezierCurveTo(-this.size/2, -this.size, -this.size, -this.size/3, -this.size, 0); ctx.bezierCurveTo(-this.size, this.size/3, -this.size/2, this.size, 0, this.size); ctx.bezierCurveTo(this.size/2, this.size, this.size, this.size/3, this.size, 0); ctx.bezierCurveTo(this.size, -this.size/3, this.size/2, -this.size, 0, -this.size/4); ctx.fill(); ctx.stroke(); ctx.restore(); } }
+        
+        // NUEVA CLASE: HILO DE RED
+        class HiloRed {
+            constructor(startX, startY, endX, endY) {
+                this.startX = startX; this.startY = startY; this.endX = endX; this.endY = endY;
+                this.strength = 3; // Vidas que tiene el hilo
+                this.pulse = 0;
+            }
+            update() {
+                this.pulse += 0.1;
+            }
+            draw() {
+                const pulseFactor = 1 + Math.sin(this.pulse) * 0.2;
+                ctx.strokeStyle = `rgba(255, 100, 100, ${0.6 * pulseFactor})`;
+                ctx.lineWidth = 2 * pulseFactor;
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = 'rgba(255, 100, 100, 0.5)';
+                ctx.beginPath();
+                ctx.moveTo(this.startX, this.startY);
+                ctx.lineTo(this.endX, this.endY);
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+            }
+            hit() {
+                this.strength--;
+                playWebSound();
+                return this.strength <= 0;
+            }
+        }
+
+        class Araña {
+            constructor() {
+                this.color = COLORES_ARANIA[Math.floor(Math.random() * COLORES_ARANIA.length)];
+                this.abdomen_radius = 12; this.cefalotorax_radius = 8;
+                this.x = Math.random() * (ANCHO_VENTANA - 40) + 20; this.y = -50;
+                const speedRange = currentSettings.spiderSpeedMax - currentSettings.spiderSpeedMin;
+                this.velocidad_y = Math.random() * speedRange + currentSettings.spiderSpeedMin;
+                this.wobble = 0; this.wobbleSpeed = Math.random() * 0.1 + 0.05;
+                this.ultimoDisparo = 0;
+            }
+            update(timestamp) { this.y += this.velocidad_y; this.wobble += this.wobbleSpeed; this.x += Math.sin(this.wobble) * 0.5; if (this.y > ALTO_VENTANA + 50) return true; return false; }
+            intentarDisparar(timestamp) {
+                if (this.color === VERDE) return;
+                const CADENCIA_DISPARO_ARAÑA = 2000;
+                if (timestamp - this.ultimoDisparo > CADENCIA_DISPARO_ARAÑA) {
+                    if (Math.random() < currentSettings.spiderFireChance) {
+                        telarañas.push(new Telaraña(this.x, this.y + this.abdomen_radius));
+                        this.ultimoDisparo = timestamp;
+                    }
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.abdomen_radius, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y - this.abdomen_radius, this.cefalotorax_radius, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = NEGRO; ctx.beginPath(); ctx.arc(this.x - 3, this.y - this.abdomen_radius, 2, 0, Math.PI * 2); ctx.arc(this.x + 3, this.y - this.abdomen_radius, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+                for (let i = 0; i < 4; i++) { const angleOffset = (i - 1.5) * 0.6; this.drawLeg(this.x - this.cefalotorax_radius, this.y - this.abdomen_radius, Math.PI + angleOffset); this.drawLeg(this.x + this.cefalotorax_radius, this.y - this.abdomen_radius, 0 - angleOffset); }
+            }
+            drawLeg(startX, startY, baseAngle) { const segment1Length = 15; const segment2Length = 12; const jointAngle = 0.5; const endX1 = startX + segment1Length * Math.cos(baseAngle); const endY1 = startY + segment1Length * Math.sin(baseAngle); ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX1, endY1); ctx.stroke(); const endX2 = endX1 + segment2Length * Math.cos(baseAngle + jointAngle); const endY2 = endY1 + segment2Length * Math.sin(baseAngle + jointAngle); ctx.beginPath(); ctx.moveTo(endX1, endY1); ctx.lineTo(endX2, endY2); ctx.stroke(); }
+        }
+
+        // NUEVA CLASE: ARAÑA DE RED
+        class ArañaRed {
+            constructor() {
+                this.color = ROJO_OSCURO;
+                this.abdomen_radius = 15; this.cefalotorax_radius = 10;
+                this.x = Math.random() * (ANCHO_VENTANA - 40) + 20;
+                this.y = -50;
+                const speedRange = currentSettings.spiderSpeedMax - currentSettings.spiderSpeedMin;
+                this.velocidad_y = Math.random() * speedRange + currentSettings.spiderSpeedMin;
+                this.wobble = 0; this.wobbleSpeed = Math.random() * 0.1 + 0.05;
+                this.isWebbing = false; this.webCooldown = 0;
+                this.webRadius = 120;
+            }
+            update(timestamp) {
+                this.y += this.velocidad_y; this.wobble += this.wobbleSpeed; this.x += Math.sin(this.wobble) * 0.5;
+                if (this.y > ALTO_VENTANA + 50) return true;
+                if (!this.isWebbing && timestamp - this.webCooldown > 5000) {
+                    this.lanzarRed(timestamp);
+                }
+            }
+            lanzarRed(timestamp) {
+                this.isWebbing = true;
+                this.webCooldown = timestamp;
+                const numHilos = 12;
+                for (let i = 0; i < numHilos; i++) {
+                    const angle = (Math.PI * 2 / numHilos) * i;
+                    const startX = this.x + Math.cos(angle) * 10;
+                    const startY = this.y + Math.sin(angle) * 10;
+                    const endX = this.x + Math.cos(angle) * this.webRadius;
+                    const endY = this.y + Math.sin(angle) * this.webRadius;
+                    redes.push(new HiloRed(startX, startY, endX, endY));
+                }
+            }
+            draw() {
+                ctx.fillStyle = this.color; ctx.beginPath(); ctx.arc(this.x, this.y, this.abdomen_radius, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(this.x, this.y - this.abdomen_radius, this.cefalotorax_radius, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = NEGRO; ctx.beginPath(); ctx.arc(this.x - 4, this.y - this.abdomen_radius, 2, 0, Math.PI * 2); ctx.arc(this.x + 4, this.y - this.abdomen_radius, 2, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = this.color; ctx.lineWidth = 2;
+                for (let i = 0; i < 4; i++) { const angleOffset = (i - 1.5) * 0.6; this.drawLeg(this.x - this.cefalotorax_radius, this.y - this.abdomen_radius, Math.PI + angleOffset); this.drawLeg(this.x + this.cefalotorax_radius, this.y - this.abdomen_radius, 0 - angleOffset); }
+            }
+            drawLeg(startX, startY, baseAngle) { const segment1Length = 15; const segment2Length = 12; const jointAngle = 0.5; const endX1 = startX + segment1Length * Math.cos(baseAngle); const endY1 = startY + segment1Length * Math.sin(baseAngle); ctx.beginPath(); ctx.moveTo(startX, startY); ctx.lineTo(endX1, endY1); ctx.stroke(); const endX2 = endX1 + segment2Length * Math.cos(baseAngle + jointAngle); const endY2 = endY1 + segment2Length * Math.sin(baseAngle + jointAngle); ctx.beginPath(); ctx.moveTo(endX1, endY1); ctx.lineTo(endX2, endY2); ctx.stroke(); }
+        }
+
+        class Button {
+            constructor(x, y, width, height, text, color, hoverColor) { this.x = x; this.y = y; this.width = width; this.height = height; this.text = text; this.color = color; this.hoverColor = hoverColor; this.isHovered = false; }
+            update(mouseX, mouseY) { this.isHovered = mouseX > this.x && mouseX < this.x + this.width && mouseY > this.y && mouseY < this.y + this.height; }
+            draw() { ctx.fillStyle = this.isHovered ? this.hoverColor : this.color; ctx.fillRect(this.x, this.y, this.width, this.height); ctx.strokeStyle = BLANCO; ctx.lineWidth = 2; ctx.strokeRect(this.x, this.y, this.width, this.height); ctx.fillStyle = BLANCO; ctx.font = '24px "Courier New", Courier, monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.text, this.x + this.width / 2, this.y + this.height / 2); }
+            isClicked(clickX, clickY) { return clickX > this.x && clickX < this.x + this.width && clickY > this.y && clickY < this.y + this.height; }
+        }
+
+        // --- INSTANCIAS DE LOS BOTONES ---
+        const startScreenButton = new Button(300, 350, 200, 50, 'START', '#005500', '#008800');
+        const playButton = new Button(300, 300, 200, 50, 'JUGAR', '#005500', '#008800');
+        const optionsButton = new Button(300, 370, 200, 50, 'OPCIONES', '#555500', '#888800');
+        const creatorButton = new Button(300, 440, 200, 50, 'CREADOR', '#550055', '#880088');
+        const backButton = new Button(300, 500, 200, 50, 'VOLVER AL MENÚ', '#555555', '#888888');
+        const easyButton = new Button(200, 250, 150, 40, 'FÁCIL', '#004400', '#007700');
+        const normalButton = new Button(325, 250, 150, 40, 'NORMAL', '#444400', '#777700');
+        const hardButton = new Button(450, 250, 150, 40, 'DIFÍCIL', '#440000', '#770000');
+        const webSpiderToggle = new Button(250, 320, 300, 40, 'Arañas de Red: ON', '#660066', '#999999');
+
+        // --- FUNCIONES DE DIBUJADO DE PANTALLAS ---
+        function drawNeonGrid(timestamp) {
+            const gridSize = 50;
+            ctx.strokeStyle = NEON_CYAN; ctx.lineWidth = 1; ctx.shadowBlur = 10; ctx.shadowColor = NEON_CYAN;
+            const pulse = Math.sin(timestamp * 0.002) * 0.5 + 0.5; ctx.globalAlpha = pulse;
+            for (let x = 0; x < ANCHO_VENTANA; x += gridSize) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, ALTO_VENTANA); ctx.stroke(); }
+            for (let y = 0; y < ALTO_VENTANA; y += gridSize) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(ANCHO_VENTANA, y); ctx.stroke(); }
+            ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+        }
+
+        function drawStartScreen() { stars.forEach(star => star.update()); ctx.fillStyle = NEGRO; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA); stars.forEach(star => star.draw()); ctx.fillStyle = BLANCO; ctx.font = '24px "Courier New", Courier, monospace'; ctx.textAlign = 'center'; ctx.fillText('Infinite Art Games', ANCHO_VENTANA / 2, 100); ctx.font = 'bold 64px "Courier New", Courier, monospace'; ctx.shadowBlur = 20; ctx.shadowColor = NEON_MAGENTA; ctx.fillStyle = ORO; ctx.fillText('Arañitas Multicolor', ANCHO_VENTANA / 2, 200); ctx.shadowBlur = 0; startScreenButton.update(mousePos.x, mousePos.y); startScreenButton.draw(); }
+
+        function drawMenu(timestamp) {
+            stars.forEach(star => star.update());
+            ctx.fillStyle = NEGRO; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA);
+            stars.forEach(star => star.draw());
+            drawNeonGrid(timestamp);
+            ctx.fillStyle = BLANCO; ctx.font = '24px "Courier New", Courier, monospace'; ctx.textAlign = 'center'; ctx.fillText('Infinite Art Games', ANCHO_VENTANA / 2, 100);
+            ctx.font = 'bold 64px "Courier New", Courier, monospace'; ctx.shadowBlur = 20; ctx.shadowColor = NEON_MAGENTA; ctx.fillStyle = ORO; ctx.fillText('Arañitas Multicolor', ANCHO_VENTANA / 2, 200); ctx.shadowBlur = 0;
+            playButton.update(mousePos.x, mousePos.y); playButton.draw();
+            optionsButton.update(mousePos.x, mousePos.y); optionsButton.draw();
+            creatorButton.update(mousePos.x, mousePos.y); creatorButton.draw();
+        }
+
+        function drawOptions() {
+            ctx.fillStyle = NEGRO; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA);
+            ctx.fillStyle = BLANCO; ctx.font = '48px "Courier New", Courier, monospace'; ctx.textAlign = 'center';
+            ctx.fillText('Opciones', ANCHO_VENTANA / 2, 150);
+            
+            easyButton.update(mousePos.x, mousePos.y); easyButton.draw();
+            normalButton.update(mousePos.x, mousePos.y); normalButton.draw();
+            hardButton.update(mousePos.x, mousePos.y); hardButton.draw();
+            webSpiderToggle.update(mousePos.x, mousePos.y); webSpiderToggle.draw();
+            
+            // Resaltar la selección actual
+            ctx.strokeStyle = ORO; ctx.lineWidth = 3;
+            if (dificultad === 'facil') ctx.strokeRect(easyButton.x - 2, easyButton.y - 2, easyButton.width + 4, easyButton.height + 4);
+            if (dificultad === 'normal') ctx.strokeRect(normalButton.x - 2, normalButton.y - 2, normalButton.width + 4, normalButton.height + 4);
+            if (dificultad === 'dificil') ctx.strokeRect(hardButton.x - 2, hardButton.y - 2, hardButton.width + 4, hardButton.height + 4);
+            if (webSpiderEnabled) ctx.strokeRect(webSpiderToggle.x - 2, webSpiderToggle.y - 2, webSpiderToggle.width + 4, webSpiderToggle.height + 4);
+            
+            backButton.update(mousePos.x, mousePos.y); backButton.draw();
+        }
+
+        function drawCreator() {
+            ctx.fillStyle = NEGRO; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA);
+            ctx.fillStyle = BLANCO; ctx.font = '48px "Courier New", Courier, monospace'; ctx.textAlign = 'center';
+            ctx.fillText('Creador', ANCHO_VENTANA / 2, ALTO_VENTANA / 2 - 50);
+            ctx.font = '36px "Courier New", Courier, monospace';
+            ctx.fillStyle = ORO;
+            ctx.fillText('SÉT-SU', ANCHO_VENTANA / 2, ALTO_VENTANA / 2 + 20);
+            backButton.update(mousePos.x, mousePos.y); backButton.draw();
+        }
+
+        function mostrarGameOver() {
+            const finalTime = timerDisplay.textContent;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA);
+            ctx.fillStyle = ROJO; ctx.font = '74px "Courier New", Courier, monospace'; ctx.textAlign = 'center';
+            ctx.fillText('GAME OVER', ANCHO_VENTANA / 2, ALTO_VENTANA / 2 - 80);
+            ctx.fillStyle = BLANCO; ctx.font = '36px "Courier New", Courier, monospace';
+            ctx.fillText(`Puntuación Final: ${puntuacion}`, ANCHO_VENTANA / 2, ALTO_VENTANA / 2 - 20);
+            ctx.fillText(`Enemigos Destruidos: ${enemigosDestruidos}`, ANCHO_VENTANA / 2, ALTO_VENTANA / 2 + 20);
+            ctx.fillText(`Tiempo Sobrevivido: ${finalTime}`, ANCHO_VENTANA / 2, ALTO_VENTANA / 2 + 60);
+            backButton.update(mousePos.x, mousePos.y); backButton.draw();
+        }
+        
+        // --- FUNCIÓN PRINCIPAL DEL JUEGO (BUCLE) ---
+        function bucleJuego(timestamp) {
+            switch (currentState) {
+                case GameState.START_SCREEN: drawStartScreen(); break;
+                case GameState.MENU: drawMenu(timestamp); break;
+                case GameState.PLAYING:
+                    if (!jugando) return;
+                    const isInvincible = timestamp < invincibleEndTime;
+                    if (powerUpActive && timestamp > powerUpEndTime) { powerUpActive = false; CADENCIA_DISPARO = 250; powerUpTimerDisplay.style.display = 'none'; }
+                    if (powerUpActive) { const timeLeft = Math.ceil((powerUpEndTime - timestamp) / 1000); timerValueDisplay.textContent = timeLeft; }
+                    if (firing && timestamp - ultimoDisparo > CADENCIA_DISPARO) {
+                        if (powerUpActive) { balas.push(new Bala(jugador.x + jugador.width / 2 - 10, jugador.y)); balas.push(new Bala(jugador.x + jugador.width / 2, jugador.y)); balas.push(new Bala(jugador.x + jugador.width / 2 + 10, jugador.y)); }
+                        else { balas.push(new Bala(jugador.x + jugador.width / 2, jugador.y)); }
+                        playShootSound(); ultimoDisparo = timestamp;
+                    }
+                    if (Math.random() < currentSettings.enemySpawnChance) {
+                        // NUEVO: Lógica de spawn para la araña de red
+                        if (webSpiderEnabled && Math.random() < currentSettings.webSpiderSpawnChance) {
+                            aranas.push(new ArañaRed());
+                        } else {
+                            aranas.push(new Araña());
+                        }
+                        playSpiderSound();
+                    }
+                    jugador.update();
+                    balas = balas.filter(bala => !bala.update());
+                    aranas = aranas.filter(araña => !araña.update(timestamp));
+                    telarañas = telarañas.filter(telaraña => !telaraña.update());
+                    powerUps = powerUps.filter(powerUp => !powerUp.update());
+                    redes = redes.filter(hilo => !hilo.hit());
+                    stars.forEach(star => star.update());
+                    aranas.forEach(araña => araña.intentarDisparar(timestamp));
+                    if (!isInvincible) {
+                        // NUEVO: Colisión con la red
+                        for (const hilo of redes) {
+                            const dx = (jugador.x + jugador.width / 2) - hilo.startX;
+                            const dy = (jugador.y + jugador.height / 2) - hilo.startY;
+                            const distToStart = Math.sqrt(dx * dx + dy * dy);
+                            if (distToStart < 15) {
+                                jugador.isTrapped = true;
+                                invincibleEndTime = timestamp + 4000; // Invencibilidad corta al ser atrapado
+                                playHitSound();
+                            }
+                        }
+                        for (const araña of aranas) {
+                            const dx = (jugador.x + jugador.width / 2) - araña.x;
+                            const dy = (jugador.y + jugador.height / 2) - araña.y;
+                            const distancia = Math.sqrt(dx * dx + dy * dy);
+                            if (distancia < jugador.width / 2 + araña.abdomen_radius) {
+                                if (araña.color === VERDE) { puntuacion += 10; aranas.splice(aranas.indexOf(araña), 1); }
+                                else if (!jugador.isTrapped) { // Solo te hace daño si no estás ya atrapado
+                                    vidas--; playHitSound(); invincibleEndTime = timestamp + 2000; if (vidas <= 0) { jugando = false; currentState = GameState.GAME_OVER; }
+                                    aranas.splice(aranas.indexOf(araña), 1);
+                                }
+                            }
+                        }
+                        for (const telaraña of telarañas) {
+                            const dx = (jugador.x + jugador.width / 2) - telaraña.x;
+                            const dy = (jugador.y + jugador.height / 2) - telaraña.y;
+                            const distancia = Math.sqrt(dx * dx + dy * dy);
+                            if (distancia < jugador.width / 2 + telaraña.radius) {
+                                if (!jugador.isTrapped) {
+                                    vidas--; playHitSound(); invincibleEndTime = timestamp + 2000; if (vidas <= 0) { jugando = false; currentState = GameState.GAME_OVER; }
+                                    telarañas.splice(telarañas.indexOf(telaraña), 1);
+                                }
+                            }
+                        }
+                    }
+                    for (let i = powerUps.length - 1; i >= 0; i--) {
+                        const powerUp = powerUps[i]; const dx = (jugador.x + jugador.width / 2) - powerUp.x; const dy = (jugador.y + jugador.height / 2) - powerUp.y; const distancia = Math.sqrt(dx * dx + dy * dy);
+                        if (distancia < jugador.width / 2 + powerUp.radius) {
+                            if (powerUp.type === 'tripleShot') { powerUpActive = true; powerUpEndTime = timestamp + 15000; CADENCIA_DISPARO = 100; powerUpTimerDisplay.style.display = 'block'; playPowerUpSound(); }
+                            if (powerUp.type === 'health') { if (vidas < MAX_VIDAS) { vidas++; playHealthSound(); } }
+                            powerUps.splice(i, 1);
+                        }
+                    }
+                    for (let i = balas.length - 1; i >= 0; i--) {
+                        for (let j = aranas.length - 1; j >= 0; j--) {
+                            const bala = balas[i]; const araña = aranas[j];
+                            const dx = bala.x - araña.x; const dy = bala.y - araña.y;
+                            const distancia = Math.sqrt(dx * dx + dy * dy);
+                            if (distancia < bala.radius + araña.abdomen_radius) {
+                                puntuacion += (araña.color === VERDE) ? 10 : 5;
+                                enemigosDestruidos++;
+                                if (Math.random() < currentSettings.powerUpDropChance) { powerUps.push(new PowerUp(araña.x, araña.y)); }
+                                if (Math.random() < currentSettings.healthDropChance) { powerUps.push(new HealthPowerUp(araña.x, araña.y)); }
+                                balas.splice(i, 1); aranas.splice(j, 1); break;
+                            }
+                        }
+                    }
+                    ctx.fillStyle = NEGRO; ctx.fillRect(0, 0, ANCHO_VENTANA, ALTO_VENTANA);
+                    stars.forEach(star => star.draw());
+                    redes.forEach(hilo => hilo.draw());
+                    jugador.draw(timestamp);
+                    balas.forEach(bala => bala.draw()); aranas.forEach(araña => araña.draw());
+                    telarañas.forEach(telaraña => telaraña.draw());
+                    powerUps.forEach(powerUp => powerUp.draw());
+                    scoreDisplay.textContent = puntuacion; killsDisplay.textContent = enemigosDestruidos; livesDisplay.textContent = vidas;
+                    if (gameStartTime > 0) {
+                        const elapsedTime = timestamp - gameStartTime;
+                        const totalSeconds = Math.floor(elapsedTime / 1000);
+                        const minutes = Math.floor(totalSeconds / 60);
+                        const seconds = totalSeconds % 60;
+                        timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+                    }
+                    break;
+                case GameState.GAME_OVER: mostrarGameOver(); break;
+                case GameState.OPTIONS: drawOptions(); break;
+                case GameState.CREATOR: drawCreator(); break;
+            }
+            animacionId = requestAnimationFrame(bucleJuego);
+        }
+
+        function iniciarJuego() {
+            initAudio();
+            currentSettings = { ...difficultySettings[dificultad] };
+            jugador = new Jugador(); aranas = []; balas = []; telarañas = []; powerUps = []; redes = [];
+            puntuacion = 0; enemigosDestruidos = 0; vidas = 3; jugando = true; powerUpActive = false; CADENCIA_DISPARO = 250;
+            gameStartTime = performance.now(); invincibleEndTime = 0;
+            scoreDisplay.textContent = puntuacion; killsDisplay.textContent = enemigosDestruidos; livesDisplay.textContent = vidas; timerDisplay.textContent = '00:00';
+            powerUpTimerDisplay.style.display = 'none';
+            currentState = GameState.PLAYING;
+        }
+
+        // --- MANEJO DE EVENTOS ---
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            mousePos.x = e.clientX - rect.left;
+            mousePos.y = e.clientY - rect.top;
+        });
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const clickY = e.clientY - rect.top;
+
+            if (currentState === GameState.START_SCREEN) {
+                if (startScreenButton.isClicked(clickX, clickY)) { currentState = GameState.MENU; }
+            } else if (currentState === GameState.MENU) {
+                if (playButton.isClicked(clickX, clickY)) { iniciarJuego(); }
+                if (optionsButton.isClicked(clickX, clickY)) { currentState = GameState.OPTIONS; }
+                if (creatorButton.isClicked(clickX, clickY)) { currentState = GameState.CREATOR; }
+            } else if (currentState === GameState.OPTIONS) {
+                if (easyButton.isClicked(clickX, clickY)) { dificultad = 'facil'; }
+                if (normalButton.isClicked(clickX, clickY)) { dificultad = 'normal'; }
+                if (hardButton.isClicked(clickX, clickY)) { dificultad = 'dificil'; }
+                if (webSpiderToggle.isClicked(clickX, clickY)) { webSpiderEnabled = !webSpiderEnabled; webSpiderToggle.text = webSpiderEnabled ? 'Arañas de Red: ON' : 'Arañas de Red: OFF'; }
+                if (backButton.isClicked(clickX, clickY)) { currentState = GameState.MENU; }
+            } else if (currentState === GameState.CREATOR || currentState === GameState.GAME_OVER) {
+                if (backButton.isClicked(clickX, clickY)) { currentState = GameState.MENU; }
+            }
+        });
+
+        window.addEventListener('keydown', (e) => { keysPressed[e.key] = true; });
+        window.addEventListener('keyup', (e) => { keysPressed[e.key] = false; });
+        
+        const fireButton = document.getElementById('fireButton');
+        const startFire = (e) => { e.preventDefault(); firing = true; fireButton.classList.add('active'); };
+        const endFire = (e) => { e.preventDefault(); firing = false; fireButton.classList.remove('active'); };
+        fireButton.addEventListener('mousedown', startFire); fireButton.addEventListener('mouseup', endFire); fireButton.addEventListener('mouseleave', endFire);
+        fireButton.addEventListener('touchstart', startFire); fireButton.addEventListener('touchend', endFire); fireButton.addEventListener('touchcancel', endFire);
+
+        const analogStick = document.getElementById('analogStick'); const stickKnob = document.getElementById('stickKnob');
+        let isDraggingStick = false; const stickRadius = analogStick.offsetWidth / 2; const knobRadius = stickKnob.offsetWidth / 2; const maxDistance = stickRadius - knobRadius;
+        function resetStick() { stickKnob.style.transform = `translate(0px, 0px)`; analogStick.classList.remove('active'); keysPressed['ArrowLeft'] = false; keysPressed['ArrowRight'] = false; keysPressed['ArrowUp'] = false; keysPressed['ArrowDown'] = false; }
+        function handleStickMove(clientX, clientY) {
+            if (!isDraggingStick) return;
+            const rect = analogStick.getBoundingClientRect(); const centerX = rect.left + rect.width / 2; const centerY = rect.top + rect.height / 2;
+            let dx = clientX - centerX; let dy = clientY - centerY; const distance = Math.sqrt(dx * dx + dy * dy); const angle = Math.atan2(dy, dx);
+            let clampedDx, clampedDy;
+            if (distance <= maxDistance) { clampedDx = dx; clampedDy = dy; } else { clampedDx = Math.cos(angle) * maxDistance; clampedDy = Math.sin(angle) * maxDistance; }
+            stickKnob.style.transform = `translate(${clampedDx}px, ${clampedDy}px)`;
+            const normalizedDx = clampedDx / maxDistance; const normalizedDy = clampedDy / maxDistance; const threshold = 0.3;
+            keysPressed['ArrowLeft'] = normalizedDx < -threshold; keysPressed['ArrowRight'] = normalizedDx > threshold;
+            keysPressed['ArrowUp'] = normalizedDy < -threshold; keysPressed['ArrowDown'] = normalizedDy > threshold;
+        }
+        analogStick.addEventListener('mousedown', (e) => { isDraggingStick = true; analogStick.classList.add('active'); handleStickMove(e.clientX, e.clientY); });
+        window.addEventListener('mousemove', (e) => { handleStickMove(e.clientX, e.clientY); });
+        window.addEventListener('mouseup', () => { if (isDraggingStick) { isDraggingStick = false; resetStick(); } });
+        analogStick.addEventListener('touchstart', (e) => { isDraggingStick = true; analogStick.classList.add('active'); const touch = e.touches[0]; handleStickMove(touch.clientX, touch.clientY); e.preventDefault(); });
+        window.addEventListener('touchmove', (e) => { if (isDraggingStick) { const touch = e.touches[0]; handleStickMove(touch.clientX, touch.clientY); } });
+        window.addEventListener('touchend', () => { if (isDraggingStick) { isDraggingStick = false; resetStick(); } });
+
+        // --- INICIALIZACIÓN ---
+        stars = [];
+        for (let i = 0; i < 100; i++) stars.push(new Star(1));
+        for (let i = 0; i < 50; i++) stars.push(new Star(2));
+        for (let i = 0; i < 25; i++) stars.push(new Star(3));
+        
+        // Cargar configuración guardada
+        const savedDifficulty = localStorage.getItem('dificultad');
+        if (savedDifficulty) { dificultad = savedDifficulty; }
+        const savedWebSpiderEnabled = localStorage.getItem('webSpiderEnabled');
+        if (savedWebSpiderEnabled !== null) { webSpiderEnabled = savedWebSpiderEnabled === 'true'; }
+        
+        webSpiderToggle.text = webSpiderEnabled ? 'Arañas de Red: ON' : 'Arañas de Red: OFF';
+
+        animacionId = requestAnimationFrame(bucleJuego);
+
+    </script>
+</body>
+</html>
