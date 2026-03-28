@@ -128,9 +128,9 @@
 
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">Playlist Épica</h3>
-        <p>01. Melodía de Sét-su</p>
-        <p>02. El Eco del Infinito</p>
-        <p>03. Bad Wolf</p>
+        <p>01. Melodía de Sét-su (Sintetizada - 60s)</p>
+        <p>02. El Eco del Infinito (Sintetizada - 60s)</p>
+        <p>03. Bad Wolf (MP3)</p>
         <p>04. El Lobo Feroz (Próximamente)</p>
 
         <audio id="playerMP3" style="display:none;"></audio>
@@ -189,6 +189,7 @@
   </div>
 
   <script>
+    /* NAVEGACIÓN */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
@@ -196,9 +197,9 @@
       isPongPaused = (id !== 'juegos');
     }
 
-    /* AUDIO HÍBRIDO - CORREGIDO PARA GITHUB */
+    /* SISTEMA DE AUDIO HÍBRIDO API (60s) + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
-    let audioTimeout;
+    let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
 
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
@@ -206,16 +207,8 @@
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
       { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
-      { 
-        type: 'mp3', 
-        name: "Bad Wolf", 
-        url: "Música/badwolf-cover.mp3" // "Música" codificado para evitar errores de servidor
-      },
-      { 
-        type: 'mp3', 
-        name: "El Lobo Feroz", 
-        url: "M%C3%BAsica/el-lobo-feroz.mp3" 
-      }
+      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
+      { type: 'mp3', name: "El Lobo Feroz", url: "musica/el-lobo-feroz.mp3" }
     ];
 
     function playNote(f, d) {
@@ -231,16 +224,20 @@
 
     function sequence() {
       if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
+      
       const melody = playlist[currentTrack].data;
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
-      currentNote++;
-      if (currentNote >= melody.length) {
-        currentNote = 0;
-        audioTimeout = setTimeout(nextTrack, dur * 1000 + 500);
-      } else {
-        audioTimeout = setTimeout(sequence, dur * 1000);
+      
+      currentNote = (currentNote + 1) % melody.length;
+
+      // Duración de 60 segundos por pista API
+      if (currentNote === 0 && (Date.now() - startTime > 60000)) { 
+        nextTrack(); 
+        return; 
       }
+      
+      audioTimeout = setTimeout(sequence, dur * 1000);
     }
 
     function togglePlay() {
@@ -249,14 +246,16 @@
       
       if (!isPlaying) {
         isPlaying = true; isPaused = false;
+        startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
+        
         if (track.type === 'api') sequence();
         else { 
-            playerMP3.src = track.url; 
-            playerMP3.load(); // Forzamos la carga del archivo
-            playerMP3.play().catch(e => console.log("Error de reproducción:", e));
-            playerMP3.onended = nextTrack; 
+          playerMP3.src = track.url; 
+          playerMP3.load();
+          playerMP3.play().catch(e => console.log("Error de reproducción:", e));
+          playerMP3.onended = nextTrack; 
         }
       } else {
         isPaused = !isPaused;
@@ -278,7 +277,7 @@
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
-    /* PONG */
+    /* PONG INFINTIO */
     const canvas = document.getElementById('pongCanvas'), ctx = canvas.getContext('2d');
     let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0, isPongPaused = true;
     function updatePong() {
