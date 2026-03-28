@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bing-Bang∞ Neón | Infinite Art Games</title>
+    <style>
+        :root {
+            --primary: #a020f0;
+            --accent: #00d4ff;
+            --neon-ball: #39ff14;
+            --bg: #050010;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: #fff;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            /* Fondo de Portal Cósmico Sutil */
+            background-image: 
+                radial-gradient(circle at 50% 50%, rgba(160, 32, 240, 0.1) 0%, rgba(5, 0, 16, 1) 80%),
+                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHBhdGggZD0iTTAgMGg0MDB2NDAwSDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAgMGg0MDB2NDAwSDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48ZyBmaWxsPSIjRkZGIiBmaWxsLW9wYWNpdHk9Ii4wMyI+PHBhdGggZD0iTTEwIDEwaDJ2Mmg0MDB2NDAwSDB6TTEwIDEwaDJ2Mkgwdi0yejI5OCAzMDBoMnYySDI5OHYtMnoiLz48L2c+PC9zdmc+');
+        }
+
+        #pongScore {
+            font-size: 3em;
+            font-weight: bold;
+            color: var(--accent);
+            text-shadow: 0 0 15px var(--accent);
+            margin-bottom: 20px;
+            letter-spacing: 5px;
+        }
+
+        #pongContainer {
+            position: relative;
+            width: 800px;
+            height: 500px;
+            max-width: 95vw;
+            max-height: 70vh;
+            border: 4px solid var(--primary);
+            border-radius: 20px;
+            box-shadow: 0 0 50px rgba(160, 32, 240, 0.4);
+            background: #000;
+            cursor: none;
+            overflow: hidden;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            border-radius: 16px;
+        }
+
+        /* Pantalla de Inicio / Ganador */
+        .overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        h2 {
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px var(--accent);
+        }
+
+        .btn-play {
+            background: transparent;
+            color: var(--neon-ball);
+            border: 2px solid var(--neon-ball);
+            padding: 15px 40px;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            border-radius: 50px;
+            transition: 0.3s;
+            box-shadow: 0 0 15px var(--neon-ball);
+        }
+
+        .btn-play:hover {
+            background: var(--neon-ball);
+            color: #000;
+            box-shadow: 0 0 30px var(--neon-ball);
+        }
+
+        #winnerAnnounce {
+            color: var(--primary);
+            font-size: 2em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--primary);
+        }
+
+        /* Botón de Fullscreen Minimalista */
+        #fullscreenBtn {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(160, 32, 240, 0.2);
+            color: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(160, 32, 240, 0.3);
+            border-radius: 8px;
+            padding: 8px;
+            cursor: pointer;
+            z-index: 20;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: 0.3s;
+        }
+
+        #fullscreenBtn:hover {
+            background: rgba(160, 32, 240, 0.5);
+            color: rgba(255, 255, 255, 1);
+            border-color: rgba(160, 32, 240, 0.6);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="pongScore">SÉT-SU 0 - 0 IA</div>
+
+    <div id="pongContainer">
+        <div id="menuOverlay" class="overlay">
+            <h2>Bing-Bang∞ Neón</h2>
+            <div id="winnerAnnounce"></div>
+            <button class="btn-play" onclick="startGame()">Comenzar Desafío</button>
+        </div>
+        
+        <canvas id="pongCanvas" width="800" height="500"></canvas>
+        <button id="fullscreenBtn" onclick="toggleFullScreen()">∞ FS</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('pongContainer');
+        const scoreBoard = document.getElementById('pongScore');
+        const menuOverlay = document.getElementById('menuOverlay');
+        const winnerAnnounce = document.getElementById('winnerAnnounce');
+
+        // Variables de Juego Originales
+        let bX, bY, bSX, bSY;
+        let pY = 210, aY = 210; 
+        let pS = 0, aS = 0; 
+        let gameRunning = false;
+        let baseSpeed = 6;
+        let lastTimestamp = 0;
+
+        // SISTEMA DE PARTÍCULAS [cite: 2025-07-23]
+        const particles = [];
+        const maxParticles = 30;
+
+        class Particle {
+            constructor(x, y, vx, vy, color) {
+                this.x = x; this.y = y;
+                this.vx = vx; this.vy = vy;
+                this.life = 1; this.decay = Math.random() * 0.05 + 0.02;
+                this.size = Math.random() * 4 + 1;
+                this.color = color;
+            }
+            update() {
+                this.x += this.vx; this.y += this.vy;
+                this.life -= this.decay;
+                this.size *= 0.96; // Shrink
+            }
+            draw() {
+                ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.globalAlpha = 1; // Reset
+            }
+        }
+
+        function createTrail(x, y) {
+            if(particles.length < maxParticles) {
+                particles.push(new Particle(
+                    x, y,
+                    (Math.random() - 0.5) * 1, // vx
+                    (Math.random() - 0.5) * 1, // vy
+                    '#39ff14' // Neon Ball Green
+                ));
+            }
+        }
+
+        function resetBall() {
+            bX = canvas.width / 2;
+            bY = canvas.height / 2;
+            bSX = (Math.random() > 0.5 ? 1 : -1) * baseSpeed;
+            bSY = (Math.random() > 0.5 ? 1 : -1) * (baseSpeed * 0.6);
+            particles.length = 0; // Clear trail
+        }
+
+        function startGame() {
+            pS = 0; aS = 0;
+            updateScore();
+            winnerAnnounce.innerText = "";
+            menuOverlay.style.display = "none";
+            resetBall();
+            gameRunning = true;
+            lastTimestamp = performance.now();
+        }
+
+        function endGame(winner) {
+            gameRunning = false;
+            menuOverlay.style.display = "flex";
+            winnerAnnounce.innerText = winner;
+            document.querySelector('.btn-play').innerText = "Reintentar";
+        }
+
+        function updateScore() {
+            scoreBoard.innerText = `SÉT-SU ${aS} - ${pS} IA`;
+        }
+
+        // FULLSCREEN LOGIC [cite: 2025-07-23]
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function update(timestamp) {
+            if (!gameRunning) { drawMenu(); return; }
+
+            // Delta time (smooth movement)
+            const dt = (timestamp - lastTimestamp) / 16.67; 
+            lastTimestamp = timestamp;
+
+            // Movimiento Pelota
+            bX += bSX * dt;
+            bY += bSY * dt;
+
+            // Rastro de Partículas
+            createTrail(bX, bY);
+            particles.forEach((p, i) => {
+                p.update();
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+
+            // Colisión Paredes
+            if (bY < 10 || bY > canvas.height - 10) bSY *= -1;
+
+            // Colisión Paleta Sét-su (Izquierda)
+            if (bX < 30 && bY > aY && bY < aY + 80) {
+                bSX = Math.abs(bSX);
+                let deltaY = bY - (aY + 40);
+                bSY = deltaY * 0.2;
+                bSX *= 1.02; // Acelera un poco
+            }
+
+            // Colisión Paleta IA (Derecha)
+            if (bX > canvas.width - 30 && bY > pY && bY < pY + 80) {
+                bSX = -Math.abs(bSX);
+                let deltaY = bY - (pY + 40);
+                bSY = deltaY * 0.2;
+                bSX *= 1.02; // Acelera un poco
+            }
+
+            // SINGULARIDAD CENTRAL ∞ 
+            if (Math.abs(bX - 400) < 40 && Math.abs(bY - 250) < 40) {
+                if (Math.random() < 0.05) { 
+                    bSX *= 1.15; bSY *= 1.15; 
+                    if(Math.abs(bSX) > 15) bSX = (bSX > 0 ? 15 : -15); // Cap speed
+                }
+            }
+
+            // Puntuación
+            if (bX < 0) { 
+                pS++; updateScore(); resetBall(); 
+                if (pS >= 10) endGame("LA IA HA GANADO");
+            }
+            if (bX > canvas.width) { 
+                aS++; updateScore(); resetBall(); 
+                if (aS >= 10) endGame("SÉT-SU ES INVENCIBLE");
+            }
+
+            // IA dinámica
+            let targetY = bY - 40;
+            if (aY < targetY) aY += 4.5 * dt; else aY -= 4.5 * dt;
+            
+            // Límites
+            if (aY < 0) aY = 0; if (aY > 420) aY = 420;
+
+            draw();
+        }
+
+        function drawMenu() {
+            // Draw something when paused?
+        }
+
+        function draw() {
+            // Limpiar fondo
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Símbolo Infinito Central (∞)
+            ctx.strokeStyle = 'rgba(160, 32, 240, 0.2)';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.ellipse(370, 250, 40, 25, 0, 0, Math.PI * 2); ctx.stroke();
+            ctx.beginPath();
+            ctx.ellipse(430, 250, 40, 25, 0, 0, Math.PI * 2); ctx.stroke();
+
+            // Dibujar Partículas
+            particles.forEach(p => p.draw());
+
+            // Paletas Neón
+            ctx.shadowBlur = 20;
+            ctx.fillStyle = '#00d4ff'; 
+            ctx.shadowColor = '#00d4ff';
+            ctx.fillRect(10, aY, 15, 80); // Sét-su
+            ctx.fillRect(canvas.width - 25, pY, 15, 80); // IA
+
+            // Pelota Neón
+            ctx.shadowColor = '#39ff14';
+            ctx.fillStyle = '#39ff14';
+            ctx.beginPath();
+            ctx.arc(bX, bY, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0; // Reset performance
+        }
+
+        // Control Mouse
+        canvas.addEventListener('mousemove', e => {
+            let rect = canvas.getBoundingClientRect();
+            let mouseY = e.clientY - rect.top;
+            pY = mouseY - 40;
+            if (pY < 0) pY = 0;
+            if (pY > 420) pY = 420;
+        });
+
+        requestAnimationFrame(function frame(timestamp) {
+            update(timestamp);
+            requestAnimationFrame(frame);
+        });
+    </script>
+</body>
+</html>
