@@ -14,27 +14,151 @@
       text-align: center;
     }
     .container {
-      padding: 60px 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 40px 20px;
     }
     h1 {
       color: #a020f0;
       font-size: 3em;
-      margin-bottom: 20px;
+      margin-bottom: 10px;
     }
-    p {
+    .poema {
+      font-size: 1.4em;
+      font-style: italic;
+      margin: 20px 0 40px;
+    }
+    .bienvenida {
       font-size: 1.2em;
-      margin-bottom: 40px;
+      line-height: 1.6;
+      margin-bottom: 50px;
+    }
+    .galeria {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      margin: 40px 0;
+    }
+    .personaje {
+      width: 200px;
+      text-align: center;
+    }
+    .personaje img {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #a020f0;
+      box-shadow: 0 0 15px #a020f0;
+    }
+    .music-player {
+      margin: 30px 0;
+      padding: 15px;
+      background: rgba(160, 32, 240, 0.15);
+      border-radius: 12px;
+      border: 1px solid #a020f0;
+      display: inline-block;
+    }
+    button {
+      background: #a020f0;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1em;
+      margin: 10px;
+    }
+    button:hover {
+      background: #8a1ad9;
     }
     footer {
-      position: absolute;
-      bottom: 20px;
-      width: 100%;
+      margin-top: 60px;
       font-size: 0.9em;
       color: #888;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>Infinite Art Games</h1>
+    <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
+    
+    <div class="bienvenida">
+      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
+      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
+      Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
+    </div>
+
+    <!-- Reproductor drone misterioso generado en web -->
+    <div class="music-player">
+      <button id="playDrone">🎵 Activar drone misterioso de Sèt-su</button>
+      <button id="stopDrone" style="display:none;">🛑 Parar</button>
+    </div>
+
+    <div class="galeria">
+      <div class="personaje">
+        <img src="images/alma-de-lobo.jpg" alt="Alma de lobo">
+        <p>Alma de lobo</p>
+      </div>
+      <div class="personaje">
+        <img src="images/shana-infinito.jpg" alt="Shana ∞">
+        <p>Shana ∞</p>
+      </div>
+      <div class="personaje">
+        <img src="images/diosas-del-infinito.jpg" alt="Diosas del infinito">
+        <p>Diosas del infinito</p>
+      </div>
+    </div>
+    
+    <footer>© 2026 Sèt-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
+    Contacto: <a href="https://linktr.ee/JulianDavidRJ" style="color: #a020f0;">Linktree</a></footer>
+  </div>
+
+  <script>
+    const context = new (window.AudioContext || window.webkitAudioContext)();
+    let oscillator = null;
+    let gainNode = null;
+
+    document.getElementById('playDrone').onclick = () => {
+      if (oscillator) return; // No duplicar
+
+      oscillator = context.createOscillator();
+      oscillator.type = 'sine'; // onda suave, misteriosa
+      oscillator.frequency.setValueAtTime(80, context.currentTime); // bajo, drone ambiental
+
+      gainNode = context.createGain();
+      gainNode.gain.setValueAtTime(0, context.currentTime); // empieza en silencio
+      gainNode.gain.linearRampToValueAtTime(0.15, context.currentTime + 2); // fade in suave
+
+      oscillator.connect(gainNode);
+      gainNode.connect(context.destination);
+
+      oscillator.start();
+      document.getElementById('playDrone').style.display = 'none';
+      document.getElementById('stopDrone').style.display = 'inline-block';
+
+      // Loop sutil: varia ligeramente frecuencia cada 30s para no aburrir
+      setInterval(() => {
+        if (oscillator) {
+          oscillator.frequency.linearRampToValueAtTime(80 + Math.random() * 20 - 10, context.currentTime + 5);
+        }
+      }, 30000);
+    };
+
+    document.getElementById('stopDrone').onclick = () => {
+      if (gainNode) {
+        gainNode.gain.linearRampToValueAtTime(0, context.currentTime + 1); // fade out
+      }
+      if (oscillator) {
+        oscillator.stop(context.currentTime + 1);
+        oscillator = null;
+      }
+      document.getElementById('stopDrone').style.display = 'none';
+      document.getElementById('playDrone').style.display = 'inline-block';
+    };
+  </script>
+</body>
+  </html><body>
   <div class="container">
     <h1>Infinite Art Games</h1>
     <p>El arte es magia liberadora, el arte es magia liberada... es la mentira de ser verdad.</p>
