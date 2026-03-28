@@ -241,40 +241,54 @@
     ];
     const titles = ["Melodía de Sét-su", "Eco del Infinito"];
 
-    function playNote(f, d) {
-      if (!audioCtx || isPaused) return;
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
-      o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + d);
-    }
+function playNote(f, d) {
+  if (!audioCtx || isPaused) return;
+  if (isNaN(f) || !isFinite(f)) {
+    console.warn("Frecuencia inválida:", f);
+    return;
+  }
+  const o = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  o.type = 'triangle';
+  o.frequency.value = f;   // ← aquí fallaba con NaN
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+  o.connect(g);
+  g.connect(audioCtx.destination);
+  o.start();
+  o.stop(audioCtx.currentTime + d);
+}
 
 function sequence() {
   if (!isPlaying || isPaused) return;
 
   const melody = playlist ;
-  playNote(melody .f, melody .d);
-  let dur = melody .d;
+  if (!melody || !melody ) {
+    console.error("Melodía no encontrada");
+    return;
+  }
+
+  const note = melody ;
+  playNote(note.f, note.d);
+
   currentNote = (currentNote + 1) % melody.length;
 
   if (currentNote === 0 && (Date.now() - startTime > 60000)) {
-    if (currentTrack === 1) {  // después de la segunda track
-      stopAudio();  // pausa sintetizador
+    if (currentTrack === 1) {
+      stopAudio();
       const badwolf = document.getElementById('badwolfPlayer');
       if (badwolf) {
-        badwolf.play();  // reproduce MP3
+        badwolf.play();
         document.getElementById('trackName').innerText = "Bad Wolf (Cover)";
       }
     } else {
-      nextTrack();  // sigue normal para la primera
+      nextTrack();
     }
     return;
   }
 
-  audioTimeout = setTimeout(sequence, dur * 1000);
+  audioTimeout = setTimeout(sequence, note.d * 1000);
 }
 
     function togglePlay() {
