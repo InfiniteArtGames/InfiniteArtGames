@@ -54,7 +54,7 @@
       background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
       border-radius: 30px; border: 2px solid var(--primary);
       box-shadow: 0 0 30px rgba(160, 32, 240, 0.5);
-      max-width: 600px;
+      max-width: 700px;
     }
 
     .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
@@ -77,15 +77,24 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    #pongContainer {
-      position: relative; margin: 20px auto;
-      width: 400px; max-width: 100%;
-      touch-action: none;
+    /* Estilo para el contenedor de juegos externos */
+    .game-viewport {
+      position: relative;
+      width: 100%;
+      padding-top: 56.25%; /* Relación 16:9 */
+      background: #000;
+      border: 2px solid var(--primary);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
     }
 
-    #pongCanvas {
-      background: #000; border: 3px solid var(--accent);
-      border-radius: 15px; width: 100%;
+    .game-viewport iframe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      border: none;
+      transition: opacity 0.5s;
     }
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
@@ -146,22 +155,23 @@
         </div>
       </div>
 
- <div id="juegos" class="content-section">
-  <h3 style="color:var(--accent);">Bing-Bang∞ Neón</h3>
-  
-  <div style="position: relative; width: 100%; padding-top: 62.5%; background: #000; border: 3px solid var(--primary); border-radius: 20px; overflow: hidden; box-shadow: 0 0 30px rgba(160, 32, 240, 0.3);">
-    <iframe 
-      src="juegos/pong.html" 
-      style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;" 
-      title="Bing-Bang Neón"
-      allowfullscreen>
-    </iframe>
-  </div>
+      <div id="juegos" class="content-section">
+        <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
+        
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('juegos/pong.html', 'Bing-Bang∞ Neón')">🎮 Bing-Bang∞</button>
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('juegos/aranitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
+        </div>
 
-  <p style="margin-top: 15px; font-size: 0.9em; color: #777;">
-    Pulsa <strong>∞ FS</strong> dentro del juego para la experiencia completa en pantalla gigante.
-  </p>
-</div>
+        <div class="game-viewport">
+          <iframe id="activeGameFrame" src="about:blank" allowfullscreen></iframe>
+        </div>
+
+        <div style="margin-top: 15px;">
+          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold;">Selecciona un desafío</p>
+          <p style="font-size: 0.8em; color: #777;">Experiencia completa en pantalla gigante mediante el botón ∞ FS [cite: 2025-07-23].</p>
+        </div>
+      </div>
 
       <div id="diosas" class="content-section">
         <h3 style="color:var(--accent);">Diosas del Infinito</h3>
@@ -197,17 +207,34 @@
   </div>
 
   <script>
-    /* NAVEGACIÓN CON PAUSA DE JUEGO */
+    /* NAVEGACIÓN Y CONTROL DE CARGA */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
       
-      // Regla: Pausar si no estamos en la pestaña de juegos
-      isPongPaused = (id !== 'juegos');
+      const frame = document.getElementById('activeGameFrame');
+      // Detener juego si salimos de la pestaña para ahorrar recursos [cite: 2025-07-23]
+      if (id !== 'juegos') {
+        frame.dataset.savedSrc = frame.src;
+        frame.src = "about:blank";
+      } else if (frame.src === "about:blank" && frame.dataset.savedSrc) {
+        frame.src = frame.dataset.savedSrc;
+      }
     }
 
-    /* AUDIO HÍBRIDO (60s API + MP3) */
+    function cargarJuego(ruta, nombre) {
+      const frame = document.getElementById('activeGameFrame');
+      const desc = document.getElementById('gameDescription');
+      frame.style.opacity = "0";
+      setTimeout(() => {
+        frame.src = ruta;
+        desc.innerText = "Cargando: " + nombre;
+        frame.style.opacity = "1";
+      }, 200);
+    }
+
+    /* AUDIO HÍBRIDO API (60s) + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
@@ -270,69 +297,6 @@
 
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
-
-    /* BING-BANG∞ NEÓN (PONG CORREGIDO) */
-    const canvas = document.getElementById('pongCanvas'), ctx = canvas.getContext('2d');
-    let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0;
-    let isPongPaused = true;
-    let baseSpeed = 4;
-
-    function resetBall() {
-      bX = 200; bY = 150;
-      bSX = (Math.random() > 0.5 ? 1 : -1) * baseSpeed;
-      bSY = (Math.random() > 0.5 ? 1 : -1) * (baseSpeed * 0.7);
-    }
-
-    function updatePong() {
-      if (isPongPaused || pS >= 10 || aS >= 10) return;
-
-      bX += bSX; bY += bSY;
-
-      // Colisión bordes
-      if (bY < 10 || bY > 290) bSY *= -1;
-
-      // Colisión Paletas
-      if (bX < 25 && bY > aY && bY < aY + 80) { bSX = Math.abs(bSX); }
-      if (bX > 375 && bY > pY && bY < pY + 80) { bSX = -Math.abs(bSX); }
-
-      // LA SINGULARIDAD DEL INFINITO (Aceleración aleatoria central)
-      if (Math.abs(bX - 200) < 40 && Math.abs(bY - 150) < 40) {
-        if (Math.random() < 0.03) { bSX *= 1.2; bSY *= 1.2; }
-      }
-
-      // Puntuación
-      if (bX < 0) { pS++; resetBall(); }
-      if (bX > 400) { aS++; resetBall(); }
-
-      // Límite 10 puntos
-      if (pS >= 10) document.getElementById('winnerAnnounce').innerText = "¡SÉT-SU GANA! ∞";
-      if (aS >= 10) document.getElementById('winnerAnnounce').innerText = "IA SUPERA EL INFINITO";
-
-      // IA dinámica
-      if (aY + 40 < bY) aY += 3.5; else aY -= 3.5;
-      if (aY < 0) aY = 0; if (aY > 220) aY = 220;
-
-      // Dibujo
-      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 400, 300);
-      
-      // Símbolo ∞ central (Singularidad)
-      ctx.strokeStyle = 'rgba(160, 32, 240, 0.4)'; ctx.lineWidth = 3;
-      ctx.beginPath(); ctx.arc(180, 150, 15, 0, Math.PI*2); ctx.stroke();
-      ctx.beginPath(); ctx.arc(220, 150, 15, 0, Math.PI*2); ctx.stroke();
-
-      ctx.fillStyle = '#00d4ff'; ctx.fillRect(10, aY, 10, 80); ctx.fillRect(380, pY, 10, 80);
-      ctx.fillStyle = '#39ff14'; ctx.beginPath(); ctx.arc(bX, bY, 8, 0, Math.PI*2); ctx.fill();
-      
-      document.getElementById('pongScore').innerText = "Sét-su " + aS + " - " + pS + " IA";
-    }
-
-    canvas.addEventListener('mousemove', e => { 
-      let rect = canvas.getBoundingClientRect();
-      pY = e.clientY - rect.top - 40; 
-      if (pY < 0) pY = 0; if (pY > 220) pY = 220;
-    });
-
-    setInterval(updatePong, 1000/60);
 
     /* CAROUSEL */
     let currentS = 0;
