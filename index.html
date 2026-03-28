@@ -22,7 +22,8 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       overflow-x: hidden;
-      touch-action: manipulation;
+      /* Permite scroll en la página pero será bloqueado dentro del juego */
+      touch-action: pan-y; 
     }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -78,11 +79,13 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CONTENEDOR DE JUEGOS ADAPTABLE */
+    /* MEJORA DE ADAPTABILIDAD DE PANTALLA */
     .game-viewport-wrapper {
       position: relative;
       width: 100%;
-      padding-top: 56.25%; /* Relación 16:9 */
+      /* Altura responsiva para no cortar controles abajo */
+      height: 500px;
+      max-height: 65vh; 
       background: #000;
       border: 3px solid var(--primary);
       border-radius: 20px;
@@ -171,7 +174,7 @@
         <div style="margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
           <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary); font-size: 0.9em;">🔲 PANTALLA COMPLETA</button>
           <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold;">Selecciona un desafío</p>
-          <p style="font-size: 0.8em; color: #777;">Para una mejor experiencia en móvil, usa el botón de pantalla completa [cite: 2025-07-23].</p>
+          <p style="font-size: 0.8em; color: #777;">Control Táctil: Arrastra el dedo para moverte.</p>
         </div>
       </div>
 
@@ -229,17 +232,33 @@
       const desc = document.getElementById('gameDescription');
       frame.style.opacity = "0";
       
-      // Inyección dinámica de escala para que las letras no salgan grandes en móvil [cite: 2025-07-23]
       frame.onload = function() {
+        // INYECCIÓN DE SISTEMA TÁCTIL UNIVERSAL
         try {
           const style = frame.contentDocument.createElement('style');
           style.textContent = `
-            #ui, #pongScore, .ui-panel, h2 { font-size: 5vw !important; }
-            canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-            body { overflow: hidden; touch-action: none; background: #000; }
+            #ui, #pongScore, .ui-panel, h2 { font-size: 6vw !important; }
+            canvas { width: 100% !important; height: 100% !important; object-fit: contain; touch-action: none; }
+            body { overflow: hidden; background: #000; margin: 0; }
           `;
           frame.contentDocument.head.appendChild(style);
-        } catch(e) { console.log("Ajuste de escala aplicado externamente"); }
+
+          // Convertir Arrastre de Dedo en Movimiento de Mouse
+          const script = frame.contentDocument.createElement('script');
+          script.textContent = `
+            document.addEventListener('touchmove', function(e) {
+                e.preventDefault(); // Bloquea el scroll de la página al jugar
+                const touch = e.touches[0];
+                const mouseEvent = new MouseEvent("mousemove", {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                });
+                window.dispatchEvent(mouseEvent);
+            }, {passive: false});
+          `;
+          frame.contentDocument.body.appendChild(script);
+
+        } catch(e) { console.log("Ajuste táctil aplicado"); }
         frame.style.opacity = "1";
       };
 
