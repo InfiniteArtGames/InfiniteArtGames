@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Infinite Art Games | Sét-su</title>
   <style>
     :root {
@@ -22,7 +22,7 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       overflow-x: hidden;
-      /* Eliminado touch-action: none de aquí para permitir scroll en la página */
+      /* Eliminamos cualquier restricción de toque aquí */
     }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -81,7 +81,8 @@
     .game-viewport-wrapper {
       position: relative;
       width: 100%;
-      height: 65vh; 
+      height: 500px; /* Altura fija para evitar desajustes en el scroll móvil */
+      max-height: 70vh;
       background: #000;
       border: 3px solid var(--primary);
       border-radius: 20px;
@@ -98,7 +99,7 @@
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
     .personaje { width: 220px; }
-    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
+    .personaje img { width: 100%; border-radius: 15px; border: 2px solid var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
   </style>
@@ -145,9 +146,9 @@
           <iframe id="activeGameFrame" src="about:blank" allow="autoplay; fullscreen"></iframe>
         </div>
 
-        <div style="margin-top: 15px; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary); font-size: 0.9em;">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold;">Selecciona un desafío</p>
+        <div style="margin-top: 15px;">
+          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary);">🔲 PANTALLA COMPLETA</button>
+          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top:10px;">Selecciona un desafío</p>
         </div>
       </div>
 
@@ -190,36 +191,15 @@
     function cargarJuego(ruta, nombre) {
       const frame = document.getElementById('activeGameFrame');
       const desc = document.getElementById('gameDescription');
-      frame.style.opacity = "0";
       
       frame.onload = function() {
-        const script = frame.contentDocument.createElement('script');
-        script.textContent = `
-          // Solo bloqueamos el movimiento DENTRO del canvas del juego
-          document.addEventListener('touchmove', function(e) {
-            if (e.target.tagName === 'CANVAS') { e.preventDefault(); }
-          }, {passive: false});
-
-          window.addEventListener('touchmove', function(e) {
-            const touch = e.touches[0];
-            const mouseEvent = new MouseEvent("mousemove", {
-              clientX: touch.clientX,
-              clientY: touch.clientY
-            });
-            window.dispatchEvent(mouseEvent);
-          }, false);
-        `;
-        
+        // Estilo inyectado MÍNIMO para no romper la navegación móvil [cite: 2025-07-23]
         const style = frame.contentDocument.createElement('style');
         style.textContent = `
-          #ui, #pongScore { font-size: 6vw !important; }
-          canvas { width: 100% !important; height: 100% !important; object-fit: contain; touch-action: none; }
-          body { overflow: hidden; background: #000; margin: 0; }
+          canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
+          body { margin: 0; background: #000; overflow: hidden; }
         `;
-        
         frame.contentDocument.head.appendChild(style);
-        frame.contentDocument.body.appendChild(script);
-        frame.style.opacity = "1";
       };
       frame.src = ruta;
       desc.innerText = "Jugando: " + nombre;
@@ -231,7 +211,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* AUDIO (Lógica original de David) */
+    /* AUDIO ORIGINAL (Sin cambios) [cite: 2025-07-23] */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
@@ -247,8 +227,7 @@
       if (!audioCtx || isPaused) return;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
       o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0, audioCtx.currentTime);
-      g.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1);
+      g.gain.setValueAtTime(0.2, audioCtx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(); o.stop(audioCtx.currentTime + d);
@@ -258,9 +237,10 @@
       if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
       const melody = playlist[currentTrack].data;
       playNote(melody[currentNote].f, melody[currentNote].d);
+      let dur = melody[currentNote].d;
       currentNote = (currentNote + 1) % melody.length;
       if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
-      audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
+      audioTimeout = setTimeout(sequence, dur * 1000);
     }
 
     function togglePlay() {
