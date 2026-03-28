@@ -189,12 +189,14 @@
   </div>
 
   <script>
-    /* NAVEGACIÓN */
+    /* NAVEGACIÓN ORIGINAL */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
       isPongPaused = (id !== 'juegos');
+      // Si volvemos a juegos y hubo un ganador, reiniciamos
+      if(id === 'juegos' && (pS >= 10 || aS >= 10)) resetPong();
     }
 
     /* SISTEMA DE AUDIO HÍBRIDO API (60s) + MP3 */
@@ -224,37 +226,30 @@
 
     function sequence() {
       if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
-      
       const melody = playlist[currentTrack].data;
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
-      
       currentNote = (currentNote + 1) % melody.length;
-
-      // Duración de 60 segundos por pista API
       if (currentNote === 0 && (Date.now() - startTime > 60000)) { 
         nextTrack(); 
         return; 
       }
-      
       audioTimeout = setTimeout(sequence, dur * 1000);
     }
 
     function togglePlay() {
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const track = playlist[currentTrack];
-      
       if (!isPlaying) {
         isPlaying = true; isPaused = false;
         startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-        
         if (track.type === 'api') sequence();
         else { 
           playerMP3.src = track.url; 
           playerMP3.load();
-          playerMP3.play().catch(e => console.log("Error de reproducción:", e));
+          playerMP3.play().catch(e => console.log("Error:", e));
           playerMP3.onended = nextTrack; 
         }
       } else {
@@ -277,24 +272,104 @@
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
-    /* PONG INFINTIO */
+    /* BING-BANG∞ NEÓN (RESTAURADO) */
     const canvas = document.getElementById('pongCanvas'), ctx = canvas.getContext('2d');
-    let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0, isPongPaused = true;
+    let bX = 200, bY = 150, bSX = 4, bSY = 3, pY = 110, aY = 110, pS = 0, aS = 0;
+    let isPongPaused = true;
+    let baseSpeed = 5; // Velocidad base restaurada
+
+    // Cargar símbolo infinito
+    const infinityImg = new Image();
+    infinityImg.src = 'Imágenes/infinito_neon.png'; // Asegúrate de tener esta imagen o usa el dibujo por defecto
+
+    function resetBall() {
+      bX = 200; bY = 150;
+      // Dirección aleatoria, velocidad base
+      bSX = (Math.random() > 0.5 ? 1 : -1) * baseSpeed;
+      bSY = (Math.random() > 0.5 ? 1 : -1) * (baseSpeed * 0.7);
+    }
+
+    function resetPong() {
+      pS = 0; aS = 0;
+      document.getElementById('winnerAnnounce').innerText = "";
+      resetBall();
+    }
+
     function updatePong() {
-      if (isPongPaused) return;
+      if (isPongPaused || pS >= 10 || aS >= 10) return;
+
       bX += bSX; bY += bSY;
-      if (bY < 0 || bY > 300) bSY *= -1;
-      if (bX < 25 && bY > aY && bY < aY + 80) bSX = Math.abs(bSX);
-      if (bX > 375 && bY > pY && bY < pY + 80) bSX = -Math.abs(bSX);
-      if (bX < 0) { aS++; bX=200; } if (bX > 400) { pS++; bX=200; }
-      if (aY + 40 < bY) aY += 2; else aY -= 2;
+
+      // Colisión techos
+      if (bY < 10 || bY > 290) bSY *= -1;
+
+      // Colisión Paletas con lógica de ángulo original
+      if (bX < 25 && bY > aY && bY < aY + 80) {
+        bSX = Math.abs(bSX);
+        let impact = (bY - (aY + 40)) / 40;
+        bSY = impact * baseSpeed;
+      }
+      if (bX > 375 && bY > pY && bY < pY + 80) {
+        bSX = -Math.abs(bSX);
+        let impact = (bY - (pY + 40)) / 40;
+        bSY = impact * baseSpeed;
+      }
+
+      // LA SINGULARIDAD DEL INFINITO (Lógica central restaurada)
+      // Si la pelota pasa cerca del centro (200, 150)
+      if (Math.abs(bX - 200) < 30 && Math.abs(bY - 150) < 30) {
+        if (Math.random() < 0.05) { // 5% de probabilidad por frame de acelerar
+          bSX *= 1.5;
+          bSY *= 1.5;
+          // Limitar velocidad máxima para que sea jugable
+          if (Math.abs(bSX) > 12) bSX = (bSX > 0 ? 12 : -12);
+        }
+      }
+
+      // Puntuación (Límite 10 puntos restaurado)
+      if (bX < 0) { 
+        pS++; resetBall(); 
+        if(pS >= 10) document.getElementById('winnerAnnounce').innerText = "¡SÉT-SU GANA! ∞";
+      } 
+      if (bX > 400) { 
+        aS++; resetBall(); 
+        if(aS >= 10) document.getElementById('winnerAnnounce').innerText = "IA SUPERIOR GANA";
+      }
+
+      // IA Original
+      if (aY + 40 < bY) aY += 3; else aY -= 3;
+      if (aY < 0) aY = 0; if (aY > 220) aY = 220;
+
+      // DIBUJO NEÓN
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 400, 300);
+      
+      // Dibujar Singularidad Central (Infinito)
+      ctx.save();
+      ctx.globalAlpha = 0.3; // Semitransparente
+      // Si tienes la imagen úsala, si no dibujamos un 8 acostado básico
+      if (infinityImg.complete) {
+        ctx.drawImage(infinityImg, 150, 125, 100, 50);
+      } else {
+        ctx.strokeStyle = var(--primary); ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(175, 150, 25, 15, 0, 0, Math.PI*2); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(225, 150, 25, 15, 0, 0, Math.PI*2); ctx.stroke();
+      }
+      ctx.restore();
+
+      // Paletas y Pelota Neón
       ctx.fillStyle = '#00d4ff'; ctx.fillRect(10, aY, 10, 80); ctx.fillRect(380, pY, 10, 80);
       ctx.fillStyle = '#39ff14'; ctx.beginPath(); ctx.arc(bX, bY, 8, 0, Math.PI*2); ctx.fill();
-      document.getElementById('pongScore').innerText = pS + " - " + aS;
+      
+      // Brillo Neón (Shadows)
+      ctx.shadowBlur = 15; ctx.shadowColor = '#39ff14';
+      
+      document.getElementById('pongScore').innerText = aS + " - " + pS;
     }
-    canvas.addEventListener('mousemove', e => { pY = e.clientY - canvas.getBoundingClientRect().top - 40; });
-    setInterval(updatePong, 20);
+    canvas.addEventListener('mousemove', e => { 
+      pY = e.clientY - canvas.getBoundingClientRect().top - 40; 
+      if (pY < 0) pY = 0; if (pY > 220) pY = 220;
+    });
+    setInterval(updatePong, 1000/60); // 60 FPS para suavidad original
 
     /* CAROUSEL */
     let currentS = 0;
@@ -309,6 +384,7 @@
     setInterval(nextSlide, 5000);
 
     showTab('musica');
+    resetPong(); // Inicializar juego
   </script>
 </body>
 </html>
