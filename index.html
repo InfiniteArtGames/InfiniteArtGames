@@ -77,11 +77,10 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Estilo para el contenedor de juegos externos */
     .game-viewport {
       position: relative;
       width: 100%;
-      padding-top: 56.25%; /* Relación 16:9 */
+      padding-top: 56.25%;
       background: #000;
       border: 2px solid var(--primary);
       border-radius: 20px;
@@ -159,8 +158,8 @@
         <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
         
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('juegos/pong.html', 'Bing-Bang∞ Neón')">🎮 Bing-Bang∞</button>
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('juegos/aranitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞ Neón')">🎮 Bing-Bang∞</button>
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">🕷️ Arañitas∞</button>
         </div>
 
         <div class="game-viewport">
@@ -207,14 +206,14 @@
   </div>
 
   <script>
-    /* NAVEGACIÓN Y CONTROL DE CARGA */
+    /* NAVEGACIÓN Y CONTROL DE JUEGOS EXTERNOS */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
       
       const frame = document.getElementById('activeGameFrame');
-      // Detener juego si salimos de la pestaña para ahorrar recursos [cite: 2025-07-23]
+      // Pausa dinámica: limpia el frame al salir de la pestaña [cite: 2025-07-23]
       if (id !== 'juegos') {
         frame.dataset.savedSrc = frame.src;
         frame.src = "about:blank";
@@ -234,7 +233,7 @@
       }, 200);
     }
 
-    /* AUDIO HÍBRIDO API (60s) + MP3 */
+    /* SISTEMA DE AUDIO HÍBRIDO API (60s) + MP3 */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
@@ -264,6 +263,7 @@
       playNote(melody[currentNote].f, melody[currentNote].d);
       let dur = melody[currentNote].d;
       currentNote = (currentNote + 1) % melody.length;
+      // Lógica de 60 segundos por pista API [cite: 2025-07-23]
       if (currentNote === 0 && (Date.now() - startTime > 60000)) { nextTrack(); return; }
       audioTimeout = setTimeout(sequence, dur * 1000);
     }
