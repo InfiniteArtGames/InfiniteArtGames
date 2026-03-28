@@ -3,125 +3,315 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Infinite Art Games</title>
+  <title>Infinite Art Games | Sét-su</title>
   <style>
-    body {margin:0;padding:0;background:#0a001f;color:#fff;font-family:Arial,sans-serif;text-align:center;}
-    .container {max-width:900px;margin:0 auto;padding:40px 20px;}
-    h1 {color:#a020f0;font-size:4em;margin:0 0 20px;text-shadow:0 0 20px #a020f0, 0 0 40px #a020f0;letter-spacing:2px;}
-    .glow {animation:glow 3s infinite alternate;}
-    @keyframes glow {from{text-shadow:0 0 10px #a020f0;}to{text-shadow:0 0 30px #a020f0, 0 0 60px #a020f0;}}
-    .poema {font-size:1.5em;font-style:italic;margin:20px 0 40px;color:#ccc;}
-    .bienvenida {font-size:1.3em;line-height:1.6;margin-bottom:50px;}
-    .galeria {display:flex;flex-wrap:wrap;justify-content:center;gap:25px;margin:50px 0;}
-    .personaje {width:220px;text-align:center;}
-    .personaje img {width:100%;border-radius:15px;border:3px solid #a020f0;box-shadow:0 0 20px rgba(160,32,240,0.6);}
-    .music-player {margin:50px 0;padding:25px;background:rgba(160,32,240,0.2);border-radius:15px;border:2px solid #a020f0;display:inline-block;width:85%;max-width:450px;}
-    .playlist {margin:15px 0;font-size:1em;color:#ddd;}
-    button {background:#a020f0;color:white;border:none;padding:12px 24px;border-radius:10px;cursor:pointer;font-size:1.1em;margin:8px;box-shadow:0 0 10px #a020f0;}
-    button:hover {background:#8a1ad9;transform:scale(1.05);}
-    button:disabled {background:#444;cursor:not-allowed;}
-    footer {margin-top:80px;font-size:0.95em;color:#777;}
+    :root {
+      --primary: #a020f0;
+      --accent: #00d4ff;
+      --bg: #050010;
+      --glass: rgba(160, 32, 240, 0.15);
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      text-align: center;
+      overflow-x: hidden;
+    }
+
+    /* Fondo con partículas sutiles */
+    body::after {
+      content: "";
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background-image: radial-gradient(circle at 2px 2px, var(--primary) 1px, transparent 0);
+      background-size: 50px 50px;
+      opacity: 0.05;
+      z-index: -1;
+    }
+
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+
+    h1 {
+      color: var(--primary);
+      font-size: clamp(2.5em, 8vw, 4.5em);
+      margin: 0;
+      text-shadow: 0 0 20px var(--primary);
+      letter-spacing: 5px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .poema {
+      font-size: 1.4em;
+      font-style: italic;
+      margin: 15px 0 40px;
+      color: #bbb;
+      text-shadow: 0 0 10px rgba(255,255,255,0.3);
+    }
+
+    .bienvenida {
+      font-size: 1.15em;
+      line-height: 1.8;
+      max-width: 850px;
+      margin: 0 auto 50px;
+      padding: 30px;
+      background: var(--glass);
+      border-radius: 20px;
+      border: 1px solid rgba(160, 32, 240, 0.3);
+      backdrop-filter: blur(10px);
+    }
+
+    /* REPRODUCTOR AVANZADO */
+    .music-player {
+      margin: 40px auto;
+      padding: 35px;
+      background: linear-gradient(145deg, rgba(20,0,45,0.9), rgba(5,0,15,1));
+      border-radius: 35px;
+      border: 2px solid var(--primary);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 30px rgba(160, 32, 240, 0.4);
+      max-width: 550px;
+    }
+
+    .track-info { margin-bottom: 25px; }
+    .track-status { color: var(--accent); font-size: 0.85em; letter-spacing: 3px; text-transform: uppercase; font-weight: bold; }
+    .track-name { font-size: 1.6em; display: block; margin-top: 8px; font-weight: bold; color: #fff; text-shadow: 0 0 10px var(--primary); }
+
+    .controls { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+
+    button {
+      background: rgba(255,255,255,0.05);
+      color: white;
+      border: 1px solid var(--primary);
+      padding: 14px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      font-size: 0.9em;
+      min-width: 100px;
+    }
+
+    button:hover {
+      background: var(--primary);
+      box-shadow: 0 0 20px var(--primary);
+      transform: translateY(-5px);
+    }
+
+    button:active { transform: scale(0.95); }
+
+    .galeria {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+      margin: 60px 0;
+    }
+
+    .personaje {
+      background: rgba(255,255,255,0.02);
+      padding: 20px;
+      border-radius: 25px;
+      border: 1px solid rgba(160, 32, 240, 0.1);
+      transition: 0.4s;
+    }
+
+    .personaje:hover {
+      border-color: var(--accent);
+      background: rgba(0, 212, 255, 0.05);
+      transform: scale(1.05);
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.2);
+    }
+
+    .personaje img {
+      width: 100%;
+      border-radius: 20px;
+      border: 2px solid var(--primary);
+      margin-bottom: 15px;
+    }
+
+    footer {
+      margin-top: 80px;
+      padding: 40px;
+      font-size: 0.9em;
+      border-top: 1px solid rgba(160, 32, 240, 0.2);
+      color: #666;
+    }
+
+    a { color: var(--accent); text-decoration: none; font-weight: bold; }
   </style>
 </head>
 <body>
+
   <div class="container">
-    <h1 class="glow">Infinite Art Games</h1>
-    <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
-    <div class="bienvenida">
-      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
+    <header>
+      <h1>Infinite Art Games</h1>
+      <div class="poema">"El arte es magia liberada de la mentira de ser verdad"</div>
+    </header>
+
+    <section class="bienvenida">
+      Bienvenidos al cruce digital donde la imaginación de <strong>Sét-su</strong> cobra vida.<br>
       Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
       Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
-    </div>
+    </section>
 
     <div class="music-player">
-      <div class="playlist">Playlist: Épico Retro (generado) - Track 1/1</div>
-      <button id="playBtn">▶ Play</button>
-      <button id="pauseBtn">⏸ Pause</button>
-      <button id="stopBtn">■ Stop</button>
-      <button id="nextBtn" disabled>⏭ Next</button>
+      <div class="track-info">
+        <span class="track-status" id="status">Sinfonía Infinita</span>
+        <span class="track-name" id="trackName">Selecciona una Melodía</span>
+      </div>
+
+      <div class="controls">
+        <button onclick="prevTrack()">⏮ ANTERIOR</button>
+        <button id="playBtn" onclick="togglePlay()">▶ PLAY</button>
+        <button onclick="stopAudio()">■ STOP</button>
+        <button onclick="nextTrack()">⏭ SIGUIENTE</button>
+      </div>
     </div>
 
     <div class="galeria">
-      <div class="personaje"><img src="images/alma-de-lobo.jpg" alt="Alma de lobo"><p>Alma de lobo</p></div>
-      <div class="personaje"><img src="images/shana-infinito.jpg" alt="Shana ∞"><p>Shana ∞</p></div>
-      <div class="personaje"><img src="images/diosas-del-infinito.jpg" alt="Diosas del infinito"><p>Diosas del infinito</p></div>
+      <div class="personaje">
+        <img src="images/alma-de-lobo.jpg" alt="Setsu - Lobo Negro">
+        <p><strong>Alma de lobo</strong><br>Setsu, el lado animal</p>
+      </div>
+      <div class="personaje">
+        <img src="images/shana-infinito.jpg" alt="Shana - Diosa">
+        <p><strong>Shana ∞</strong><br>Diosa del Infinito</p>
+      </div>
+      <div class="personaje">
+        <img src="images/diosas-del-infinito.jpg" alt="Diosas">
+        <p><strong>Diosas del Infinito</strong><br>Creaciones de Art Games</p>
+      </div>
     </div>
     
-    <footer>© 2026 Sèt-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
-    Contacto: <a href="https://linktr.ee/JulianDavidRJ" style="color:#a020f0;">Linktree</a></footer>
+    <footer>
+      © 2026 <strong>Sét-su</strong> - Infinite Art Games S.A. - Todos los derechos reservados.<br><br>
+      Explora más en: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
+    </footer>
   </div>
 
   <script>
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-    // Desbloquea al primer clic/tap en la página (fix móvil)
-    document.addEventListener('click', () => {
-      if (audioContext.state === 'suspended') audioContext.resume();
-    }, {once: true});
-
-    const notes = { C4: 261.63, E4: 329.63, G4: 392.00, C5: 523.25, D4: 293.66, F4: 349.23, A4: 440.00, D5: 587.33 };
-    const melody = [
-      {freq: notes.C4, dur: 0.3}, {freq: notes.E4, dur: 0.3}, {freq: notes.G4, dur: 0.3}, {freq: notes.C5, dur: 0.6},
-      {freq: notes.G4, dur: 0.3}, {freq: notes.E4, dur: 0.3}, {freq: notes.C4, dur: 0.6},
-      {freq: notes.D4, dur: 0.3}, {freq: notes.F4, dur: 0.3}, {freq: notes.A4, dur: 0.3}, {freq: notes.D5, dur: 0.6}
-    ];
-
+    let audioCtx = null;
     let isPlaying = false;
     let isPaused = false;
-    let currentNote = 0;
-    let timeoutId = null;
+    let currentTrackIndex = 0;
+    let currentNoteIndex = 0;
+    let nextNoteTimeout = null;
+    let melodyStartTime = 0;
 
-    function playNote(freq, duration) {
-      const osc = audioContext.createOscillator();
-      const gain = audioContext.createGain();
-      osc.type = 'sawtooth';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0, audioContext.currentTime);
-      gain.gain.linearRampToValueAtTime(0.4, audioContext.currentTime + 0.05);
-      gain.gain.linearRampToValueAtTime(0.01, audioContext.currentTime + duration);
+    const pianoNotes = {
+      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88, 
+      C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880.00, B5: 987.77
+    };
+
+    const track1 = [
+      {f: pianoNotes.A4, d: 0.6}, {f: pianoNotes.C5, d: 0.6}, {f: pianoNotes.E5, d: 1.0},
+      {f: pianoNotes.G4, d: 0.6}, {f: pianoNotes.B4, d: 0.6}, {f: pianoNotes.D5, d: 1.0},
+      {f: pianoNotes.F4, d: 0.6}, {f: pianoNotes.A4, d: 0.6}, {f: pianoNotes.C5, d: 1.0},
+      {f: pianoNotes.C4, d: 0.4}, {f: pianoNotes.E4, d: 0.4}, {f: pianoNotes.G4, d: 0.4}, {f: pianoNotes.B4, d: 1.2}
+    ];
+
+    const track2 = [
+      {f: pianoNotes.E4, d: 0.8}, {f: pianoNotes.A4, d: 0.8}, {f: pianoNotes.C5, d: 1.2},
+      {f: pianoNotes.D5, d: 0.6}, {f: pianoNotes.C5, d: 0.6}, {f: pianoNotes.B4, d: 0.6}, {f: pianoNotes.G4, d: 1.0},
+      {f: pianoNotes.F4, d: 0.5}, {f: pianoNotes.G4, d: 0.5}, {f: pianoNotes.A4, d: 0.5}, {f: pianoNotes.B4, d: 0.5}, {f: pianoNotes.C5, d: 1.5}
+    ];
+
+    const playlist = [track1, track2];
+    const trackTitles = ["01. Melodía de Sét-su", "02. El Eco del Infinito"];
+
+    function createPianoSound(freq, duration) {
+      if (!audioCtx || isPaused) return;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+      gain.gain.setValueAtTime(0, audioCtx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, audioCtx.currentTime + 0.1); 
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
       osc.connect(gain);
-      gain.connect(audioContext.destination);
+      gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioContext.currentTime + duration);
+      osc.stop(audioCtx.currentTime + duration);
     }
 
-    function playNext() {
+    function playSequence() {
       if (!isPlaying || isPaused) return;
-      const note = melody ;
-      playNote(note.freq, note.dur);
-      currentNote = (currentNote + 1) % melody.length;
-      timeoutId = setTimeout(playNext, note.dur * 1000 + 50);
+
+      const currentMelody = playlist[currentTrackIndex];
+      const note = currentMelody[currentNoteIndex];
+      createPianoSound(note.f, note.d);
+
+      currentNoteIndex++;
+
+      // Lógica de duración de 1 minuto (60,000 ms)
+      const elapsedTime = Date.now() - melodyStartTime;
+
+      if (currentNoteIndex >= currentMelody.length) {
+        currentNoteIndex = 0; // Reinicia el bucle de la melodía actual
+        
+        if (elapsedTime > 60000) { // Si ya pasó un minuto, cambia de canción
+          nextTrack();
+          return;
+        }
+      }
+      
+      nextNoteTimeout = setTimeout(playSequence, note.d * 1000);
     }
 
-    document.getElementById('playBtn').onclick = () => {
-      if (audioContext.state === 'suspended') audioContext.resume();
+    function togglePlay() {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
       if (!isPlaying) {
         isPlaying = true;
         isPaused = false;
-        playNext();
-      } else if (isPaused) {
-        isPaused = false;
-        playNext();
+        melodyStartTime = Date.now();
+        document.getElementById('playBtn').innerText = "⏸ PAUSE";
+        document.getElementById('trackName').innerText = trackTitles[currentTrackIndex];
+        document.getElementById('status').innerText = "Reproduciendo...";
+        playSequence();
+      } else {
+        isPaused = !isPaused;
+        document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
+        document.getElementById('status').innerText = isPaused ? "En Pausa" : "Reproduciendo...";
+        if (!isPaused) playSequence();
       }
-    };
+    }
 
-    document.getElementById('pauseBtn').onclick = () => {
-      if (isPlaying) {
-        isPaused = true;
-        clearTimeout(timeoutId);
-      }
-    };
-
-    document.getElementById('stopBtn').onclick = () => {
+    function stopAudio() {
       isPlaying = false;
       isPaused = false;
-      currentNote = 0;
-      clearTimeout(timeoutId);
-    };
+      currentNoteIndex = 0;
+      clearTimeout(nextNoteTimeout);
+      document.getElementById('playBtn').innerText = "▶ PLAY";
+      document.getElementById('status').innerText = "Detenido";
+      document.getElementById('trackName').innerText = "Selecciona una Melodía";
+    }
 
-    document.getElementById('nextBtn').onclick = () => {
-      alert('Próximo track: pronto disponible');
-    };
+    function nextTrack() {
+      currentTrackIndex = (currentTrackIndex + 1) % playlist.length;
+      resetAndPlay();
+    }
+
+    function prevTrack() {
+      currentTrackIndex = (currentTrackIndex - 1 + playlist.length) % playlist.length;
+      resetAndPlay();
+    }
+
+    function resetAndPlay() {
+      clearTimeout(nextNoteTimeout);
+      currentNoteIndex = 0;
+      melodyStartTime = Date.now();
+      isPlaying = true;
+      isPaused = false;
+      document.getElementById('trackName').innerText = trackTitles[currentTrackIndex];
+      document.getElementById('playBtn').innerText = "⏸ PAUSE";
+      playSequence();
+    }
   </script>
 </body>
 </html>
