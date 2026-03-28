@@ -189,7 +189,6 @@
   </div>
 
   <script>
-    /* NAVEGACIÓN */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
@@ -197,7 +196,7 @@
       isPongPaused = (id !== 'juegos');
     }
 
-    /* SISTEMA DE AUDIO HÍBRIDO API + MP3 */
+    /* AUDIO HÍBRIDO - CORREGIDO PARA GITHUB */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
@@ -207,8 +206,16 @@
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
       { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
-      { type: 'mp3', name: "Bad Wolf", url:"Iurl: "/Música/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "URL_DE_TU_NUEVO_MP3_AQUI.mp3" }
+      { 
+        type: 'mp3', 
+        name: "Bad Wolf", 
+        url: "M%C3%BAsica/badwolf-cover.mp3" // "Música" codificado para evitar errores de servidor
+      },
+      { 
+        type: 'mp3', 
+        name: "El Lobo Feroz", 
+        url: "M%C3%BAsica/el-lobo-feroz.mp3" 
+      }
     ];
 
     function playNote(f, d) {
@@ -245,7 +252,12 @@
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
         if (track.type === 'api') sequence();
-        else { playerMP3.src = track.url; playerMP3.play(); playerMP3.onended = nextTrack; }
+        else { 
+            playerMP3.src = track.url; 
+            playerMP3.load(); // Forzamos la carga del archivo
+            playerMP3.play().catch(e => console.log("Error de reproducción:", e));
+            playerMP3.onended = nextTrack; 
+        }
       } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
