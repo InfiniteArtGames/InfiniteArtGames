@@ -343,6 +343,18 @@
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
+    /* CAROUSEL */
+    let currentS = 0;
+    function showSlide(i) {
+      const s = document.getElementById('slides');
+      if (i >= 3) i = 0; if (i < 0) i = 2;
+      s.style.transform = `translateX(-${i * 100}%)`;
+      currentS = i;
+    }
+    function nextSlide() { showSlide(currentS + 1); }
+    function prevSlide() { showSlide(currentS - 1); }
+    setInterval(nextSlide, 5000);
+
     showTab('musica');
   </script>
 </body>
