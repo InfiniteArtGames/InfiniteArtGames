@@ -262,13 +262,15 @@ function draw() {
     time += 16;
     if (progress < 1.4) requestAnimationFrame(draw);
 }
+
 init();
 draw();
 
-    // ← Aquí, justo después del draw():
+// ← Aquí, justo después del draw():
 setTimeout(() => {
     window.location.replace("index1.html");
 }, 8200);
+
 </script>
 </body>
 </html>
