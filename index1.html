@@ -242,13 +242,17 @@
       if (id !== 'juegos') recuperarScroll();
     }
 
+    // CENTRADO REAL EN EL JUEGO [cite: 2025-07-23]
     function centrarEnJuego() {
       const card = document.getElementById('gameCard');
       const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
+      
+      // Calculamos el centro de la card para que no se vea cortada por abajo
       const rect = card.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 - 200);
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2);
+      
       window.scrollTo({ top: targetY, behavior: 'smooth' });
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
@@ -260,6 +264,10 @@
       document.getElementById('gameDesc').innerText = "Cargando: " + nombre;
       setTimeout(centrarEnJuego, 500);
     }
+
+    document.addEventListener('mousedown', function(e) {
+      if (!document.getElementById('gameCard').contains(e.target)) { recuperarScroll(); }
+    });
 
     function requestFullScreen() {
       const target = document.getElementById('fullscreen-target');
