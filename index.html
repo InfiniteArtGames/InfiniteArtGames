@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art Games - Sword Edition</title>
+    <title>Infinite Art Games - Impacto Total</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; }
@@ -10,15 +10,13 @@
         #logo-container {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; opacity: 0; visibility: hidden;
-            transition: opacity 0.8s ease-out; pointer-events: none; z-index: 10;
-            width: 100%;
+            transition: opacity 0.3s ease; pointer-events: none; z-index: 10; width: 100%;
         }
         #logo-text {
-            color: #fff; font-size: 4.5rem; letter-spacing: 12px;
-            text-shadow: 0 0 15px #00ffff, 0 0 30px #00ffff;
-            margin: 0; white-space: nowrap;
+            color: #fff; font-size: 5rem; letter-spacing: 18px;
+            text-shadow: 0 0 25px #00ffff; margin: 0; white-space: nowrap;
         }
-        @media (max-width: 768px) { #logo-text { font-size: 2rem; letter-spacing: 5px; } }
+        @media (max-width: 768px) { #logo-text { font-size: 2.2rem; letter-spacing: 6px; } }
     </style>
 </head>
 <body>
@@ -41,156 +39,139 @@ window.addEventListener('resize', resize);
 resize();
 
 let time = 0;
-const duration = 7500; 
+const duration = 8000; 
 let infParticles = [];
 let expParticles = [];
-let sword = { y: -200, v: 0, active: false, landed: false, sparks: [] };
+let sword = { y: -500, v: 0, active: false, landed: false, shockwave: 0 };
 
 function init() {
-    for (let i = 0; i < 180; i++) {
-        const t = (i / 180) * Math.PI * 2;
+    for (let i = 0; i < 110; i++) {
+        const t = (i / 110) * Math.PI * 2;
         infParticles.push({
-            t, speed: 0.003 + Math.random() * 0.004,
-            r: Math.random() * 2 + 1.5,
-            seed: Math.random() * 100,
-            orbitAng: Math.random() * Math.PI * 2,
-            orbitSpeed: 0.05 + Math.random() * 0.1,
-            orbitRadius: 5 + Math.random() * 10 
+            t, baseR: Math.random() * 3 + 1.5,
+            speed: 0.005, phase: Math.random() * 6.28,
+            orbitAng: Math.random() * 6.28, orbitRadius: 8 + Math.random() * 12 
         });
     }
 }
 
-function getLemniscataPoint(t, scale) {
-    const den = Math.pow(Math.sin(t), 2) + 1;
-    return { x: (scale * Math.cos(t)) / den, y: (scale * Math.sin(t) * Math.cos(t)) / den };
+function getLemniscata(t, scale) {
+    const d = Math.pow(Math.sin(t), 2) + 1;
+    return { x: (scale * Math.cos(t)) / d, y: (scale * Math.sin(t) * Math.cos(t)) / d };
 }
 
 function drawSword(y) {
     ctx.save();
     ctx.translate(centerX, y);
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = "#00ffff";
-    
-    // Hoja de la espada
+    ctx.shadowBlur = 20; ctx.shadowColor = "#00ffff";
     ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.moveTo(0, 0); // Punta
-    ctx.lineTo(-8, -100);
-    ctx.lineTo(8, -100);
-    ctx.fill();
-    
-    // Guarda (la cruz)
+    ctx.moveTo(0, 0); ctx.lineTo(-15, -140); ctx.lineTo(15, -140); ctx.fill();
     ctx.fillStyle = "#00ffff";
-    ctx.fillRect(-25, -105, 50, 8);
-    
-    // Mango
+    ctx.fillRect(-38, -145, 76, 12);
     ctx.fillStyle = "#fff";
-    ctx.fillRect(-4, -135, 8, 30);
-    
-    // Pomo (final del mango)
-    ctx.beginPath();
-    ctx.arc(0, -140, 6, 0, Math.PI*2);
-    ctx.fill();
+    ctx.fillRect(-8, -175, 16, 30);
     ctx.restore();
 }
 
 function draw() {
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.25)'; 
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.3)'; // Rastro sutil para motion blur
     ctx.fillRect(0, 0, w, h);
 
     const progress = time / duration;
 
-    if (progress < 0.5) {
-        // --- FASE 1: INFINITO ATÓMICO ---
+    // FASE 1: INFINITO (0% - 42%)
+    if (progress < 0.42) {
         ctx.globalCompositeOperation = 'lighter';
-        const scale = Math.min(w, h) * 0.35;
+        const scale = Math.min(w, h) * 0.36;
+        
         infParticles.forEach(p => {
-            p.t += p.speed;
-            p.orbitAng += p.orbitSpeed;
-            const pos = getLemniscataPoint(p.t, scale);
-            const x = centerX + pos.x + Math.cos(p.orbitAng)*p.orbitRadius;
-            const y = centerY + pos.y + Math.sin(p.orbitAng)*p.orbitRadius;
+            p.t += p.speed; p.phase += 0.06;
+            const pos = getLemniscata(p.t, scale);
+            const x = centerX + pos.x + Math.cos(p.orbitAng + time*0.002) * p.orbitRadius;
+            const y = centerY + pos.y + Math.sin(p.orbitAng + time*0.002) * p.orbitRadius;
+            const pulse = p.baseR + Math.sin(p.phase) * 1.5;
+            
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.7)';
+            ctx.beginPath(); ctx.arc(x, y, pulse, 0, 6.28); ctx.fill();
             ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(x, y, p.r*0.5, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.4)';
-            ctx.beginPath(); ctx.arc(x, y, p.r*1.5, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x, y, pulse * 0.4, 0, 6.28); ctx.fill();
         });
     } 
-    else if (progress < 0.6) {
-        // --- FASE 2: CONTRACCIÓN ---
-        const s = 1 - (progress - 0.5) * 10;
+    // FASE 2: IMPLOSIÓN (42% - 50%)
+    else if (progress < 0.5) {
+        const s = 1 - (progress - 0.42) * 12.5; // Contracción más rápida
         ctx.fillStyle = '#fff';
         infParticles.forEach(p => {
-            const pos = getLemniscataPoint(p.t, Math.min(w, h) * 0.35 * s);
-            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 3, 0, Math.PI*2); ctx.fill();
+            const pos = getLemniscata(p.t, Math.min(w, h) * 0.36 * s);
+            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 2.5, 0, 6.28); ctx.fill();
         });
     } 
+    // FASE 3: BIG BANG DE PANTALLA COMPLETA (50% en adelante)
     else {
-        // --- FASE 3: EXPLOSIÓN + ESPADA ---
         if (expParticles.length === 0) {
-            for (let i = 0; i < 500; i++) {
-                const ang = Math.random() * Math.PI * 2;
-                const spd = Math.random() * 25 + 5;
-                expParticles.push({ x: centerX, y: centerY, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, life: 1, decay: 0.015 });
+            for (let i = 0; i < 160; i++) { // Solo 160 partículas, pero LARGAS
+                const ang = Math.random() * 6.28;
+                const spd = Math.random() * 60 + 20; // VELOCIDAD MULTIPLICADA X4
+                expParticles.push({ x: centerX, y: centerY, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, l: 1 });
             }
             logoContainer.style.visibility = 'visible';
             logoContainer.style.opacity = '1';
             sword.active = true;
         }
 
-        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalCompositeOperation = 'lighter'; // Glow por superposición
         expParticles.forEach(p => {
-            p.x += p.vx; p.y += p.vy; p.life -= p.decay;
-            if (p.life > 0) {
-                ctx.strokeStyle = `rgba(0, 255, 255, ${p.life})`;
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x - p.vx*1.5, p.y - p.vy*1.5); ctx.stroke();
+            p.x += p.vx; p.y += p.vy; // Movimiento lineal puro = Rápido
+            p.l -= 0.02; // Vida decreciente
+
+            if (p.l > 0) {
+                ctx.strokeStyle = `rgba(0, 255, 255, ${p.l})`;
+                ctx.lineWidth = 4; // Línea gruesa
+                ctx.lineCap = 'round';
+                
+                ctx.beginPath(); 
+                ctx.moveTo(p.x, p.y);
+                // La estela es larga, proporcional a la velocidad
+                ctx.lineTo(p.x - p.vx * 1.5, p.y - p.vy * 1.5); 
+                ctx.stroke();
             }
         });
 
-        // Animación de la Espada Gamer
         if (sword.active) {
-            const targetY = centerY + 120; // Se clava debajo del texto
+            const groundY = centerY + 150;
             if (!sword.landed) {
-                sword.v += 1.5; // Gravedad
+                sword.v += 3.5; // Caída más rápida y pesada
                 sword.y += sword.v;
-                if (sword.y >= targetY) {
-                    sword.y = targetY;
+                if (sword.y >= groundY) {
+                    sword.y = groundY;
                     sword.landed = true;
-                    // Chispas de impacto
-                    for(let i=0; i<20; i++) {
-                        sword.sparks.push({ 
-                            x: centerX, y: targetY, 
-                            vx: (Math.random()-0.5)*15, vy: -Math.random()*10, 
-                            l: 1 
-                        });
-                    }
+                    sword.shockwave = 1; 
                 }
             }
             drawSword(sword.y);
-            
-            // Dibujar chispas de impacto
-            sword.sparks.forEach(s => {
-                s.x += s.vx; s.y += s.vy; s.vy += 0.5; s.l -= 0.02;
-                if (s.l > 0) {
-                    ctx.fillStyle = `rgba(255, 255, 255, ${s.l})`;
-                    ctx.fillRect(s.x, s.y, 2, 2);
+
+            if (sword.shockwave > 0) {
+                sword.shockwave += 30; // Onda de choque más rápida
+                const alpha = 1 - (sword.shockwave / 600);
+                if (alpha > 0) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.ellipse(centerX, groundY, sword.shockwave, sword.shockwave/5, 0, 0, 6.28);
+                    ctx.stroke();
                 }
-            });
+            }
         }
     }
 
     time += 16;
-    if (progress < 1.5) requestAnimationFrame(draw);   
+    if (progress < 1.1) requestAnimationFrame(draw);
 }
 
 init();
 draw();
-// ← Aquí, justo después del draw(), pega esto:
-setTimeout(() => {
-    window.location.href = "index1.html?" + new Date().getTime();  // timestamp rompe cache
-}, 9200);
 </script>
 </body>
 </html>
