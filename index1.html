@@ -240,7 +240,7 @@
     });
 
 
-    /* AUDIO Y VISUALIZADOR */
+    /* MOTOR DE AUDIO SÉT-SU [cite: 2025-07-23] */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
@@ -263,8 +263,7 @@
       const source = audioCtx.createMediaElementSource(playerMP3);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
       draw();
     }
 
