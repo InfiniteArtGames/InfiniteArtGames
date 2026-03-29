@@ -98,13 +98,27 @@
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
     .personaje { width: 220px; }
-    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
+    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
+    .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
+
+    /* ESTILOS DEL VISOR (MODAL) */
+    .modal-visor {
+      display: none; position: fixed; z-index: 1000; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(5,0,16,0.95);
+      align-items: center; justify-content: center; cursor: zoom-out;
+      animation: fadeIn 0.3s;
+    }
+    .modal-content { max-width: 90%; max-height: 90%; border: 2px solid var(--primary); border-radius: 15px; box-shadow: 0 0 40px var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
     a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
+
+  <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">
+    <img class="modal-content" id="imgExpandida">
+  </div>
 
   <div class="container">
     <h1>Infinite Art Games</h1>
@@ -142,7 +156,6 @@
         <p>04. El Lobo Feroz (MP3)</p>
         <audio id="playerMP3" style="display:none;"></audio>
       
-        <!-- Shadows In The Night - fix error 153 -->
         <div style="margin-top:25px; text-align:center;">
           <h4 style="color:#00d4ff; margin-bottom:10px;">Shadows In The Night</h4>
           <iframe width="100%" height="315" 
@@ -212,64 +225,35 @@
       document.getElementById(id).style.display = 'block';
     }
 
+    // LÓGICA PARA AMPLIAR IMÁGENES
+    document.querySelectorAll('.personaje img').forEach(img => {
+      img.onclick = function() {
+        document.getElementById("miVisor").style.display = "flex";
+        document.getElementById("imgExpandida").src = this.src;
+      }
+    });
+
     function cargarJuego(ruta, nombre) {
       const frame = document.getElementById('activeGameFrame');
       const desc = document.getElementById('gameDescription');
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // ARRASTRE OPTIMIZADO PARA BING-BANG [cite: 2025-07-23]
         script.textContent = `
           function handleTouch(e) {
             const touch = e.touches[0];
             const canvas = document.querySelector('canvas') || document.body;
             const rect = canvas.getBoundingClientRect();
-            
-            // Lógica de arrastre directo recuperada y mejorada [cite: 2025-07-23]
-            const opts = {
-              clientX: touch.clientX,
-              clientY: touch.clientY,
-              bubbles: true,
-              cancelable: true,
-              view: window,
-              button: 0
-            };
-
-            const moveEvt = new MouseEvent("mousemove", opts);
-            const downEvt = new MouseEvent("mousedown", opts);
-            
-            // Aseguramos que el evento llegue al canvas y al documento
-            canvas.dispatchEvent(downEvt);
-            canvas.dispatchEvent(moveEvt);
-            document.dispatchEvent(moveEvt);
-
+            const opts = { clientX: touch.clientX, clientY: touch.clientY, bubbles: true, view: window };
+            canvas.dispatchEvent(new MouseEvent("mousedown", opts));
+            canvas.dispatchEvent(new MouseEvent("mousemove", opts));
             if (e.target.tagName === 'CANVAS') e.preventDefault();
           }
-
           document.addEventListener('touchstart', handleTouch, {passive: false});
           document.addEventListener('touchmove', handleTouch, {passive: false});
-          
-          // Toque de inicio y clics para Arañitas [cite: 2025-07-23]
-          document.addEventListener('touchstart', (e) => {
-             const touch = e.touches[0];
-             const clickEvt = new MouseEvent("click", {
-               clientX: touch.clientX,
-               clientY: touch.clientY,
-               bubbles: true
-             });
-             document.querySelector('canvas').dispatchEvent(clickEvt);
-          }, {passive: false});
-
-          document.addEventListener('touchend', () => {
-            const upEvt = new MouseEvent("mouseup", { bubbles: true });
-            document.dispatchEvent(upEvt);
-          }, {passive: false});
+          document.addEventListener('touchend', () => { document.dispatchEvent(new MouseEvent("mouseup", { bubbles: true })); }, {passive: false});
         `;
         const style = frame.contentDocument.createElement('style');
-        style.textContent = `
-          #ui, #pongScore { font-size: 6vw !important; }
-          canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
-          body { margin: 0; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        `;
+        style.textContent = `canvas { width: 100% !important; height: 100% !important; object-fit: contain; } body { margin: 0; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }`;
         frame.contentDocument.head.appendChild(style);
         frame.contentDocument.body.appendChild(script);
       };
@@ -284,8 +268,7 @@
     }
 
     /* SISTEMA DE AUDIO COMPLETO [cite: 2025-07-23] */
-    let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
-    let audioTimeout, startTime;
+    let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0, audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
     const playlist = [
@@ -318,24 +301,19 @@
       if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const track = playlist[currentTrack];
       if (!isPlaying) {
-        isPlaying = true; isPaused = false;
-        startTime = Date.now();
+        isPlaying = true; isPaused = false; startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-        if (track.type === 'api') sequence();
-        else { playerMP3.src = track.url; playerMP3.play(); }
+        if (track.type === 'api') sequence(); else { playerMP3.src = track.url; playerMP3.play(); }
       } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        if (track.type === 'api' && !isPaused) sequence();
-        else isPaused ? playerMP3.pause() : playerMP3.play();
+        if (track.type === 'api' && !isPaused) sequence(); else isPaused ? playerMP3.pause() : playerMP3.play();
       }
     }
 
     function stopAudio() {
-      isPlaying = false; isPaused = false;
-      clearTimeout(audioTimeout);
-      playerMP3.pause();
+      isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
       document.getElementById('playBtn').innerText = "▶ PLAY";
       document.getElementById('trackName').innerText = "Listo para iniciar";
     }
@@ -343,7 +321,6 @@
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
-    /* CAROUSEL */
     let currentS = 0;
     function showSlide(i) {
       const s = document.getElementById('slides');
