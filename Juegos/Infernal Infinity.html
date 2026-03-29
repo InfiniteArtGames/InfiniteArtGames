@@ -3,36 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>SETSU: INFINITE FURY - Prototipo Final</title>
+    <title>SETSU: INFINITE FURY - Infinite Art Games</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; touch-action: none; }
-        
-        #game-layout {
-            display: grid;
-            grid-template-columns: 7fr 3fr; /* 70% Acción, 30% Mapa */
-            width: 100vw; height: 100vh;
-            gap: 4px; padding: 4px; box-sizing: border-box;
-        }
-
+        #game-layout { display: grid; grid-template-columns: 7fr 3fr; width: 100vw; height: 100vh; gap: 5px; padding: 5px; box-sizing: border-box; }
         .view { background: #050505; border: 2px solid #333; position: relative; overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
-
-        /* HUD */
         #ammo-ui { position: absolute; top: 15px; left: 15px; color: #f00; font-size: 24px; font-weight: bold; text-shadow: 2px 2px #000; }
-        #game-title { position: absolute; top: 15px; width: 100%; text-align: center; color: #888; font-size: 14px; letter-spacing: 2px; }
-
-        /* Controles Táctiles Pro */
-        #ui-controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; pointer-events: none; }
+        #ui-controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; align-items: center; pointer-events: none; }
         #joy-base { width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #444; position: relative; pointer-events: auto; }
         #joy-stick { width: 40px; height: 40px; background: #666; border-radius: 50%; position: absolute; top: 30px; left: 30px; }
-        #fire-btn { width: 90px; height: 90px; background: #900; border: 4px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 20px rgba(255,0,0,0.5); cursor: pointer; }
+        #fire-btn { width: 90px; height: 90px; background: #900; border: 4px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; box-shadow: 0 0 20px rgba(255,0,0,0.5); cursor: pointer; }
     </style>
 </head>
 <body>
 
     <div id="game-layout">
         <div class="view" id="view-3d">
-            <div id="game-title">SETSU: INFINITE FURY</div>
             <div id="ammo-ui">AMMO: 10</div>
             <canvas id="c3d"></canvas>
         </div>
@@ -51,10 +38,13 @@
         const cmap = document.getElementById('cmap'), ctxMap = cmap.getContext('2d');
         const stick = document.getElementById('joy-stick'), base = document.getElementById('joy-base');
 
-        // Mapa: 1=Pared, 0=Vacío, 2=Antorcha
+        // --- RUTA DE TEXTURA ---
+        const wallTex = new Image();
+        wallTex.src = "texturas/pared1.png"; // Aquí tenés la ruta exacta
+
         const world = [
             [1,1,1,1,1,1,1,1,1,1],
-            [1,0,0,2,0,0,0,0,0,1],
+            [1,0,0,0,0,0,0,0,0,1],
             [1,0,1,1,0,1,1,1,0,1],
             [1,0,0,0,0,0,0,1,0,1],
             [1,1,0,1,1,1,0,0,0,1],
@@ -63,9 +53,9 @@
 
         let player = { x: 2, y: 1.5, dir: 1.5, ammo: 10 };
         let enemies = [{x: 7, y: 3.5, alive: true}, {x: 4, y: 1.5, alive: true}];
-        let moveX = 0, moveY = 0, isFiring = false, time = 0;
+        let moveX = 0, moveY = 0, isFiring = false;
 
-        // --- JOYSTICK ANALÓGICO ---
+        // Joystick Logic
         base.addEventListener('touchstart', (e) => handleJoy(e));
         base.addEventListener('touchmove', (e) => handleJoy(e));
         base.addEventListener('touchend', () => { moveX = 0; moveY = 0; stick.style.transform = `translate(0,0)`; });
@@ -81,13 +71,10 @@
             moveX = Math.cos(ang) * (dist/40); moveY = Math.sin(ang) * (dist/40);
         }
 
-        // --- MOTOR DE RENDERIZADO ---
         function loop() {
-            time += 0.1;
             c3d.width = c3d.parentElement.offsetWidth; c3d.height = c3d.parentElement.offsetHeight;
             cmap.width = cmap.parentElement.offsetWidth; cmap.height = cmap.parentElement.offsetHeight;
 
-            // Movimiento Proporcional
             player.dir += moveX * 0.05;
             let nX = player.x - Math.cos(player.dir) * (moveY * 0.1);
             let nY = player.y - Math.sin(player.dir) * (moveY * 0.1);
@@ -103,66 +90,42 @@
             ctx3d.fillStyle = "#111"; ctx3d.fillRect(0,0,w,h/2); // Techo
             ctx3d.fillStyle = "#222"; ctx3d.fillRect(0,h/2,w,h/2); // Suelo
 
-            // Raycasting (Paredes Grises con Antorchas)
-            for(let i=0; i<w; i+=3) {
+            // RAYCASTING CON TEXTURA pared1.png
+            for(let i=0; i<w; i+=2) {
                 let rayAng = (player.dir - 0.4) + (i/w)*0.8;
-                let d = 0, hit = false, light = 0;
+                let d = 0, hit = false;
                 while(!hit && d < 12) {
-                    d += 0.06;
-                    let tx = Math.floor(player.x + Math.cos(rayAng)*d);
-                    let ty = Math.floor(player.y + Math.sin(rayAng)*d);
-                    if(world[ty][tx] === 1) {
+                    d += 0.05;
+                    let tx = player.x + Math.cos(rayAng)*d;
+                    let ty = player.y + Math.sin(rayAng)*d;
+                    
+                    if(world[Math.floor(ty)][Math.floor(tx)] === 1) {
                         hit = true;
                         let wallH = h/d;
-                        let shade = Math.max(20, 130 - d*10);
-                        // Efecto de antorcha (amarillo parpadeante)
-                        let torchEffect = (Math.sin(time) * 5) + 20;
-                        ctx3d.fillStyle = `rgb(${shade + torchEffect}, ${shade + torchEffect/2}, ${shade})`;
-                        ctx3d.fillRect(i, h/2 - wallH/2, 3, wallH);
-                        // Textura de ladrillo
-                        ctx3d.fillStyle = "rgba(0,0,0,0.2)";
-                        ctx3d.fillRect(i, h/2 - wallH/2 + wallH/3, 3, 2);
-                        ctx3d.fillRect(i, h/2 - wallH/2 + (wallH/3)*2, 3, 2);
+                        
+                        // Determinar qué columna de la imagen pared1.png usar
+                        let hitX = tx - Math.floor(tx);
+                        let hitY = ty - Math.floor(ty);
+                        let texX = Math.floor((Math.abs(hitX - 0.5) > Math.abs(hitY - 0.5) ? hitY : hitX) * wallTex.width);
+
+                        // Dibujar la columna de la textura
+                        ctx3d.drawImage(wallTex, texX, 0, 1, wallTex.height, i, h/2 - wallH/2, 2, wallH);
+                        
+                        // Sombreado por distancia
+                        ctx3d.fillStyle = `rgba(0,0,0,${Math.min(1, d/10)})`;
+                        ctx3d.fillRect(i, h/2 - wallH/2, 2, wallH);
                     }
                 }
             }
 
-            // Enemigos en 3D
-            enemies.forEach(e => {
-                if(!e.alive) return;
-                let dx = e.x - player.x, dy = e.y - player.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-                let ang = Math.atan2(dy, dx) - player.dir;
-                if(Math.abs(ang) < 0.4 && dist < 10) {
-                    let sx = (0.5 * (ang/0.4) + 0.5) * w;
-                    let sz = h/dist;
-                    ctx3d.fillStyle = "#600"; // Cuerpo Imp
-                    ctx3d.fillRect(sx - sz/4, h/2 - sz/4, sz/2, sz/2);
-                    ctx3d.fillStyle = "#f00"; // Ojos
-                    ctx3d.fillRect(sx - sz/8, h/2 - sz/6, 4, 4); ctx3d.fillRect(sx + sz/16, h/2 - sz/6, 4, 4);
-                }
-            });
-
-            // ARMA DETALLADA (Cañón Doble Metálico)
+            // Arma de Setsu
             ctx3d.save();
             ctx3d.translate(w/2, h);
-            if(isFiring) ctx3d.translate(0, 15); // Retroceso
-            
-            // Cañones
-            let grad = ctx3d.createLinearGradient(-40, 0, 40, 0);
-            grad.addColorStop(0, "#222"); grad.addColorStop(0.5, "#777"); grad.addColorStop(1, "#222");
-            ctx3d.fillStyle = grad;
-            ctx3d.fillRect(-35, -120, 30, 120); // Cañón izquierdo
-            ctx3d.fillRect(5, -120, 30, 120);  // Cañón derecho
-            ctx3d.fillStyle = "#111";
-            ctx3d.fillRect(-35, -120, 30, 10); ctx3d.fillRect(5, -120, 30, 10); // Bocas
-            
-            // Efecto Fuego
-            if(isFiring) {
-                ctx3d.fillStyle = "#ff0";
-                ctx3d.beginPath(); ctx3d.arc(0, -130, 50, 0, Math.PI*2); ctx3d.fill();
-                ctx3d.fillStyle = "#f60";
-                ctx3d.beginPath(); ctx3d.arc(0, -130, 30, 0, Math.PI*2); ctx3d.fill();
+            if(isFiring) ctx3d.translate(0, 20);
+            ctx3d.fillStyle = "#444";
+            ctx3d.fillRect(-30, -110, 25, 110); ctx3d.fillRect(5, -110, 25, 110);
+            if(isFiring) { // Fuego
+                ctx3d.fillStyle = "#ff0"; ctx3d.beginPath(); ctx3d.arc(0, -120, 40, 0, Math.PI*2); ctx3d.fill();
             }
             ctx3d.restore();
         }
@@ -170,17 +133,11 @@
         function renderMap() {
             const tw = cmap.width/10, th = cmap.height/6;
             for(let y=0; y<6; y++) for(let x=0; x<10; x++) {
-                ctxMap.fillStyle = world[y][x] === 1 ? "#444" : (world[y][x] === 2 ? "#f90" : "#111");
+                ctxMap.fillStyle = world[y][x] === 1 ? "#444" : "#111";
                 ctxMap.fillRect(x*tw, y*th, tw-1, th-1);
             }
-            // Jugador (Setsu)
-            ctxMap.fillStyle = "#0f0";
-            ctxMap.beginPath();
-            ctxMap.arc(player.x*tw, player.y*th, 5, 0, Math.PI*2); ctxMap.fill();
-            // Enemigos
-            enemies.forEach(e => {
-                if(e.alive) { ctxMap.fillStyle = "#f00"; ctxMap.fillRect(e.x*tw-3, e.y*th-3, 6, 6); }
-            });
+            ctxMap.fillStyle = "#0f0"; ctxMap.beginPath(); ctxMap.arc(player.x*tw, player.y*th, 5, 0, Math.PI*2); ctxMap.fill();
+            enemies.forEach(e => { if(e.alive) { ctxMap.fillStyle = "#f00"; ctxMap.fillRect(e.x*tw-3, e.y*th-3, 6, 6); } });
         }
 
         document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
@@ -198,7 +155,8 @@
             e.preventDefault();
         });
 
-        loop();
+        // Iniciar solo cuando cargue la textura
+        wallTex.onload = () => loop();
     </script>
 </body>
 </html>
