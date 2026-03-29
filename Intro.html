@@ -187,6 +187,11 @@ function draw() {
 
 init();
 draw();
+    
+  // Espera a que termine la animación del intro (7.5 segundos + margen)
+  setTimeout(() => {
+    window.location.replace("index.html");
+  }, 8200);
 </script>
 </body>
 </html>
