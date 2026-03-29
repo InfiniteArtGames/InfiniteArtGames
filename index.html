@@ -22,7 +22,6 @@
       font-family: 'Segoe UI', Arial, sans-serif;
       text-align: center;
       overflow-x: hidden;
-      touch-action: pan-y; 
     }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -78,11 +77,10 @@
 
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CONTENEDOR DE JUEGOS - ALTURA CORREGIDA PARA ARAÑITAS */
     .game-viewport-wrapper {
       position: relative;
       width: 100%;
-      height: 450px; /* Reducido un poco para asegurar que quepa en todos los móviles */
+      height: 450px;
       max-height: 60vh; 
       background: #000;
       border: 3px solid var(--primary);
@@ -103,7 +101,6 @@
     .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
-    a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
@@ -197,21 +194,22 @@
       
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // CORRECCIÓN DE CÁLCULO DE COORDENADAS [cite: 2025-07-23]
+        // ARRASTRE TÁCTIL FLUIDO [cite: 2025-07-23]
         script.textContent = `
-          document.addEventListener('touchmove', function(e) {
+          function handleTouch(e) {
+            e.preventDefault(); 
             const touch = e.touches[0];
-            const rect = document.querySelector('canvas').getBoundingClientRect();
-            
-            // Calculamos la posición RELATIVA al canvas para que el dedo coincida
             const mouseEvent = new MouseEvent("mousemove", {
               clientX: touch.clientX,
-              clientY: touch.clientY
+              clientY: touch.clientY,
+              bubbles: true
             });
             window.dispatchEvent(mouseEvent);
-            
-            if (e.target.tagName === 'CANVAS') e.preventDefault();
-          }, {passive: false});
+          }
+
+          // Escuchamos el inicio y el movimiento continuo del dedo [cite: 2025-07-23]
+          document.addEventListener('touchstart', handleTouch, {passive: false});
+          document.addEventListener('touchmove', handleTouch, {passive: false});
         `;
         
         const style = frame.contentDocument.createElement('style');
@@ -235,7 +233,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* AUDIO (Lógica original de David) [cite: 2025-07-23] */
+    /* AUDIO ORIGINAL (Sin cambios) [cite: 2025-07-23] */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
