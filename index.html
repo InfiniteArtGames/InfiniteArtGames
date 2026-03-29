@@ -194,44 +194,59 @@
       const desc = document.getElementById('gameDescription');
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // RECALIBRACIÓN DE ARRASTRE TÁCTIL (v3) - CORRECCIÓN DE DESFASE Y TOQUE INICIAL [cite: 2025-07-23]
+        // RECALIBRACIÓN TÁCTIL FINAL (Corrección desfase inferior y toque inicial) [cite: 2025-07-23]
         script.textContent = `
-          function getTarget() { return document.querySelector('canvas') || document.body; }
-
-          function handleTouch(e) {
+          const canvas = document.querySelector('canvas') || document.body;
+          
+          function updateMousePosition(e) {
             const touch = e.touches[0];
-            const target = getTarget();
-            const rect = target.getBoundingClientRect();
+            const rect = canvas.getBoundingClientRect();
             
-            // Calculamos la posición relativa exacta al área de renderizado [cite: 2025-07-23]
-            const cssX = touch.clientX - rect.left;
-            const cssY = touch.clientY - rect.top;
+            let clientY = touch.clientY;
+            // CORRECCIÓN DESFASE INFERIOR: Si el toque está cerca del fondo, forzamos el límite [cite: 2025-07-23]
+            if (clientY > rect.bottom - 20) {
+              clientY = rect.bottom;
+            } else if (clientY < rect.top + 10) {
+              clientY = rect.top; // Opcional: corrección superior
+            }
 
-            // Simular eventos de mouse con coordenadas CSS correctas [cite: 2025-07-23]
-            const opts = { clientX: cssX, clientY: cssY, bubbles: true, view: window };
+            const opts = {
+              clientX: touch.clientX,
+              clientY: clientY,
+              bubbles: true,
+              cancelable: true,
+              view: window,
+              button: 0
+            };
+
             const moveEvt = new MouseEvent("mousemove", opts);
-            const downEvt = new MouseEvent("mousedown", opts);
-            
-            target.dispatchEvent(downEvt);
-            target.dispatchEvent(moveEvt);
+            canvas.dispatchEvent(moveEvt);
+            document.dispatchEvent(moveEvt);
+          }
 
+          // CORRECCIÓN TOQUE INICIAL ARAÑITAS: Enviar Mousedown + Click en la zona del toque [cite: 2025-07-23]
+          canvas.addEventListener('touchstart', (e) => {
             if (e.target.tagName === 'CANVAS') e.preventDefault();
-          }
+            const touch = e.touches[0];
+            updateMousePosition(e); // Actualizar posición antes del clic
 
-          // Arreglo para toque inicial en Arañitas (Simular Clic completo) [cite: 2025-07-23]
-          function handleTouchStart(e) {
-            handleTouch(e);
-            // Simular un mouseup rápido inmediatamente para confirmar el "clic" de inicio [cite: 2025-07-23]
-            const target = getTarget();
-            const upEvt = new MouseEvent("mouseup", { bubbles: true, view: window });
-            target.dispatchEvent(upEvt);
-          }
+            const opts = { clientX: touch.clientX, clientY: touch.clientY, bubbles: true, button: 0 };
+            const downEvt = new MouseEvent("mousedown", opts);
+            const clickEvt = new MouseEvent("click", opts); // Evento click explícito
+            
+            canvas.dispatchEvent(downEvt);
+            canvas.dispatchEvent(clickEvt); 
+          }, {passive: false});
 
-          document.addEventListener('touchstart', handleTouchStart, {passive: false});
-          document.addEventListener('touchmove', handleTouch, {passive: false});
-          document.addEventListener('touchend', () => {
-             const upEvt = new MouseEvent("mouseup", { bubbles: true, view: window });
-             getTarget().dispatchEvent(upEvt);
+          canvas.addEventListener('touchmove', (e) => {
+            if (e.target.tagName === 'CANVAS') e.preventDefault();
+            updateMousePosition(e);
+          }, {passive: false});
+
+          canvas.addEventListener('touchend', () => {
+            const upEvt = new MouseEvent("mouseup", { bubbles: true });
+            canvas.dispatchEvent(upEvt);
+            document.dispatchEvent(upEvt);
           }, {passive: false});
         `;
         const style = frame.contentDocument.createElement('style');
@@ -292,7 +307,7 @@
         startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-        if (track.type === 'api' {cite: sequence()});
+        if (track.type === 'api') sequence();
         else { playerMP3.src = track.url; playerMP3.play(); }
       } else {
         isPaused = !isPaused;
