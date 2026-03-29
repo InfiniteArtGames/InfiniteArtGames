@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Setsu's Fury - Infinite Art Games</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #000; font-family: monospace; color: white; user-select: none; }
+        canvas { display: block; }
+        
+        /* HUD - Munición */
+        #hud-ammo { position: absolute; top: 10px; right: 10px; font-size: 24px; color: #f00; font-weight: bold; background: rgba(0,0,0,0.5); padding: 5px 10px; border-radius: 5px; }
+
+        /* Título del Juego (Como en image_3.png) */
+        #game-title { position: absolute; top: 10px; width: 100%; text-align: center; font-size: 18px; color: #aaa; text-transform: uppercase; }
+
+        /* Controles Táctiles (Simulación básica de image_3.png) */
+        #ui-layer { position: absolute; bottom: 10px; left: 10px; right: 10px; display: flex; justify-content: space-between; pointer-events: none; }
+        
+        #joystick-container { width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; pointer-events: auto; }
+        #joystick-handle { width: 50px; height: 50px; background: #555; border-radius: 50%; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        
+        #fire-button { width: 80px; height: 80px; background: #a00; border-radius: 50%; border: 4px solid #fff; box-shadow: 0 0 15px rgba(255,0,0,0.7); display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: bold; color: #fff; pointer-events: auto; cursor: pointer; }
+        #fire-button:active { background: #f00; transform: scale(0.95); }
+    </style>
+</head>
+<body>
+
+    <div id="game-title">SETSU: INFINITE FURY</div>
+    <div id="hud-ammo">AMMO: <span id="ammo-count">10</span></div>
+
+    <div id="ui-layer">
+        <div id="joystick-container">
+            <div id="joystick-handle"></div>
+        </div>
+        <div id="fire-button">FIRE</div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // --- CONFIGURACIÓN BÁSICA ---
+        let scene, camera, renderer, clock;
+        let player, playerVelocity = new THREE.Vector3();
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
+        let objects = []; // Para colisiones
+        let enemies = [];
+        let ammo = 10;
+        let isFiring = false;
+
+        // Variables de control táctil
+        let joystickManager;
+        const uiAmmo = document.getElementById('ammo-count');
+
+        init();
+        animate();
+
+        function init() {
+            // Scene & Camera
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x111111); // Fondo oscuro
+            scene.fog = new THREE.FogExp2(0x111111, 0.1); // Niebla pesada estilo SNES
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            
+            // Renderer (con pixelado)
+            renderer = new THREE.WebGLRenderer({ antialias: false }); // Desactivar antialias para el look retro
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Reloj para el movimiento uniforme
+            clock = new THREE.Clock();
+
+            // Luces Ambiente y Direccional (Básicas, ambiente oscuro)
+            const ambientLight = new THREE.AmbientLight(0x303030, 1);
+            scene.add(ambientLight);
+            
+            // Luces de Antorcha (Como en image_3.png)
+            // Ponemos dos puntos de luz cálida parpadeante
+            const torch1 = new THREE.PointLight(0xffaa00, 2, 6);
+            torch1.position.set(-2, 1.5, -4);
+            scene.add(torch1);
+            
+            const torch2 = new THREE.PointLight(0xffaa00, 2, 6);
+            torch2.position.set(2, 1.5, -4);
+            scene.add(torch2);
+
+            // --- CREACIÓN DEL MAPA (Basado en la grilla de image_3.png) ---
+            const tileSize = 2;
+            const floorGeometry = new THREE.PlaneGeometry( tileSize * 10, tileSize * 10 );
+            const floorMaterial = new THREE.MeshLambertMaterial({ color: 0x222222 }); // Suelo gris oscuro
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = -0.1; // Ligeramente abajo para evitar z-fighting
+            scene.add(floor);
+
+            const wallMaterial = new THREE.MeshLambertMaterial({ color: 0x555555 }); // Paredes gris piedra
+
+            // Definición simple del mapa (1=Pared, 0=Vacío)
+            // Usamos la grilla de image_3.png como referencia
+            const mapData = [
+                [1,1,1,1,1,1,1,1,1,1],
+                [1,0,0,0,0,1,1,1,1,1],
+                [1,0,1,1,0,1,0,0,0,1],
+                [1,0,1,0,0,1,0,1,0,1],
+                [1,0,1,0,0,1,0,1,0,1],
+                [1,0,0,0,0,1,0,0,0,1],
+                [1,1,1,1,1,1,1,1,1,1],
+            ];
+
+            for (let z = 0; z < mapData.length; z++) {
+                for (let x = 0; x < mapData[z].length; x++) {
+                    if (mapData[z][x] === 1) {
+                        const wallGeometry = new THREE.BoxGeometry(tileSize, tileSize, tileSize);
+                        const wall = new THREE.Mesh(wallGeometry, wallMaterial);
+                        wall.position.set(x * tileSize - (mapData[z].length * tileSize)/2, tileSize/2, z * tileSize - (mapData.length * tileSize)/2);
+                        scene.add(wall);
+                        objects.push(wall); // Añadir a colisiones
+                    }
+                }
+            }
+
+            // --- JUGADOR (Cámara + Arma) ---
+            player = new THREE.Group();
+            player.add(camera);
+            scene.add(player);
+            // Posición inicial
+            player.position.set(-2, tileSize/2, 0); 
+
+            // Sprite del Arma (Placeholder para la pata/arma de Setsu)
+            const weaponGeometry = new THREE.BoxGeometry(0.15, 0.1, 0.6);
+            const weaponMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 }); // Gris oscuro
+            const weapon = new THREE.Mesh(weaponGeometry, weaponMaterial);
+            weapon.position.set(0.2, -0.2, -0.4); // Abajo a la derecha de la vista
+            camera.add(weapon);
+
+            // --- ENEMIGOS (Los Imps de image_3.png) ---
+            const enemyGeometry = new THREE.SphereGeometry(0.4, 8, 8);
+            const enemyMaterial = new THREE.MeshBasicMaterial({ color: 0x600000 }); // Rojo sangre oscuro
+            
+            // Creamos 5 enemigos como en la imagen
+            for(let i=0; i<5; i++){
+                const enemy = new THREE.Mesh(enemyGeometry, enemyMaterial);
+                // Posiciones iniciales variadas
+                enemy.position.set(Math.random() * 6 - 3, 0.5, Math.random() * -6);
+                scene.add(enemy);
+                enemies.push(enemy);
+            }
+
+            // --- CONTROLES Y EVENTOS ---
+            setupControls();
+            window.addEventListener('resize', onWindowResize);
+        }
+
+        // --- SISTEMA DE CONTROLES HÍBRIDO ---
+        function setupControls() {
+            // Teclado (Para PC)
+            document.addEventListener('keydown', (e) => {
+                switch (e.code) {
+                    case 'ArrowUp': case 'KeyW': moveForward = true; break;
+                    case 'ArrowLeft': case 'KeyA': moveLeft = true; break;
+                    case 'ArrowDown': case 'KeyS': moveBackward = true; break;
+                    case 'ArrowRight': case 'KeyD': moveRight = true; break;
+                    case 'Space': fire(); break;
+                }
+            });
+            document.addEventListener('keyup', (e) => {
+                switch (e.code) {
+                    case 'ArrowUp': case 'KeyW': moveForward = false; break;
+                    case 'ArrowLeft': case 'KeyA': moveLeft = false; break;
+                    case 'ArrowDown': case 'KeyS': moveBackward = false; break;
+                    case 'ArrowRight': case 'KeyD': moveRight = false; break;
+                }
+            });
+
+            // Táctil (Simulación de image_3.png)
+            const joystickContainer = document.getElementById('joystick-container');
+            const joystickHandle = document.getElementById('joystick-handle');
+            const fireButton = document.getElementById('fire-button');
+
+            let joystickActive = false;
+            let joystickStartX, joystickStartY;
+
+            joystickContainer.addEventListener('touchstart', (e) => {
+                joystickActive = true;
+                const touch = e.touches[0];
+                const rect = joystickContainer.getBoundingClientRect();
+                joystickStartX = rect.left + rect.width / 2;
+                joystickStartY = rect.top + rect.height / 2;
+                e.preventDefault();
+            });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!joystickActive) return;
+                const touch = e.touches[0];
+                
+                const deltaX = touch.clientX - joystickStartX;
+                const deltaY = touch.clientY - joystickStartY;
+                const distance = Math.sqrt(deltaX*deltaX + deltaY*deltaY);
+                const maxDistance = 50;
+
+                // Limitar el movimiento del handle visual
+                const moveX_ui = Math.min(distance, maxDistance) * (deltaX / distance);
+                const moveY_ui = Math.min(distance, maxDistance) * (deltaY / distance);
+                joystickHandle.style.transform = `translate(${moveX_ui}px, ${moveY_ui}px)`;
+
+                // Normalizar entrada para movimiento (Umbral mínimo)
+                moveForward = deltaY < -15;
+                moveBackward = deltaY > 15;
+                moveLeft = deltaX < -15;
+                moveRight = deltaX > 15;
+                e.preventDefault();
+            }, { passive: false });
+
+            document.addEventListener('touchend', () => {
+                joystickActive = false;
+                joystickHandle.style.transform = `translate(0px, 0px)`;
+                moveForward = moveBackward = moveLeft = moveRight = false;
+            });
+
+            fireButton.addEventListener('touchstart', (e) => { fire(); e.preventDefault(); });
+        }
+
+        function fire() {
+            if (ammo > 0 && !isFiring) {
+                isFiring = true;
+                ammo--;
+                uiAmmo.innerText = ammo;
+                
+                // Efecto visual simple de disparo (flash de luz)
+                const flash = new THREE.PointLight(0xffaa00, 3, 2);
+                flash.position.set(0.2, -0.2, -0.5);
+                camera.add(flash);
+
+                // Lógica de impacto (Raycasting de combate al centro de la pantalla)
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+                const intersects = raycaster.intersectObjects(enemies);
+
+                if (intersects.length > 0) {
+                    const hitEnemy = intersects[0].object;
+                    // Eliminar enemigo (básico)
+                    scene.remove(hitEnemy);
+                    enemies = enemies.filter(e => e !== hitEnemy);
+                    console.log("¡Impacto!");
+                }
+
+                setTimeout(() => { camera.remove(flash); isFiring = false; }, 100); // Duración del flash
+            }
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            const delta = clock.getDelta();
+            const moveSpeed = 5 * delta;
+            const rotateSpeed = 1.5 * delta;
+
+            // --- MOVIMIENTO Y FÍSICAS BÁSICAS ---
+            playerVelocity.set(0, 0, 0);
+
+            // Rotación (Solo PC/Teclado, el táctil mueve)
+            if (moveLeft) player.rotation.y += rotateSpeed;
+            if (moveRight) player.rotation.y -= rotateSpeed;
+
+            // Avance/Retroceso
+            if (moveForward) playerVelocity.z = -moveSpeed;
+            if (moveBackward) playerVelocity.z = moveSpeed;
+
+            // Aplicar velocidad relativa a la dirección del jugador
+            const camDir = new THREE.Vector3();
+            camera.getWorldDirection(camDir);
+            player.position.addScaledVector(camDir, -playerVelocity.z);
+
+            // --- COLISIONES MUY BÁSICAS (Evitar atravesar paredes) ---
+            const playerRaycaster = new THREE.Raycaster();
+            playerRaycaster.set(player.position, camDir.normalize());
+            const wallIntersects = playerRaycaster.intersectObjects(objects);
+            
+            if (wallIntersects.length > 0 && wallIntersects[0].distance < 0.5) {
+                 // Retroceder si hay colisión inminente
+                 player.position.addScaledVector(camDir, playerVelocity.z);
+            }
+
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
