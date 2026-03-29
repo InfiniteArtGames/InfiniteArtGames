@@ -14,17 +14,17 @@
 
     body {
       margin: 0; padding: 0;
-      background: radial-gradient(circle at center, #10002b 0%, #050010 100%);
+      background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
       background-color: #000;
       color: #fff;
-      font-family: 'Orbitron', sans-serif; /* Cambio de fuente solicitado */
+      font-family: 'Orbitron', sans-serif;
       text-align: center;
       overflow-x: hidden;
     }
 
-    .container { max-width: 1100px; margin: 0 auto; padding: 40px 20px; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
-    /* TÍTULO ESTILO LOGOTIPO GAMER */
+    /* TÍTULO LOGOTIPO GAMER */
     h1 {
       font-size: clamp(2.5em, 10vw, 5.5em);
       margin: 20px 0;
@@ -34,7 +34,7 @@
       background: linear-gradient(to bottom, #fff 20%, var(--accent) 50%, var(--primary) 80%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
-      filter: drop-shadow(0 0 15px rgba(160, 32, 240, 0.6));
+      filter: drop-shadow(0 0 15px var(--primary));
       animation: titleGlow 4s infinite alternate;
     }
 
@@ -43,118 +43,127 @@
       to { filter: drop-shadow(0 0 30px var(--accent)); }
     }
 
-    .poema { font-size: 1.2em; font-style: italic; margin-bottom: 40px; color: var(--accent); opacity: 0.8; }
+    .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
+
+    .bienvenida {
+      font-size: 1.3em; line-height: 1.6;
+      margin-bottom: 50px; padding: 20px;
+      background: rgba(160, 32, 240, 0.15);
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(160, 32, 240, 0.3);
+    }
 
     .main-card {
-      margin: 20px auto; padding: 30px;
-      background: rgba(10, 0, 30, 0.8);
-      border-radius: 20px; border: 1px solid rgba(160, 32, 240, 0.5);
-      backdrop-filter: blur(10px);
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+      margin: 40px auto; padding: 30px;
+      background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
+      border-radius: 30px; border: 2px solid var(--primary);
+      box-shadow: 0 0 30px rgba(160, 32, 240, 0.5);
+      max-width: 750px;
     }
 
-    /* VISUALIZADOR DE PARTÍCULAS INFINITO */
+    /* VISUALIZADOR INFINITO */
     .viz-container {
-      position: relative; width: 100%; height: 300px;
-      margin: 10px 0; background: radial-gradient(circle, rgba(160,32,240,0.05) 0%, transparent 70%);
+      position: relative; width: 100%; height: 280px;
+      margin: 15px 0; display: flex; justify-content: center; align-items: center;
     }
-    #visualizer { width: 100%; height: 100%; }
+    #visualizer { width: 100%; height: 100%; filter: drop-shadow(0 0 20px var(--primary)); }
 
-    .controls { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+    .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
     
     .btn-nav {
-      background: transparent;
-      color: #fff; border: 1px solid var(--primary); padding: 12px 25px;
-      border-radius: 5px; cursor: pointer; font-family: 'Orbitron';
-      transition: 0.3s; text-transform: uppercase;
-      box-shadow: inset 0 0 10px rgba(160, 32, 240, 0.2);
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: white; border: none; padding: 12px 24px;
+      border-radius: 50px; cursor: pointer; font-weight: bold;
+      font-family: 'Orbitron'; transition: 0.3s;
+      box-shadow: 0 0 10px var(--primary);
     }
 
-    .btn-nav:hover { background: var(--primary); box-shadow: 0 0 20px var(--primary); }
+    .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
-    .content-section { display: none; margin-top: 25px; animation: fadeIn 0.8s; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-    /* GALERÍA MEJORADA */
-    .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 30px; margin: 50px 0; }
-    .personaje { 
-      width: 240px; padding: 10px; background: rgba(255,255,255,0.03); 
-      border-radius: 15px; border: 1px solid rgba(255,255,255,0.1);
-      transition: 0.4s;
+    .content-section {
+      display: none; margin-top: 25px; padding: 20px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      animation: fadeIn 0.5s;
     }
-    .personaje:hover { border-color: var(--accent); transform: translateY(-10px); }
-    .personaje img { 
-      width: 100%; height: 240px; object-fit: cover; border-radius: 10px;
-      filter: grayscale(20%); transition: 0.4s;
-    }
-    .personaje:hover img { filter: grayscale(0%); }
 
-    .modal-visor {
-      display: none; position: fixed; z-index: 1000; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0,0,0,0.9);
-      align-items: center; justify-content: center; cursor: zoom-out;
-    }
-    .modal-content { max-width: 85%; max-height: 85%; border: 1px solid var(--accent); box-shadow: 0 0 50px var(--primary); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    footer { margin-top: 100px; padding: 40px; border-top: 1px solid rgba(160,32,240,0.2); color: #555; font-size: 0.8em; }
+    .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 30px 0 50px; }
+    .personaje { width: 220px; display: flex; flex-direction: column; align-items: center; }
+    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
+    .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
+    .personaje p { margin-top: 10px; font-size: 1.1em; color: #ccc; }
+
+    footer { margin-top: 80px; font-size: 0.9em; color: #777; padding-bottom: 40px; }
     a { color: var(--accent); text-decoration: none; }
   </style>
 </head>
 <body>
 
-  <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">
-    <img class="modal-content" id="imgExpandida">
-  </div>
-
   <div class="container">
     <h1>Infinite Art Games</h1>
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
+    
+    <div class="bienvenida">
+      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
+      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.<br>
+      Nuestras esculturas digitales y personajes nacen de la última tecnología y la creatividad sin límites.
+    </div>
 
     <div class="main-card">
-      <div id="trackName" style="color:var(--accent); letter-spacing: 2px;">MODO: ESPERA INFINITA</div>
+      <div id="status" style="color:var(--accent); font-weight:bold; letter-spacing: 2px;">SINFONÍA DEL INFINITO</div>
+      <div id="trackName" style="font-size:1.1em; margin:10px 0; color: #fff;">SISTEMA LISTO</div>
       
       <div class="viz-container">
         <canvas id="visualizer"></canvas>
       </div>
 
       <div class="controls">
-        <button onclick="prevTrack()" class="btn-nav">PREV</button>
-        <button id="playBtn" onclick="togglePlay()" class="btn-nav">INIT SYSTEM</button>
-        <button onclick="stopAudio()" class="btn-nav">STOP</button>
-        <button onclick="nextTrack()" class="btn-nav">NEXT</button>
+        <button onclick="prevTrack()" class="btn-nav">⏮</button>
+        <button id="playBtn" onclick="togglePlay()" class="btn-nav">▶ PLAY</button>
+        <button onclick="stopAudio()" class="btn-nav">■</button>
+        <button onclick="nextTrack()" class="btn-nav">⏭</button>
       </div>
 
       <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
-        <button class="btn-nav" onclick="showTab('musica')">AUDIO</button>
-        <button class="btn-nav" onclick="showTab('juegos')">GAMES</button>
+        <button class="btn-nav" onclick="showTab('musica')">MÚSICA</button>
+        <button class="btn-nav" onclick="showTab('juegos')">JUEGOS</button>
         <button class="btn-nav" onclick="showTab('diosas')">DIOSAS</button>
       </div>
 
       <div id="musica" class="content-section">
-        <h3 style="color:var(--primary);">DATABASE: TRACKS</h3>
+        <h3 style="color:var(--accent);">PLAYLIST ÉPICA</h3>
         <p>01. Melodía de Sét-su | 02. Eco del Infinito | 03. Bad Wolf</p>
         <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
+      
+        <div style="margin-top:25px;">
+          <h4 style="color:#00d4ff; margin-bottom:15px;">SHADOWS IN THE NIGHT</h4>
+          <iframe width="100%" height="315" 
+            src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" 
+            title="Shadows In The Night" frameborder="0" allowfullscreen></iframe>
+        </div>
       </div>
       
       <div id="juegos" class="content-section">
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px;">
-          <button class="btn-nav" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞')">BING-BANG</button>
-          <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">ARAÑITAS</button>
+        <h3 style="color:var(--accent);">CONSOLA ∞</h3>
+        <div style="margin-bottom: 20px;">
+          <button class="btn-nav" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang')">BING-BANG</button>
+          <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas')">ARAÑITAS</button>
         </div>
-        <iframe id="activeGameFrame" style="width:100%; height:400px; border:1px solid var(--primary); border-radius:10px;" src="about:blank"></iframe>
+        <iframe id="activeGameFrame" style="width:100%; height:400px; border:2px solid var(--primary); border-radius:15px;" src="about:blank"></iframe>
       </div>
 
       <div id="diosas" class="content-section">
+        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO</h3>
         <p>Aisha · Shana · Katy · Merlina · Camila</p>
       </div>
     </div>
 
-    <h2 style="color:#fff; margin-top:80px; letter-spacing:10px;">GALLERY ∞</h2>
-
     <div class="galeria">
-      <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Setsu: Lobo Negro</p></div>
+      <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Sét-su Lobo</p></div>
       <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
-      <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas del Infinito</p></div>
+      <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas</p></div>
     </div>
     
     <footer>
@@ -170,69 +179,61 @@
       document.getElementById(id).style.display = 'block';
     }
 
-    document.querySelectorAll('.personaje img').forEach(img => {
-      img.onclick = function() {
-        document.getElementById("miVisor").style.display = "flex";
-        document.getElementById("imgExpandida").src = this.src;
-      }
-    });
-
-    /* VISUALIZADOR DE PARTÍCULAS INFINITO [cite: 2025-07-23] */
-    let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
-    let currentTrack = 0, currentNote = 0, audioTimeout;
-    const playerMP3 = document.getElementById('playerMP3');
+    /* VISUALIZADOR DE ENERGÍA INFINITA */
+    let audioCtx = null, analyser = null, isPlaying = false;
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
+    const playerMP3 = document.getElementById('playerMP3');
 
     const playlist = [
-      { type: 'api', name: "Sét-su Theme", data: [440, 523, 659] },
+      { type: 'api', name: "Melodía de Sét-su", data: [440, 523, 659] },
       { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" }
     ];
+    let currentTrack = 0;
 
     function initAudio() {
       if (audioCtx) return;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       analyser = audioCtx.createAnalyser();
       analyser.fftSize = 256;
-      if (playerMP3.src) {
-        const source = audioCtx.createMediaElementSource(playerMP3);
-        source.connect(analyser);
-        analyser.connect(audioCtx.destination);
-      }
-      drawParticles();
+      const source = audioCtx.createMediaElementSource(playerMP3);
+      source.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      draw();
     }
 
-    // Lógica para dibujar el símbolo del infinito con partículas
-    function drawParticles() {
-      requestAnimationFrame(drawParticles);
+    function draw() {
+      requestAnimationFrame(draw);
       const dataArray = new Uint8Array(analyser.frequencyBinCount);
       analyser.getByteFrequencyData(dataArray);
-      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const time = Date.now() * 0.002;
+      
       const avg = dataArray.reduce((a,b) => a+b)/dataArray.length;
+      const time = Date.now() * 0.003;
 
-      ctx.lineWidth = 2;
-      for(let i = 0; i < 150; i++) {
-        // Ecuación de Lemniscata de Bernoulli (Símbolo Infinito)
-        const t = (i / 150) * Math.PI * 2;
-        const scale = 120 + (avg * 0.5);
+      for(let i = 0; i < 180; i++) {
+        const t = (i / 180) * Math.PI * 2;
+        // Lemniscata de Bernoulli (Símbolo Infinito) [cite: 2025-07-23]
+        const scale = 110 + (avg * 0.4);
         const x = (scale * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
         const y = (scale * Math.sin(t) * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
 
         const posX = (canvas.width / 2) + x;
         const posY = (canvas.height / 2) + y;
 
-        // Partículas "protones" [cite: 2025-07-23]
         ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
-        const size = Math.random() * (avg / 30);
-        ctx.beginPath();
-        ctx.arc(posX + Math.sin(time + i)*5, posY + Math.cos(time + i)*5, size, 0, Math.PI*2);
-        ctx.fill();
+        const size = 1 + (Math.random() * (avg / 25));
         
-        if(avg > 50) {
-           ctx.shadowBlur = 15;
-           ctx.shadowColor = '#00d4ff';
+        ctx.beginPath();
+        // Movimiento de partículas "protones" [cite: 2025-07-23]
+        ctx.arc(posX + Math.sin(time + i)*8, posY + Math.cos(time + i)*8, size, 0, Math.PI*2);
+        ctx.fill();
+
+        if(avg > 40) { // Efecto de energía desprendida
+          ctx.shadowBlur = 10;
+          ctx.shadowColor = var(--accent);
         }
       }
     }
@@ -241,29 +242,31 @@
       initAudio();
       const track = playlist[currentTrack];
       if (!isPlaying) {
-        isPlaying = true; isPaused = false;
-        document.getElementById('playBtn').innerText = "PAUSE";
-        document.getElementById('trackName').innerText = "TRACK: " + track.name;
+        isPlaying = true;
+        document.getElementById('playBtn').innerText = "⏸ PAUSE";
+        document.getElementById('trackName').innerText = track.name;
         if (track.type === 'mp3') { playerMP3.src = track.url; playerMP3.play(); }
       } else {
-        isPaused = !isPaused;
-        document.getElementById('playBtn').innerText = isPaused ? "RESUME" : "PAUSE";
-        isPaused ? playerMP3.pause() : playerMP3.play();
+        isPlaying = false;
+        document.getElementById('playBtn').innerText = "▶ PLAY";
+        playerMP3.pause();
       }
     }
 
     function stopAudio() {
-      isPlaying = false; isPaused = false; playerMP3.pause();
-      document.getElementById('playBtn').innerText = "INIT SYSTEM";
-      document.getElementById('trackName').innerText = "MODO: ESPERA INFINITA";
+      isPlaying = false; playerMP3.pause();
+      document.getElementById('playBtn').innerText = "▶ PLAY";
+      document.getElementById('trackName').innerText = "SISTEMA LISTO";
     }
 
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
 
+    function cargarJuego(ruta, nombre) {
+      document.getElementById('activeGameFrame').src = ruta;
+    }
+
     showTab('musica');
-    canvas.width = canvas.offsetWidth;
-    canvas.height = canvas.offsetHeight;
   </script>
 </body>
 </html>
