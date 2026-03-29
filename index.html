@@ -2,17 +2,19 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Infinite Art Games | Sét-su</title>
   <style>
     :root {
       --primary: #a020f0;
       --accent: #00d4ff;
+      --neon-ball: #39ff14;
       --bg: #050010;
     }
 
     body {
-      margin: 0; padding: 0;
+      margin: 0;
+      padding: 0;
       background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
       background-attachment: fixed;
       background-color: #000;
@@ -99,6 +101,7 @@
     .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
+    a { color: var(--primary); text-decoration: none; }
   </style>
 </head>
 <body>
@@ -131,24 +134,6 @@
         <button class="btn-nav" onclick="showTab('arte')">🎨 Arte ∞</button>
       </div>
 
-      <div id="juegos" class="content-section">
-        <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
-        
-        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞')">🎮 Bing-Bang</button>
-          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">🕷️ Arañitas</button>
-        </div>
-
-        <div class="game-viewport-wrapper" id="fullscreen-target">
-          <iframe id="activeGameFrame" src="about:blank" allow="autoplay; fullscreen"></iframe>
-        </div>
-
-        <div style="margin-top: 15px;">
-          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary);">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top:10px;">Selecciona un desafío</p>
-        </div>
-      </div>
-
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">Playlist Épica</h3>
         <p>01. Melodía de Sét-su (Sintetizada - 60s)</p>
@@ -156,6 +141,22 @@
         <p>03. Bad Wolf (MP3)</p>
         <p>04. El Lobo Feroz (MP3)</p>
         <audio id="playerMP3" style="display:none;"></audio>
+      </div>
+
+      <div id="juegos" class="content-section">
+        <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
+        <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang∞')">🎮 Bing-Bang</button>
+          <button class="btn-nav" style="font-size: 0.8em;" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas∞')">🕷️ Arañitas</button>
+        </div>
+        <div class="game-viewport-wrapper" id="fullscreen-target">
+          <iframe id="activeGameFrame" src="about:blank" allow="autoplay; fullscreen"></iframe>
+        </div>
+        <div style="margin-top: 15px;">
+          <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary);">🔲 PANTALLA COMPLETA</button>
+          <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top:10px;">Selecciona un desafío</p>
+          <p style="font-size: 0.8em; color: #777;">Para una mejor experiencia en móvil, usa el botón de pantalla completa [cite: 2025-07-23].</p>
+        </div>
       </div>
 
       <div id="diosas" class="content-section">
@@ -175,7 +176,10 @@
       <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas del infinito</p></div>
     </div>
     
-    <footer>© 2026 Sét-su - Infinite Art Games S.A.</footer>
+    <footer>
+      © 2026 Sét-su - Infinite Art Games S.A. - Todos los derechos reservados.<br>
+      Contacto: <a href="https://linktr.ee/JulianDavidRJ" target="_blank">Linktree</a>
+    </footer>
   </div>
 
   <script>
@@ -188,35 +192,34 @@
     function cargarJuego(ruta, nombre) {
       const frame = document.getElementById('activeGameFrame');
       const desc = document.getElementById('gameDescription');
-      frame.style.opacity = "0";
-      
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // REPARACIÓN: Solo inyectamos el rastro si el usuario arrastra, permitiendo clics [cite: 2025-07-23]
+        // RECALIBRACIÓN DE ARRASTRE TÁCTIL [cite: 2025-07-23]
         script.textContent = `
-          document.addEventListener('touchmove', function(e) {
+          function handleTouch(e) {
             const touch = e.touches[0];
+            const canvas = document.querySelector('canvas');
+            const rect = canvas.getBoundingClientRect();
+            // Calculamos la posición exacta relativa al área de juego [cite: 2025-07-23]
             const mouseEvent = new MouseEvent("mousemove", {
               clientX: touch.clientX,
               clientY: touch.clientY,
               bubbles: true
             });
             window.dispatchEvent(mouseEvent);
-            // Solo bloqueamos el scroll si estamos sobre el canvas [cite: 2025-07-23]
             if (e.target.tagName === 'CANVAS') e.preventDefault();
-          }, {passive: false});
+          }
+          document.addEventListener('touchstart', handleTouch, {passive: false});
+          document.addEventListener('touchmove', handleTouch, {passive: false});
         `;
-        
         const style = frame.contentDocument.createElement('style');
         style.textContent = `
           #ui, #pongScore { font-size: 6vw !important; }
           canvas { width: 100% !important; height: 100% !important; object-fit: contain; }
           body { margin: 0; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; height: 100vh; }
         `;
-        
         frame.contentDocument.head.appendChild(style);
         frame.contentDocument.body.appendChild(script);
-        frame.style.opacity = "1";
       };
       frame.src = ruta;
       desc.innerText = "Jugando: " + nombre;
@@ -228,7 +231,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* AUDIO ORIGINAL [cite: 2025-07-23] */
+    /* SISTEMA DE AUDIO COMPLETO [cite: 2025-07-23] */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
