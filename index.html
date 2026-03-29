@@ -13,8 +13,7 @@
     }
 
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
       background-attachment: fixed;
       background-color: #000;
@@ -57,6 +56,23 @@
       max-width: 700px;
     }
 
+    /* VISUALIZADOR CIRCULAR LLAMATIVO */
+    .viz-container {
+      position: relative;
+      width: 100%;
+      height: 200px;
+      margin: 10px 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #visualizer {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 10px var(--primary));
+    }
+
     .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
     
     .btn-nav {
@@ -78,40 +94,18 @@
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     .game-viewport-wrapper {
-      position: relative;
-      width: 100%;
-      height: 450px;
-      max-height: 60vh; 
-      background: #000;
-      border: 3px solid var(--primary);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
+      position: relative; width: 100%; height: 450px; max-height: 60vh; 
+      background: #000; border: 3px solid var(--primary); border-radius: 20px;
+      overflow: hidden; box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
     }
 
-    .game-viewport-wrapper iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: none;
-    }
+    .game-viewport-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none; }
 
-    /* ESTILOS DE LA GALERÍA */
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 30px 0 50px; }
     .personaje { width: 220px; height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; }
     .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
     .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--primary); }
     .personaje p { margin-top: 10px; font-size: 1.1em; color: #ccc; }
-
-    /* ESTILOS DEL VISUALIZADOR DE AUDIO */
-    #visualizer {
-      width: 100%;
-      height: 60px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 10px;
-      margin-top: 15px;
-      border: 1px solid rgba(160, 32, 240, 0.3);
-    }
 
     .modal-visor {
       display: none; position: fixed; z-index: 1000; top: 0; left: 0;
@@ -145,7 +139,9 @@
       <div id="status" style="color:var(--accent); font-weight:bold;">Sinfonía del Infinito</div>
       <div id="trackName" style="font-size:1.2em; margin:10px 0;">Listo para iniciar</div>
       
-      <canvas id="visualizer"></canvas>
+      <div class="viz-container">
+        <canvas id="visualizer"></canvas>
+      </div>
 
       <div class="controls">
         <button onclick="prevTrack()" class="btn-nav">⏮</button>
@@ -174,11 +170,8 @@
           <iframe width="100%" height="315" 
             src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk?autoplay=0&controls=1&rel=0&modestbranding=1" 
             title="Shadows In The Night - Infinite Art Games" 
-            frameborder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-            allowfullscreen 
-            referrerpolicy="strict-origin"></iframe>
-          <p style="margin-top:10px; font-size:0.9em; opacity:0.8;">Tu soundtrack oscuro para el infinito. ¡Play y siente el caos ♾️</p>
+            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+            allowfullscreen referrerpolicy="strict-origin"></iframe>
           </div>
       </div>
       
@@ -194,7 +187,6 @@
         <div style="margin-top: 15px;">
           <button class="btn-nav" onclick="requestGameFullScreen()" style="background: var(--primary);">🔲 PANTALLA COMPLETA</button>
           <p id="gameDescription" style="font-size: 1.1em; color: var(--accent); font-weight: bold; margin-top:10px;">Selecciona un desafío</p>
-          <p style="font-size: 0.8em; color: #777;">Para una mejor experiencia en móvil, usa el botón de pantalla completa [cite: 2025-07-23].</p>
         </div>
       </div>
 
@@ -280,13 +272,14 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* SISTEMA DE AUDIO Y VISUALIZADOR [cite: 2025-07-23] */
+    /* SISTEMA DE AUDIO Y VISUALIZADOR AVANZADO [cite: 2025-07-23] */
     let audioCtx = null, analyser = null, source = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
+    // Playlist y Notas [cite: 2025-07-23]
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
@@ -299,7 +292,7 @@
       if (audioCtx) return;
       audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       analyser = audioCtx.createAnalyser();
-      analyser.fftSize = 64;
+      analyser.fftSize = 256;
       source = audioCtx.createMediaElementSource(playerMP3);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
@@ -313,14 +306,38 @@
       analyser.getByteFrequencyData(dataArray);
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const barWidth = (canvas.width / bufferLength) * 2.5;
-      let x = 0;
+      
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+      const radius = 40; // Tamaño del núcleo
 
-      for(let i = 0; i < bufferLength; i++) {
-        let barHeight = (dataArray[i]/255) * canvas.height;
-        ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
-        ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
-        x += barWidth + 2;
+      // Efecto de resplandor central
+      let average = dataArray.reduce((a,b) => a+b)/bufferLength;
+      let pulse = average / 10;
+      
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius + pulse, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(160, 32, 240, ${average/255})`;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Dibujar ondas circulares
+      for(let i = 0; i < bufferLength; i += 4) {
+        let barHeight = (dataArray[i]/255) * 60;
+        let angle = (i * Math.PI * 2) / bufferLength;
+        
+        let x1 = centerX + Math.cos(angle) * (radius + pulse);
+        let y1 = centerY + Math.sin(angle) * (radius + pulse);
+        let x2 = centerX + Math.cos(angle) * (radius + pulse + barHeight);
+        let y2 = centerY + Math.sin(angle) * (radius + pulse + barHeight);
+
+        ctx.strokeStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
       }
     }
 
@@ -330,7 +347,7 @@
       o.type = 'triangle'; o.frequency.value = f;
       g.gain.setValueAtTime(0.2, audioCtx.currentTime);
       g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
-      o.connect(analyser); // Conectado al analizador para ver las ondas
+      o.connect(analyser);
       o.connect(g); g.connect(audioCtx.destination);
       o.start(); o.stop(audioCtx.currentTime + d);
     }
