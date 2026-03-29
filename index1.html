@@ -251,7 +251,7 @@
       // Calculamos el centro de la card para que no se vea cortada por abajo
       const rect = card.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2);
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 - 200);
       
       window.scrollTo({ top: targetY, behavior: 'smooth' });
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
