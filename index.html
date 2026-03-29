@@ -23,57 +23,36 @@
       overflow-x: hidden;
     }
 
-    /* BLOQUEO DE SCROLL MEJORADO PARA CENTRADO TOTAL [cite: 2025-07-23] */
-    .no-scroll { 
-      overflow: hidden !important; 
-      height: 100vh !important; 
-      position: fixed; 
-      width: 100%;
-    }
+    /* BLOQUEO DE SCROLL DINÁMICO [cite: 2025-07-23] */
+    .no-scroll { overflow: hidden !important; height: 100vh !important; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
     h1 {
       font-size: clamp(2.5em, 10vw, 5.5em);
-      margin: 20px 0;
-      font-weight: 900;
-      letter-spacing: 8px;
-      text-transform: uppercase;
+      margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
       background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
       filter: drop-shadow(0 0 15px var(--primary));
     }
 
-    @keyframes gradientMove {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 200% 50%; }
-    }
-
-    @keyframes titleGlow {
-      from { filter: drop-shadow(0 0 10px var(--primary)); }
-      to { filter: drop-shadow(0 0 25px var(--accent)); }
-    }
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    @keyframes titleGlow { from { filter: drop-shadow(0 0 10px var(--primary)); } to { filter: drop-shadow(0 0 25px var(--accent)); } }
 
     .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
 
     .bienvenida {
-      font-size: 1.3em; line-height: 1.6;
-      margin-bottom: 50px; padding: 25px;
-      background: rgba(160, 32, 240, 0.1);
-      border-radius: 20px;
-      backdrop-filter: blur(8px);
-      border: 1px solid rgba(160, 32, 240, 0.3);
+      font-size: 1.3em; line-height: 1.6; margin-bottom: 50px; padding: 25px;
+      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
+      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
     }
 
     .main-card {
       margin: 40px auto; padding: 30px;
       background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
       border-radius: 30px; border: 2px solid var(--primary);
-      box-shadow: 0 0 40px rgba(160, 32, 240, 0.4);
-      max-width: 800px;
+      box-shadow: 0 0 40px rgba(160, 32, 240, 0.4); max-width: 800px;
     }
 
     .viz-container {
@@ -90,41 +69,29 @@
       border-radius: 50px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
       transition: 0.3s; box-shadow: 0 0 10px var(--primary);
     }
-
     .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
     .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CONTENEDOR DE JUEGO OPTIMIZADO [cite: 2025-07-23] */
+    /* CONSOLA DE JUEGO MEJORADA [cite: 2025-07-23] */
     .game-wrapper {
-      position: relative;
-      width: 100%;
-      height: 450px;
-      background: #000;
-      border-radius: 15px;
-      border: 2px solid var(--primary);
-      overflow: hidden;
-      box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
-      touch-action: none;
+      position: relative; width: 100%; height: 450px; background: #000;
+      border-radius: 15px; border: 2px solid var(--primary); overflow: hidden;
+      box-shadow: 0 0 25px rgba(160, 32, 240, 0.4); touch-action: none;
     }
-
     #activeGameFrame { width: 100%; height: 100%; border: none; }
 
+    .playlist-container { margin: 20px 0; text-align: left; }
     .playlist-item {
-      padding: 10px;
-      margin: 5px 0;
-      background: rgba(255,255,255,0.05);
-      border-radius: 10px;
-      transition: 0.3s;
-      cursor: pointer;
+      padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.05);
+      border-radius: 10px; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent;
     }
-    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); }
+    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); border-left-color: var(--accent); }
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 40px 0; }
     .personaje { width: 220px; height: 310px; display: flex; flex-direction: column; align-items: center; }
-    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
-    .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: pointer; transition: 0.3s; }
 
     footer { margin-top: 80px; padding: 40px; color: #777; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
     a { color: var(--accent); text-decoration: none; }
@@ -165,12 +132,12 @@
       </div>
 
       <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">PLAYLIST ÉPICA [cite: 2025-07-23]</h3>
-        <div id="playlistContainer">
-          <div class="playlist-item" onclick="currentTrack=0; togglePlay()">01. Melodía de Sét-su (Sintetizada)</div>
-          <div class="playlist-item" onclick="currentTrack=1; togglePlay()">02. Eco del Infinito (Sintetizada)</div>
-          <div class="playlist-item" onclick="currentTrack=2; togglePlay()">03. Bad Wolf (MP3)</div>
-          <div class="playlist-item" onclick="currentTrack=3; togglePlay()">04. El Lobo Feroz (MP3)</div>
+        <h3 style="color:var(--accent);">DATABASE: TRACKS [cite: 2025-07-23]</h3>
+        <div class="playlist-container">
+          <div class="playlist-item" onclick="selectTrack(0)">01. Melodía de Sét-su (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(1)">02. Eco del Infinito (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(2)">03. Bad Wolf (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(3)">04. El Lobo Feroz (MP3)</div>
         </div>
         <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
         <div style="margin-top:25px;">
@@ -185,30 +152,30 @@
           <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas')">ARAÑITAS</button>
         </div>
         
-        <div class="game-wrapper" id="fullscreen-target" onclick="centrarYBloquear()">
+        <div class="game-wrapper" id="fullscreen-target" onclick="centrarEnJuego()">
           <iframe id="activeGameFrame" src="about:blank"></iframe>
         </div>
         
-        <div style="margin-top: 15px; padding-bottom: 10px;">
-          <button id="fsBtn" class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Toca el juego para calibrar precisión y ver controles [cite: 2025-07-23]</p>
+        <div style="margin-top: 15px; padding-bottom: 20px;">
+          <button class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
+          <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Click en el juego para calibrar precisión y ver botones [cite: 2025-07-23]</p>
         </div>
       </div>
 
       <div id="diosas" class="content-section">
-        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO</h3>
-        <p>Aisha · Shana · Katy · Merlina · Camila [cite: 2025-07-18]</p>
+        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO [cite: 2025-07-18]</h3>
+        <p>Aisha · Shana · Katy · Merlina · Camila</p>
       </div>
 
       <div id="arte" class="content-section">
-        <h3 style="color:var(--accent);">ARTE INFINITO</h3>
-        <p>Obras generadas por Infinite Art Games [cite: 2025-07-23]</p>
+        <h3 style="color:var(--accent);">ARTE INFINITO [cite: 2025-07-23]</h3>
+        <p>Obras generadas por Infinite Art Games</p>
       </div>
     </div>
 
     <div class="galeria">
       <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Sét-su Lobo [cite: 2025-09-06]</p></div>
-      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞ [cite: 2025-07-18]</p></div>
+      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
       <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas</p></div>
     </div>
     
@@ -226,38 +193,31 @@
       if (id !== 'juegos') recuperarScroll();
     }
 
-    // CORRECCIÓN DE CENTRADO PARA VER BOTONES [cite: 2025-07-23]
-    function centrarYBloquear() {
-      const wrapper = document.querySelector('.game-wrapper');
-      const body = document.getElementById('mainBody');
+    // CENTRADO REAL EN EL JUEGO [cite: 2025-07-23]
+    function centrarEnJuego() {
       const card = document.getElementById('gameCard');
-      
+      const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
       
-      // Ajustamos el scroll para que el FINAL de la card (con el botón FS) sea visible
-      const cardBottom = card.offsetTop + card.offsetHeight;
-      const viewportHeight = window.innerHeight;
+      // Calculamos el centro de la card para que no se vea cortada por abajo
+      const rect = card.getBoundingClientRect();
+      const absoluteTop = rect.top + window.pageYOffset;
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2);
       
-      window.scrollTo({ 
-        top: cardBottom - viewportHeight + 20, // Centra el área de juego + botones inferiores
-        behavior: 'smooth' 
-      });
-      
-      document.getElementById('gameDesc').innerText = "CALIBRADO: Controles visibles ♾️";
+      window.scrollTo({ top: targetY, behavior: 'smooth' });
+      document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
 
-    function recuperarScroll() {
-      document.getElementById('mainBody').classList.remove('no-scroll');
-    }
+    function recuperarScroll() { document.getElementById('mainBody').classList.remove('no-scroll'); }
 
     function cargarJuego(ruta, nombre) {
       document.getElementById('activeGameFrame').src = ruta;
-      setTimeout(centrarYBloquear, 500);
+      document.getElementById('gameDesc').innerText = "Cargando: " + nombre;
+      setTimeout(centrarEnJuego, 500);
     }
 
     document.addEventListener('mousedown', function(e) {
-      const card = document.getElementById('gameCard');
-      if (!card.contains(e.target)) { recuperarScroll(); }
+      if (!document.getElementById('gameCard').contains(e.target)) { recuperarScroll(); }
     });
 
     function requestFullScreen() {
@@ -266,7 +226,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* SISTEMA DE AUDIO Y VISUALIZADOR [cite: 2025-07-23, 2025-09-06] */
+    /* AUDIO ENGINE - RESTAURADO [cite: 2025-07-23] */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
@@ -289,8 +249,7 @@
       const source = audioCtx.createMediaElementSource(playerMP3);
       source.connect(analyser);
       analyser.connect(audioCtx.destination);
-      canvas.width = canvas.offsetWidth;
-      canvas.height = canvas.offsetHeight;
+      canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
       draw();
     }
 
@@ -301,19 +260,14 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       const avg = dataArray.reduce((a,b) => a+b)/dataArray.length;
       const time = Date.now() * 0.002;
-
       for(let i = 0; i < 200; i++) {
         const t = (i / 200) * Math.PI * 2;
         const scale = 90 + (avg * 0.5);
         const x = (scale * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
         const y = (scale * Math.sin(t) * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
-        const posX = (canvas.width / 2) + x;
-        const posY = (canvas.height / 2) + y;
         ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
         const size = 1 + (Math.random() * (avg / 20));
-        ctx.beginPath();
-        ctx.arc(posX + Math.sin(time + i)*10, posY + Math.cos(time + i)*10, size, 0, Math.PI*2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc((canvas.width/2)+x + Math.sin(time+i)*10, (canvas.height/2)+y + Math.cos(time+i)*10, size, 0, Math.PI*2); ctx.fill();
         if(avg > 30) { ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff'; }
       }
     }
@@ -351,10 +305,13 @@
       }
     }
 
+    function selectTrack(index) { stopAudio(); currentTrack = index; togglePlay(); }
+
     function stopAudio() {
       isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
       document.getElementById('playBtn').innerText = "▶ PLAY";
       document.getElementById('trackName').innerText = "SISTEMA LISTO";
+      currentNote = 0;
     }
 
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
