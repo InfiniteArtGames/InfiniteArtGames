@@ -194,23 +194,42 @@
       const desc = document.getElementById('gameDescription');
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // RECALIBRACIÓN DE ARRASTRE TÁCTIL [cite: 2025-07-23]
+        // RECALIBRACIÓN DE ARRASTRE TÁCTIL MEJORADA [cite: 2025-07-23]
         script.textContent = `
           function handleTouch(e) {
             const touch = e.touches[0];
-            const canvas = document.querySelector('canvas');
+            const canvas = document.querySelector('canvas') || document.body;
             const rect = canvas.getBoundingClientRect();
-            // Calculamos la posición exacta relativa al área de juego [cite: 2025-07-23]
-            const mouseEvent = new MouseEvent("mousemove", {
+            
+            // Cálculo preciso de posición para Bing-Bang y Arañitas [cite: 2025-07-23]
+            const mouseX = touch.clientX - rect.left;
+            const mouseY = touch.clientY - rect.top;
+
+            const eventOptions = {
               clientX: touch.clientX,
               clientY: touch.clientY,
-              bubbles: true
-            });
-            window.dispatchEvent(mouseEvent);
+              bubbles: true,
+              button: 0
+            };
+
+            const mouseMoveEvent = new MouseEvent("mousemove", eventOptions);
+            const mouseDownEvent = new MouseEvent("mousedown", eventOptions);
+
+            // Disparar eventos en canvas y document para máxima compatibilidad
+            canvas.dispatchEvent(mouseDownEvent);
+            canvas.dispatchEvent(mouseMoveEvent);
+            document.dispatchEvent(mouseMoveEvent);
+
             if (e.target.tagName === 'CANVAS') e.preventDefault();
           }
+
           document.addEventListener('touchstart', handleTouch, {passive: false});
           document.addEventListener('touchmove', handleTouch, {passive: false});
+          // Soporte para mantener el "clic" presionado en Arañitas [cite: 2025-07-23]
+          document.addEventListener('touchend', () => {
+            const mouseUpEvent = new MouseEvent("mouseup", { bubbles: true });
+            document.dispatchEvent(mouseUpEvent);
+          }, {passive: false});
         `;
         const style = frame.contentDocument.createElement('style');
         style.textContent = `
