@@ -21,10 +21,15 @@
       font-family: 'Orbitron', sans-serif;
       text-align: center;
       overflow-x: hidden;
-      transition: overflow 0.2s;
     }
 
-    .no-scroll { overflow: hidden !important; }
+    /* BLOQUEO DE SCROLL MEJORADO PARA CENTRADO TOTAL [cite: 2025-07-23] */
+    .no-scroll { 
+      overflow: hidden !important; 
+      height: 100vh !important; 
+      position: fixed; 
+      width: 100%;
+    }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
@@ -69,7 +74,6 @@
       border-radius: 30px; border: 2px solid var(--primary);
       box-shadow: 0 0 40px rgba(160, 32, 240, 0.4);
       max-width: 800px;
-      position: relative;
     }
 
     .viz-container {
@@ -92,35 +96,35 @@
     .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CONSOLA DE JUEGO Y FULLSCREEN */
+    /* CONTENEDOR DE JUEGO OPTIMIZADO [cite: 2025-07-23] */
     .game-wrapper {
       position: relative;
       width: 100%;
+      height: 450px;
       background: #000;
       border-radius: 15px;
       border: 2px solid var(--primary);
       overflow: hidden;
       box-shadow: 0 0 25px rgba(160, 32, 240, 0.4);
+      touch-action: none;
     }
 
-    #activeGameFrame { width: 100%; height: 450px; border: none; display: block; }
+    #activeGameFrame { width: 100%; height: 100%; border: none; }
+
+    .playlist-item {
+      padding: 10px;
+      margin: 5px 0;
+      background: rgba(255,255,255,0.05);
+      border-radius: 10px;
+      transition: 0.3s;
+      cursor: pointer;
+    }
+    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); }
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 40px 0; }
     .personaje { width: 220px; height: 310px; display: flex; flex-direction: column; align-items: center; }
-    .personaje img { 
-      width: 100%; height: 220px; object-fit: cover; 
-      border-radius: 15px; border: 3px solid var(--primary); 
-      cursor: zoom-in; transition: 0.3s; 
-    }
+    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
     .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
-    .personaje p { margin-top: 15px; font-size: 1.1em; color: #fff; }
-
-    .modal-visor {
-      display: none; position: fixed; z-index: 1000; top: 0; left: 0;
-      width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-      align-items: center; justify-content: center; cursor: zoom-out;
-    }
-    .modal-content { max-width: 90%; max-height: 90%; border: 2px solid var(--accent); border-radius: 15px; }
 
     footer { margin-top: 80px; padding: 40px; color: #777; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
     a { color: var(--accent); text-decoration: none; }
@@ -128,11 +132,7 @@
 </head>
 <body id="mainBody">
 
-  <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">
-    <img class="modal-content" id="imgExpandida">
-  </div>
-
-  <div class="container" id="mainContainer">
+  <div class="container">
     <h1>Infinite Art Games</h1>
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
     
@@ -144,7 +144,7 @@
 
     <div class="main-card" id="gameCard">
       <div id="status" style="color:var(--accent); font-weight:bold; letter-spacing: 2px;">SINFONÍA DEL INFINITO</div>
-      <div id="trackName" style="font-size:1.1em; margin:10px 0; min-height: 1.2em;">LISTO PARA INICIAR</div>
+      <div id="trackName" style="font-size:1.1em; margin:10px 0; min-height: 1.2em; color:#fff;">SISTEMA LISTO</div>
       
       <div class="viz-container">
         <canvas id="visualizer"></canvas>
@@ -165,7 +165,13 @@
       </div>
 
       <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">PLAYLIST ÉPICA</h3>
+        <h3 style="color:var(--accent);">PLAYLIST ÉPICA [cite: 2025-07-23]</h3>
+        <div id="playlistContainer">
+          <div class="playlist-item" onclick="currentTrack=0; togglePlay()">01. Melodía de Sét-su (Sintetizada)</div>
+          <div class="playlist-item" onclick="currentTrack=1; togglePlay()">02. Eco del Infinito (Sintetizada)</div>
+          <div class="playlist-item" onclick="currentTrack=2; togglePlay()">03. Bad Wolf (MP3)</div>
+          <div class="playlist-item" onclick="currentTrack=3; togglePlay()">04. El Lobo Feroz (MP3)</div>
+        </div>
         <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
         <div style="margin-top:25px;">
           <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
@@ -179,36 +185,35 @@
           <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas')">ARAÑITAS</button>
         </div>
         
-        <div class="game-wrapper" id="fullscreen-target">
+        <div class="game-wrapper" id="fullscreen-target" onclick="centrarYBloquear()">
           <iframe id="activeGameFrame" src="about:blank"></iframe>
         </div>
         
-        <div style="margin-top: 15px;">
-          <button class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDesc" style="margin-top:10px; font-size:0.9em; color:var(--accent);">Haz clic en el juego para centrar y bloquear scroll [cite: 2025-07-23]</p>
+        <div style="margin-top: 15px; padding-bottom: 10px;">
+          <button id="fsBtn" class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
+          <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Toca el juego para calibrar precisión y ver controles [cite: 2025-07-23]</p>
         </div>
       </div>
 
       <div id="diosas" class="content-section">
         <h3 style="color:var(--accent);">DIOSAS DEL INFINITO</h3>
-        <p>Aisha · Shana · Katy · Merlina · Camila</p>
+        <p>Aisha · Shana · Katy · Merlina · Camila [cite: 2025-07-18]</p>
       </div>
 
       <div id="arte" class="content-section">
         <h3 style="color:var(--accent);">ARTE INFINITO</h3>
-        <p>Obras generadas por Infinite Art Games</p>
+        <p>Obras generadas por Infinite Art Games [cite: 2025-07-23]</p>
       </div>
     </div>
 
-    <h2 style="color:#fff; margin-top:80px; letter-spacing:10px;">GALLERY ∞</h2>
     <div class="galeria">
-      <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Alma de lobo</p></div>
-      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
+      <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Sét-su Lobo [cite: 2025-09-06]</p></div>
+      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞ [cite: 2025-07-18]</p></div>
       <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas</p></div>
     </div>
     
     <footer>
-      © 2026 Sét-su - Infinite Art Games S.A. - CREADO POR DAVID RODRIGUEZ<br>
+      © 2026 Sét-su - Infinite Art Games S.A. - CREADO POR DAVID RODRIGUEZ [cite: 2025-07-23]<br>
       <a href="https://linktr.ee/JulianDavidRJ" target="_blank">LINKTREE ACCESS</a>
     </footer>
   </div>
@@ -218,46 +223,50 @@
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
       document.getElementById(id).style.display = 'block';
-      if (id !== 'juegos') document.getElementById('mainBody').classList.remove('no-scroll');
+      if (id !== 'juegos') recuperarScroll();
     }
 
-    // CARGA DE JUEGO Y CENTRADO [cite: 2025-07-23]
-    function cargarJuego(ruta, nombre) {
-      const frame = document.getElementById('activeGameFrame');
-      frame.src = ruta;
-      document.getElementById('gameDesc').innerText = "Jugando: " + nombre;
-      setTimeout(centrarJuego, 300);
-    }
-
-    function centrarJuego() {
-      const card = document.getElementById('gameCard');
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      document.getElementById('mainBody').classList.add('no-scroll');
-    }
-
-    // DETECTAR CLIC DENTRO/FUERA DEL JUEGO [cite: 2025-07-23]
-    document.addEventListener('mousedown', function(e) {
-      const gameWrapper = document.querySelector('.game-wrapper');
+    // CORRECCIÓN DE CENTRADO PARA VER BOTONES [cite: 2025-07-23]
+    function centrarYBloquear() {
+      const wrapper = document.querySelector('.game-wrapper');
       const body = document.getElementById('mainBody');
-      const juegosSeccion = document.getElementById('juegos');
+      const card = document.getElementById('gameCard');
+      
+      body.classList.add('no-scroll');
+      
+      // Ajustamos el scroll para que el FINAL de la card (con el botón FS) sea visible
+      const cardBottom = card.offsetTop + card.offsetHeight;
+      const viewportHeight = window.innerHeight;
+      
+      window.scrollTo({ 
+        top: cardBottom - viewportHeight + 20, // Centra el área de juego + botones inferiores
+        behavior: 'smooth' 
+      });
+      
+      document.getElementById('gameDesc').innerText = "CALIBRADO: Controles visibles ♾️";
+    }
 
-      if (juegosSeccion.style.display === 'block') {
-        if (gameWrapper.contains(e.target)) {
-          centrarJuego();
-        } else if (!document.getElementById('gameCard').contains(e.target)) {
-          body.classList.remove('no-scroll');
-        }
-      }
+    function recuperarScroll() {
+      document.getElementById('mainBody').classList.remove('no-scroll');
+    }
+
+    function cargarJuego(ruta, nombre) {
+      document.getElementById('activeGameFrame').src = ruta;
+      setTimeout(centrarYBloquear, 500);
+    }
+
+    document.addEventListener('mousedown', function(e) {
+      const card = document.getElementById('gameCard');
+      if (!card.contains(e.target)) { recuperarScroll(); }
     });
 
     function requestFullScreen() {
       const target = document.getElementById('fullscreen-target');
       if (target.requestFullscreen) target.requestFullscreen();
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
-      else if (target.msRequestFullscreen) target.msRequestFullscreen();
     }
 
-    // AUDIO Y VISUALIZADOR [cite: 2025-07-23, 2025-09-06]
+    /* SISTEMA DE AUDIO Y VISUALIZADOR [cite: 2025-07-23, 2025-09-06] */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
