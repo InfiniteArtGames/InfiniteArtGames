@@ -194,41 +194,44 @@
       const desc = document.getElementById('gameDescription');
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // RECALIBRACIÓN DE ARRASTRE TÁCTIL MEJORADA [cite: 2025-07-23]
+        // RECALIBRACIÓN DE ARRASTRE TÁCTIL (v3) - CORRECCIÓN DE DESFASE Y TOQUE INICIAL [cite: 2025-07-23]
         script.textContent = `
+          function getTarget() { return document.querySelector('canvas') || document.body; }
+
           function handleTouch(e) {
             const touch = e.touches[0];
-            const canvas = document.querySelector('canvas') || document.body;
-            const rect = canvas.getBoundingClientRect();
+            const target = getTarget();
+            const rect = target.getBoundingClientRect();
             
-            // Cálculo preciso de posición para Bing-Bang y Arañitas [cite: 2025-07-23]
-            const mouseX = touch.clientX - rect.left;
-            const mouseY = touch.clientY - rect.top;
+            // Calculamos la posición relativa exacta al área de renderizado [cite: 2025-07-23]
+            const cssX = touch.clientX - rect.left;
+            const cssY = touch.clientY - rect.top;
 
-            const eventOptions = {
-              clientX: touch.clientX,
-              clientY: touch.clientY,
-              bubbles: true,
-              button: 0
-            };
-
-            const mouseMoveEvent = new MouseEvent("mousemove", eventOptions);
-            const mouseDownEvent = new MouseEvent("mousedown", eventOptions);
-
-            // Disparar eventos en canvas y document para máxima compatibilidad
-            canvas.dispatchEvent(mouseDownEvent);
-            canvas.dispatchEvent(mouseMoveEvent);
-            document.dispatchEvent(mouseMoveEvent);
+            // Simular eventos de mouse con coordenadas CSS correctas [cite: 2025-07-23]
+            const opts = { clientX: cssX, clientY: cssY, bubbles: true, view: window };
+            const moveEvt = new MouseEvent("mousemove", opts);
+            const downEvt = new MouseEvent("mousedown", opts);
+            
+            target.dispatchEvent(downEvt);
+            target.dispatchEvent(moveEvt);
 
             if (e.target.tagName === 'CANVAS') e.preventDefault();
           }
 
-          document.addEventListener('touchstart', handleTouch, {passive: false});
+          // Arreglo para toque inicial en Arañitas (Simular Clic completo) [cite: 2025-07-23]
+          function handleTouchStart(e) {
+            handleTouch(e);
+            // Simular un mouseup rápido inmediatamente para confirmar el "clic" de inicio [cite: 2025-07-23]
+            const target = getTarget();
+            const upEvt = new MouseEvent("mouseup", { bubbles: true, view: window });
+            target.dispatchEvent(upEvt);
+          }
+
+          document.addEventListener('touchstart', handleTouchStart, {passive: false});
           document.addEventListener('touchmove', handleTouch, {passive: false});
-          // Soporte para mantener el "clic" presionado en Arañitas [cite: 2025-07-23]
           document.addEventListener('touchend', () => {
-            const mouseUpEvent = new MouseEvent("mouseup", { bubbles: true });
-            document.dispatchEvent(mouseUpEvent);
+             const upEvt = new MouseEvent("mouseup", { bubbles: true, view: window });
+             getTarget().dispatchEvent(upEvt);
           }, {passive: false});
         `;
         const style = frame.contentDocument.createElement('style');
@@ -289,7 +292,7 @@
         startTime = Date.now();
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-        if (track.type === 'api') sequence();
+        if (track.type === 'api' {cite: sequence()});
         else { playerMP3.src = track.url; playerMP3.play(); }
       } else {
         isPaused = !isPaused;
