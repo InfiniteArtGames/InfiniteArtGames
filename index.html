@@ -2,18 +2,21 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art Games - Collision Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Infinite Art Games - Mobile Responsive Pro</title>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; }
+        body { margin: 0; overflow: hidden; background: #000; font-family: 'Orbitron', sans-serif; touch-action: none; }
         canvas { display: block; }
         #logo-container {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             text-align: center; opacity: 0; visibility: hidden;
-            pointer-events: none; z-index: 10; width: 100%;
+            pointer-events: none; z-index: 10; width: 95%;
         }
         #logo-text {
-            color: #fff; font-size: 5rem; letter-spacing: 20px;
+            color: #fff; 
+            font-size: clamp(1.2rem, 8vw, 5rem); /* Tamaño fluido según pantalla */
+            letter-spacing: clamp(4px, 2vw, 20px);
             text-shadow: 0 0 20px #00ffff, 0 0 40px #00ffff;
             margin: 0; white-space: nowrap;
         }
@@ -22,10 +25,8 @@
             0% { transform: translate(0); }
             20% { transform: translate(-3px, 2px); color: #0ff; }
             40% { transform: translate(3px, -2px); color: #fff; }
-            60% { transform: translate(-3px, -2px); }
             100% { transform: translate(0); }
         }
-        @media (max-width: 768px) { #logo-text { font-size: 2rem; letter-spacing: 5px; } }
     </style>
 </head>
 <body>
@@ -38,12 +39,15 @@ const ctx = canvas.getContext('2d');
 const logoContainer = document.getElementById('logo-container');
 const logoText = document.getElementById('logo-text');
 
-let w, h, centerX, centerY;
+let w, h, centerX, centerY, globalScale;
+
 function resize() {
     w = canvas.width = window.innerWidth;
     h = canvas.height = window.innerHeight;
     centerX = w / 2;
     centerY = h / 2;
+    // Factor de escala dinámico: asegura que el dibujo ocupe un área segura
+    globalScale = Math.min(w, h) * 0.35;
 }
 window.addEventListener('resize', resize);
 resize();
@@ -59,18 +63,12 @@ let sword = { y: -500, v: 0, active: false, landed: false, shockwave: 0, shake: 
 
 function init() {
     infParticles = []; ambientParticles = []; tracers = [];
-    
-    // 1. Ambiente
-    for (let j = 0; j < 70; j++) {
-        const radius = 100 + Math.random() * 350;
-        const ang = Math.random() * 6.28;
+    for (let j = 0; j < 60; j++) {
         ambientParticles.push({
-            x: centerX + Math.cos(ang) * radius, y: centerY + Math.sin(ang) * radius,
+            x: Math.random() * w, y: Math.random() * h,
             v: 0.2 + Math.random() * 0.5, r: Math.random() * 1.5 + 0.5, a: 0.1 + Math.random() * 0.3
         });
     }
-
-    // 2. Infinito Base
     for (let i = 0; i < 90; i++) {
         const t = (i / 90) * Math.PI * 2;
         infParticles.push({
@@ -78,16 +76,8 @@ function init() {
             orbitAng: Math.random() * 6.28, orbitRadius: 6 + Math.random() * 12, pulse: Math.random() * 6.28
         });
     }
-
-    // 3. RAYOS VELOCES EN DIRECCIONES OPUESTAS
-    tracers.push({
-        t: 0, speed: 0.06, dir: 1, // Sentido horario
-        r: 5, history: []
-    });
-    tracers.push({
-        t: Math.PI, speed: 0.06, dir: -1, // Sentido anti-horario
-        r: 5, history: []
-    });
+    tracers.push({ t: 0, speed: 0.06, dir: 1, history: [] });
+    tracers.push({ t: Math.PI, speed: 0.06, dir: -1, history: [] });
 }
 
 function getLemniscata(t, scale) {
@@ -96,17 +86,29 @@ function getLemniscata(t, scale) {
 }
 
 function drawSword(y) {
+    const sSize = globalScale * 0.5; // Espada proporcional al tamaño de pantalla
     ctx.save();
     ctx.translate(centerX, y);
-    ctx.shadowBlur = 35; ctx.shadowColor = "#00ffff";
-    const grad = ctx.createLinearGradient(0, 0, 0, -150);
+    ctx.shadowBlur = 30; ctx.shadowColor = "#00ffff";
+    const grad = ctx.createLinearGradient(0, 0, 0, -sSize);
     grad.addColorStop(0, "#fff"); grad.addColorStop(1, "#00ffff");
     ctx.fillStyle = grad;
+    
+    // Hoja Proporcional
     ctx.beginPath();
-    ctx.moveTo(0, 0); ctx.lineTo(-15, -25); ctx.lineTo(-15, -135); ctx.lineTo(0, -155); 
-    ctx.lineTo(15, -135); ctx.lineTo(15, -25); ctx.fill();
-    ctx.fillStyle = "#00ffff"; ctx.fillRect(-38, -140, 76, 12);
-    ctx.fillStyle = "#fff"; ctx.fillRect(-8, -185, 16, 35);
+    ctx.moveTo(0, 0); 
+    ctx.lineTo(-sSize*0.1, -sSize*0.15); 
+    ctx.lineTo(-sSize*0.1, -sSize*0.85); 
+    ctx.lineTo(0, -sSize); 
+    ctx.lineTo(sSize*0.1, -sSize*0.85); 
+    ctx.lineTo(sSize*0.1, -sSize*0.15); 
+    ctx.fill();
+    
+    // Guarda y Mango
+    ctx.fillStyle = "#00ffff";
+    ctx.fillRect(-sSize*0.25, -sSize*0.9, sSize*0.5, sSize*0.08);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(-sSize*0.05, -sSize*1.15, sSize*0.1, sSize*0.25);
     ctx.restore();
 }
 
@@ -119,27 +121,22 @@ function draw() {
     ctx.translate(shakeX, shakeY);
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; 
-    ctx.fillRect(-50, -50, w + 100, h + 100);
+    ctx.fillRect(-100, -100, w + 200, h + 200);
 
     const progress = time / duration;
 
     if (progress < 0.42) {
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
-            const dx = ap.x - centerX, dy = ap.y - centerY;
-            const currentAng = Math.atan2(dy, dx), radius = Math.hypot(dx, dy);
-            ap.x = centerX + Math.cos(currentAng + ap.v * 0.005) * radius;
-            ap.y = centerY + Math.sin(currentAng + ap.v * 0.005) * radius;
+            ap.y -= ap.v; if (ap.y < 0) ap.y = h;
             ctx.fillStyle = `rgba(0, 255, 255, ${ap.a})`;
             ctx.beginPath(); ctx.arc(ap.x, ap.y, ap.r, 0, 6.28); ctx.fill();
         });
 
         ctx.globalCompositeOperation = 'lighter';
-        const scale = Math.min(w, h) * 0.36;
-        
         infParticles.forEach(p => {
             p.t += p.speed; p.pulse += 0.08;
-            const pos = getLemniscata(p.t, scale);
+            const pos = getLemniscata(p.t, globalScale);
             const x = centerX + pos.x + Math.cos(p.orbitAng + time*0.002) * p.orbitRadius;
             const y = centerY + pos.y + Math.sin(p.orbitAng + time*0.002) * p.orbitRadius;
             const currentR = p.r + Math.sin(p.pulse) * 1.5;
@@ -149,44 +146,34 @@ function draw() {
             ctx.beginPath(); ctx.arc(x, y, currentR * 1.6, 0, 6.28); ctx.fill();
         });
 
-        // DIBUJO DE RAYOS EN COLISIÓN
         tracers.forEach(tr => {
-            tr.t += tr.speed * tr.dir; // Mover en la dirección asignada
-            const pos = getLemniscata(tr.t, scale);
-            const x = centerX + pos.x;
-            const y = centerY + pos.y;
-            
+            tr.t += tr.speed * (tr.dir || 1);
+            const pos = getLemniscata(tr.t, globalScale);
+            const x = centerX + pos.x, y = centerY + pos.y;
             tr.history.push({x, y});
-            if (tr.history.length > 20) tr.history.shift(); // Estela más larga
-
-            ctx.strokeStyle = '#00ffff';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
+            if (tr.history.length > 20) tr.history.shift();
+            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 4; ctx.beginPath();
             tr.history.forEach((h, idx) => {
                 ctx.globalAlpha = idx / tr.history.length;
-                if (idx === 0) ctx.moveTo(h.x, h.y);
-                else ctx.lineTo(h.x, h.y);
+                if (idx === 0) ctx.moveTo(h.x, h.y); else ctx.lineTo(h.x, h.y);
             });
-            ctx.stroke();
-            ctx.globalAlpha = 1;
-
-            ctx.fillStyle = '#fff';
-            ctx.beginPath(); ctx.arc(x, y, 5, 0, 6.28); ctx.fill();
+            ctx.stroke(); ctx.globalAlpha = 1;
+            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 6.28); ctx.fill();
         });
     } 
     else if (progress < 0.5) {
         const s = 1 - (progress - 0.42) * 12.5;
         ctx.fillStyle = '#fff';
         infParticles.forEach(p => {
-            const pos = getLemniscata(p.t, Math.min(w, h) * 0.36 * s);
+            const pos = getLemniscata(p.t, globalScale * s);
             ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 2.5, 0, 6.28); ctx.fill();
         });
     } 
     else {
         if (expParticles.length === 0) {
             infParticles = []; ambientParticles = []; tracers = [];
-            for (let i = 0; i < 160; i++) {
-                const ang = Math.random() * 6.28, spd = Math.random() * 60 + 20;
+            for (let i = 0; i < 140; i++) {
+                const ang = Math.random() * 6.28, spd = Math.random() * 45 + 15;
                 expParticles.push({ x: centerX, y: centerY, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, l: 1 });
             }
             sword.active = true;
@@ -197,19 +184,18 @@ function draw() {
             const ox = p.x, oy = p.y;
             p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; p.l -= 0.015;
             if (p.l > 0) {
-                ctx.strokeStyle = `rgba(0, 255, 255, ${p.l})`;
-                ctx.lineWidth = 5;
+                ctx.strokeStyle = `rgba(0, 255, 255, ${p.l})`; ctx.lineWidth = 5;
                 ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(p.x, p.y); ctx.stroke();
             }
         });
 
         if (sword.active) {
-            const groundY = centerY + 150;
+            const groundY = centerY + (globalScale * 0.4);
             if (!sword.landed) {
                 sword.v += 4; sword.y += sword.v;
                 if (sword.y >= groundY) {
                     sword.y = groundY; sword.landed = true; 
-                    sword.shockwave = 1; sword.shake = 35;
+                    sword.shockwave = 1; sword.shake = 30;
                     logoContainer.style.visibility = 'visible';
                     logoContainer.style.opacity = '1';
                     logoText.classList.add('glitch'); 
@@ -219,30 +205,20 @@ function draw() {
             drawSword(sword.y);
 
             if (sword.shockwave > 0) {
-                sword.shockwave += 35; 
-                const alpha = 1 - (sword.shockwave / 700);
+                sword.shockwave += 30; 
+                const alpha = 1 - (sword.shockwave / (w*0.8));
                 if (alpha > 0) {
                     ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
                     ctx.lineWidth = 4;
                     ctx.beginPath(); ctx.ellipse(centerX, groundY, sword.shockwave, sword.shockwave/5, 0, 0, 6.28); ctx.stroke();
                 }
             }
-            
-            if (embers.length < 40 && sword.shockwave > 0) {
-                embers.push({ x: centerX + (Math.random()-0.5)*150, y: groundY, vx: (Math.random()-0.5)*2, vy: -Math.random()*4, l: 1 });
-            }
-            embers.forEach((eb, idx) => {
-                eb.x += eb.vx; eb.y += eb.vy; eb.l -= 0.007;
-                if (eb.l <= 0) embers.splice(idx, 1);
-                ctx.fillStyle = `rgba(0, 255, 255, ${eb.l * 0.7})`;
-                ctx.beginPath(); ctx.arc(eb.x, eb.y, 1.8, 0, 6.28); ctx.fill();
-            });
         }
     }
 
     ctx.restore();
     time += 16;
-    if (progress < 1.35) requestAnimationFrame(draw);
+    if (progress < 1.3) requestAnimationFrame(draw);
 }
 
 init();
