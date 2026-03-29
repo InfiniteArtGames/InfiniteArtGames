@@ -25,18 +25,30 @@
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
+    /* TÍTULO PRINCIPAL MEJORADO - ESTILO INFINITE ART GAMES */
     h1 {
-      color: var(--primary);
-      font-size: clamp(2.5em, 8vw, 4em);
-      margin: 0;
-      text-shadow: 0 0 20px var(--primary);
-      letter-spacing: 2px;
-      animation: glow 3s infinite alternate;
+      font-size: clamp(3em, 12vw, 6em); /* Mucho más grande y responsivo */
+      margin: 20px 0;
+      font-weight: 900;
+      text-transform: uppercase;
+      background: linear-gradient(to right, var(--primary), var(--accent), #fff, var(--primary));
+      background-size: 300% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientFlow 5s linear infinite, glowPulse 3s ease-in-out infinite alternate;
+      filter: drop-shadow(0 0 10px rgba(160, 32, 240, 0.8)) 
+              drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+      letter-spacing: 5px;
     }
 
-    @keyframes glow {
-      from { text-shadow: 0 0 10px var(--primary); }
-      to { text-shadow: 0 0 30px var(--primary), 0 0 60px var(--primary); }
+    @keyframes gradientFlow {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
+    }
+
+    @keyframes glowPulse {
+      from { filter: drop-shadow(0 0 15px var(--primary)); transform: scale(1); }
+      to { filter: drop-shadow(0 0 35px var(--accent)); transform: scale(1.02); }
     }
 
     .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
@@ -56,22 +68,12 @@
       max-width: 700px;
     }
 
-    /* VISUALIZADOR CIRCULAR LLAMATIVO */
     .viz-container {
-      position: relative;
-      width: 100%;
-      height: 200px;
-      margin: 10px 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      position: relative; width: 100%; height: 200px;
+      margin: 10px 0; display: flex; justify-content: center; align-items: center;
     }
 
-    #visualizer {
-      width: 100%;
-      height: 100%;
-      filter: drop-shadow(0 0 10px var(--primary));
-    }
+    #visualizer { width: 100%; height: 100%; filter: drop-shadow(0 0 10px var(--primary)); }
 
     .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
     
@@ -127,6 +129,7 @@
 
   <div class="container">
     <h1>Infinite Art Games</h1>
+    
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
     
     <div class="bienvenida">
@@ -272,14 +275,12 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* SISTEMA DE AUDIO Y VISUALIZADOR AVANZADO [cite: 2025-07-23] */
     let audioCtx = null, analyser = null, source = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
-    // Playlist y Notas [cite: 2025-07-23]
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
     const playlist = [
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
@@ -304,33 +305,24 @@
       const bufferLength = analyser.frequencyBinCount;
       const dataArray = new Uint8Array(bufferLength);
       analyser.getByteFrequencyData(dataArray);
-
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
       const centerX = canvas.width / 2;
       const centerY = canvas.height / 2;
-      const radius = 40; // Tamaño del núcleo
-
-      // Efecto de resplandor central
+      const radius = 40;
       let average = dataArray.reduce((a,b) => a+b)/bufferLength;
       let pulse = average / 10;
-      
       ctx.beginPath();
       ctx.arc(centerX, centerY, radius + pulse, 0, Math.PI * 2);
       ctx.strokeStyle = `rgba(160, 32, 240, ${average/255})`;
       ctx.lineWidth = 2;
       ctx.stroke();
-
-      // Dibujar ondas circulares
       for(let i = 0; i < bufferLength; i += 4) {
         let barHeight = (dataArray[i]/255) * 60;
         let angle = (i * Math.PI * 2) / bufferLength;
-        
         let x1 = centerX + Math.cos(angle) * (radius + pulse);
         let y1 = centerY + Math.sin(angle) * (radius + pulse);
         let x2 = centerX + Math.cos(angle) * (radius + pulse + barHeight);
         let y2 = centerY + Math.sin(angle) * (radius + pulse + barHeight);
-
         ctx.strokeStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
