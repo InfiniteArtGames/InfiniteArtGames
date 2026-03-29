@@ -189,7 +189,7 @@ init();
 draw();
 // ← Aquí, justo después del draw(), pega esto:
 setTimeout(() => {
-    window.location.replace("index1.html");
+    window.location.href = "index1.html?" + new Date().getTime();  // timestamp rompe cache
 }, 8200);
 </script>
 </body>
