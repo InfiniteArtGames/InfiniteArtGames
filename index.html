@@ -194,25 +194,17 @@
       const desc = document.getElementById('gameDescription');
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // RECALIBRACIÓN TÁCTIL FINAL (Corrección desfase inferior y toque inicial) [cite: 2025-07-23]
+        // ARRASTRE OPTIMIZADO PARA BING-BANG [cite: 2025-07-23]
         script.textContent = `
-          const canvas = document.querySelector('canvas') || document.body;
-          
-          function updateMousePosition(e) {
+          function handleTouch(e) {
             const touch = e.touches[0];
+            const canvas = document.querySelector('canvas') || document.body;
             const rect = canvas.getBoundingClientRect();
             
-            let clientY = touch.clientY;
-            // CORRECCIÓN DESFASE INFERIOR: Si el toque está cerca del fondo, forzamos el límite [cite: 2025-07-23]
-            if (clientY > rect.bottom - 20) {
-              clientY = rect.bottom;
-            } else if (clientY < rect.top + 10) {
-              clientY = rect.top; // Opcional: corrección superior
-            }
-
+            // Lógica de arrastre directo recuperada y mejorada [cite: 2025-07-23]
             const opts = {
               clientX: touch.clientX,
-              clientY: clientY,
+              clientY: touch.clientY,
               bubbles: true,
               cancelable: true,
               view: window,
@@ -220,32 +212,32 @@
             };
 
             const moveEvt = new MouseEvent("mousemove", opts);
+            const downEvt = new MouseEvent("mousedown", opts);
+            
+            // Aseguramos que el evento llegue al canvas y al documento
+            canvas.dispatchEvent(downEvt);
             canvas.dispatchEvent(moveEvt);
             document.dispatchEvent(moveEvt);
+
+            if (e.target.tagName === 'CANVAS') e.preventDefault();
           }
 
-          // CORRECCIÓN TOQUE INICIAL ARAÑITAS: Enviar Mousedown + Click en la zona del toque [cite: 2025-07-23]
-          canvas.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'CANVAS') e.preventDefault();
-            const touch = e.touches[0];
-            updateMousePosition(e); // Actualizar posición antes del clic
-
-            const opts = { clientX: touch.clientX, clientY: touch.clientY, bubbles: true, button: 0 };
-            const downEvt = new MouseEvent("mousedown", opts);
-            const clickEvt = new MouseEvent("click", opts); // Evento click explícito
-            
-            canvas.dispatchEvent(downEvt);
-            canvas.dispatchEvent(clickEvt); 
+          document.addEventListener('touchstart', handleTouch, {passive: false});
+          document.addEventListener('touchmove', handleTouch, {passive: false});
+          
+          // Toque de inicio y clics para Arañitas [cite: 2025-07-23]
+          document.addEventListener('touchstart', (e) => {
+             const touch = e.touches[0];
+             const clickEvt = new MouseEvent("click", {
+               clientX: touch.clientX,
+               clientY: touch.clientY,
+               bubbles: true
+             });
+             document.querySelector('canvas').dispatchEvent(clickEvt);
           }, {passive: false});
 
-          canvas.addEventListener('touchmove', (e) => {
-            if (e.target.tagName === 'CANVAS') e.preventDefault();
-            updateMousePosition(e);
-          }, {passive: false});
-
-          canvas.addEventListener('touchend', () => {
+          document.addEventListener('touchend', () => {
             const upEvt = new MouseEvent("mouseup", { bubbles: true });
-            canvas.dispatchEvent(upEvt);
             document.dispatchEvent(upEvt);
           }, {passive: false});
         `;
