@@ -141,8 +141,19 @@
         <p>03. Bad Wolf (MP3)</p>
         <p>04. El Lobo Feroz (MP3)</p>
         <audio id="playerMP3" style="display:none;"></audio>
+      </div>  
+  
+      <div class="carousel" style="position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; box-shadow:0 0 30px rgba(0,212,255,0.4);">
+      <div class="slides" id="slides" style="display:flex; transition:transform 0.5s ease;">
+        <img src="Imágenes/chica-dragon.jpg" alt="1" style="width:100%; height:auto;">
+        <img src="Imágenes/retro-game2.jpg" alt="2" style="width:100%; height:auto;">
+        <img src="Imágenes/retro-game3.jpg" alt="3" style="width:100%; height:auto;">
       </div>
-      
+      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">←</button>
+      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">→</button>
+    </div>
+
+      </div>
               </ul>
 
         <!-- Shadows In The Night - fix error 153 -->
@@ -156,18 +167,8 @@
             allowfullscreen 
             referrerpolicy="strict-origin"></iframe>
           <p style="margin-top:10px; font-size:0.9em; opacity:0.8;">Tu soundtrack oscuro para el infinito. ¡Play y siente el caos ♾️</p>
-        </div>    
-  
-      <div class="carousel" style="position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; box-shadow:0 0 30px rgba(0,212,255,0.4);">
-      <div class="slides" id="slides" style="display:flex; transition:transform 0.5s ease;">
-        <img src="Imágenes/chica-dragon.jpg" alt="1" style="width:100%; height:auto;">
-        <img src="Imágenes/retro-game2.jpg" alt="2" style="width:100%; height:auto;">
-        <img src="Imágenes/retro-game3.jpg" alt="3" style="width:100%; height:auto;">
-      </div>
-      <button onclick="prevSlide()" style="position:absolute; top:50%; left:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">←</button>
-      <button onclick="nextSlide()" style="position:absolute; top:50%; right:10px; transform:translateY(-50%); background:rgba(0,0,0,0.5); color:#00d4ff; border:none; padding:15px; border-radius:50%; cursor:pointer;">→</button>
-    </div>
-
+        </div> 
+      
       <div id="juegos" class="content-section">
         <h3 style="color:var(--accent); text-transform: uppercase;">Consola de Juegos ∞</h3>
         <div style="display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
