@@ -23,7 +23,6 @@
       overflow-x: hidden;
     }
 
-    /* BLOQUEO DE SCROLL DINÁMICO [cite: 2025-07-23] */
     .no-scroll { overflow: hidden !important; height: 100vh !important; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
@@ -74,7 +73,6 @@
     .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* CONSOLA DE JUEGO MEJORADA [cite: 2025-07-23] */
     .game-wrapper {
       position: relative; width: 100%; height: 450px; background: #000;
       border-radius: 15px; border: 2px solid var(--primary); overflow: hidden;
@@ -91,7 +89,7 @@
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 40px 0; }
     .personaje { width: 220px; height: 310px; display: flex; flex-direction: column; align-items: center; }
-    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: pointer; transition: 0.3s; }
+    .personaje img { width: 100%; height: 220px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: pointer; }
 
     footer { margin-top: 80px; padding: 40px; color: #777; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
     a { color: var(--accent); text-decoration: none; }
@@ -132,7 +130,7 @@
       </div>
 
       <div id="musica" class="content-section">
-        <h3 style="color:var(--accent);">DATABASE: TRACKS [cite: 2025-07-23]</h3>
+        <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
           <div class="playlist-item" onclick="selectTrack(0)">01. Melodía de Sét-su (Sintetizada)</div>
           <div class="playlist-item" onclick="selectTrack(1)">02. Eco del Infinito (Sintetizada)</div>
@@ -156,26 +154,26 @@
           <iframe id="activeGameFrame" src="about:blank"></iframe>
         </div>
         
-        <div style="margin-top: 15px; padding-bottom: 20px;">
+        <div id="gameControls" style="margin-top: 15px; padding-bottom: 20px;">
           <button class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
-          <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Click en el juego para calibrar precisión y ver botones [cite: 2025-07-23]</p>
+          <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Precisión calibrada para David Rodriguez [cite: 2025-07-23]</p>
         </div>
       </div>
 
       <div id="diosas" class="content-section">
-        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO [cite: 2025-07-18]</h3>
-        <p>Aisha · Shana · Katy · Merlina · Camila</p>
+        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO</h3>
+        <p>Aisha · Shana · Katy · Merlina · Camila [cite: 2025-07-18]</p>
       </div>
 
       <div id="arte" class="content-section">
-        <h3 style="color:var(--accent);">ARTE INFINITO [cite: 2025-07-23]</h3>
-        <p>Obras generadas por Infinite Art Games</p>
+        <h3 style="color:var(--accent);">ARTE INFINITO</h3>
+        <p>Obras generadas por Infinite Art Games [cite: 2025-07-23]</p>
       </div>
     </div>
 
     <div class="galeria">
       <div class="personaje"><img src="Imágenes/Setsu2.png" alt="Setsu"><p>Sét-su Lobo [cite: 2025-09-06]</p></div>
-      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞</p></div>
+      <div class="personaje"><img src="Imágenes/Shana1.png" alt="Shana"><p>Shana ∞ [cite: 2025-07-18]</p></div>
       <div class="personaje"><img src="Imágenes/Aisha1.jpg" alt="Diosas"><p>Diosas</p></div>
     </div>
     
@@ -193,26 +191,26 @@
       if (id !== 'juegos') recuperarScroll();
     }
 
-    // CENTRADO REAL EN EL JUEGO [cite: 2025-07-23]
+    // AJUSTE DE DESFASE PARA CENTRADO PERFECTO [cite: 2025-07-23]
     function centrarEnJuego() {
       const card = document.getElementById('gameCard');
       const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
       
-      // Calculamos el centro de la card para que no se vea cortada por abajo
       const rect = card.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2);
+      
+      // Aplicamos un desfase (-80px) para que la parte inferior (botones) no se corte [cite: 2025-07-23]
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2) - 80;
       
       window.scrollTo({ top: targetY, behavior: 'smooth' });
-      document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
+      document.getElementById('gameDesc').innerText = "VISTA OPTIMIZADA ♾️";
     }
 
     function recuperarScroll() { document.getElementById('mainBody').classList.remove('no-scroll'); }
 
     function cargarJuego(ruta, nombre) {
       document.getElementById('activeGameFrame').src = ruta;
-      document.getElementById('gameDesc').innerText = "Cargando: " + nombre;
       setTimeout(centrarEnJuego, 500);
     }
 
@@ -226,7 +224,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* AUDIO ENGINE - RESTAURADO [cite: 2025-07-23] */
+    /* MOTOR DE AUDIO SÉT-SU [cite: 2025-07-23] */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
