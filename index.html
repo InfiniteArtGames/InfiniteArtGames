@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Infinite Art Games | Sét-su</title>
   <style>
     :root {
@@ -97,7 +97,7 @@
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 50px 0; }
     .personaje { width: 220px; }
-    .personaje img { width: 100%; border-radius: 15px; border: 3px solid var(--primary); }
+    .personaje img { width: 100%; border-radius: 15px; border: 2px solid var(--primary); }
 
     footer { margin-top: 80px; font-size: 0.95em; color: #777; }
   </style>
@@ -193,7 +193,7 @@
       
       frame.onload = function() {
         const script = frame.contentDocument.createElement('script');
-        // REPARACIÓN DE CLIC Y ARRASTRE [cite: 2025-07-23]
+        // SISTEMA TÁCTIL PASIVO: Permite clics y arrastre simultáneo [cite: 2025-07-23]
         script.textContent = `
           function syncTouch(e) {
             const touch = e.touches[0];
@@ -203,12 +203,11 @@
               bubbles: true
             });
             window.dispatchEvent(mouseEvent);
-            
-            // Solo prevenimos scroll si el dedo se está moviendo (arrastre)
+            // Solo prevenimos el comportamiento por defecto si estamos arrastrando
             if (e.type === 'touchmove') e.preventDefault();
           }
 
-          // Permitimos que el clic (touchstart) pase sin preventDefault para poder dar START
+          // Permitimos que el clic inicial pase (touchstart sin preventDefault) [cite: 2025-07-23]
           document.addEventListener('touchstart', syncTouch, {passive: true});
           document.addEventListener('touchmove', syncTouch, {passive: false});
         `;
@@ -234,7 +233,7 @@
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    /* AUDIO (Lógica original de David) [cite: 2025-07-23] */
+    /* AUDIO ORIGINAL (Sin cambios) [cite: 2025-07-23] */
     let audioCtx = null, isPlaying = false, isPaused = false, currentTrack = 0, currentNote = 0;
     let audioTimeout, startTime;
     const playerMP3 = document.getElementById('playerMP3');
