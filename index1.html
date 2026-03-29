@@ -314,6 +314,14 @@
       audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
     }
 
+    function sequence() {
+      if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
+      const melody = playlist[currentTrack].data;
+      playNote(melody[currentNote].f, melody[currentNote].d);
+      currentNote = (currentNote + 1) % melody.length;
+      audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
+    }
+
     function togglePlay() {
       initAudio();
       const track = playlist[currentTrack];
@@ -329,16 +337,17 @@
       }
     }
 
+    function selectTrack(index) { stopAudio(); currentTrack = index; togglePlay(); }
+
     function stopAudio() {
       isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
       document.getElementById('playBtn').innerText = "▶ PLAY";
       document.getElementById('trackName').innerText = "SISTEMA LISTO";
+      currentNote = 0;
     }
 
     function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
     function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
-
-    function cargarJuego(ruta, nombre) { document.getElementById('activeGameFrame').src = ruta; }
 
     /* LÓGICA DE VIDEOS GITHUB INTEGRADA */
     const selector = document.getElementById('videoSelector');
@@ -402,19 +411,6 @@
     setInterval(nextSlide, 4000);
 
     showTab('musica');
-
-    function selectTrack(index) { stopAudio(); currentTrack = index; togglePlay(); }
-
-    function stopAudio() {
-      isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
-      document.getElementById('playBtn').innerText = "▶ PLAY";
-      document.getElementById('trackName').innerText = "SISTEMA LISTO";
-      currentNote = 0;
-    }
-
-    function nextTrack() { stopAudio(); currentTrack = (currentTrack + 1) % playlist.length; togglePlay(); }
-    function prevTrack() { stopAudio(); currentTrack = (currentTrack - 1 + playlist.length) % playlist.length; togglePlay(); }
-
   </script>
 </body>
 </html>
