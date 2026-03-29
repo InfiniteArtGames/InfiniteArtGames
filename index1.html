@@ -368,17 +368,51 @@
     }
 
     /* VIDEOS Y CARRUSEL */
-    const videos = ["grok_video_2026-03-27-12-13-18.mp4", "grok_video_2026-03-27-12-13-34.mp4", "grok_video_2026-03-27-12-13-58.mp4", "grok_video_2026-03-27-12-14-22.mp4"];
-    let vIdx = -1;
-    const vSel = document.getElementById('videoSelector');
-    const vPlay = document.getElementById('videoPlayer');
+   
+    const basePath = 'Videos/';
+    const videos = [
+      "grok_video_2026-03-27-12-13-18.mp4",
+      "grok_video_2026-03-27-12-13-34.mp4",
+      "grok_video_2026-03-27-12-13-58.mp4",
+      "grok_video_2026-03-27-12-14-22.mp4"
+    ];
 
-    videos.forEach(v => {
+    let currentIndex = -1;
+    let touchStartY = 0;
+
+    videos.forEach((vid, idx) => {
       const opt = document.createElement('option');
-      opt.value = "Videos/" + v; opt.textContent = v; vSel.appendChild(opt);
+      opt.value = basePath + vid;
+      opt.textContent = vid.replace('grok_video_', '').replace('.mp4', '');
+      selector.appendChild(opt);
     });
 
-    vSel.onchange = function() { if(this.value) { vPlay.src = this.value; vPlay.play(); vIdx = videos.findIndex(vid => this.value.includes(vid)); } };
+    selector.addEventListener('change', function() {
+      if (this.value) {
+        currentIndex = videos.findIndex(v => this.value.endsWith(v));
+        player.src = this.value;
+        player.load();
+        player.play().catch(() => {});
+      }
+    });
+
+    swipeArea.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+    swipeArea.addEventListener('touchend', e => {
+      const deltaY = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(deltaY) > 80) {
+        if (deltaY < 0 && currentIndex < videos.length - 1) currentIndex++;
+        else if (deltaY > 0 && currentIndex > 0) currentIndex--;
+
+        if (currentIndex >= 0) {
+          const nextPath = basePath + videos[currentIndex];
+          selector.value = nextPath;
+          player.src = nextPath;
+          player.load();
+          player.play().catch(() => {});
+        }
+      }
+    });
+
 
     let currentS = 0;
     setInterval(() => {
