@@ -243,7 +243,7 @@
       body.classList.add('no-scroll');
       const rect = card.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2+200);
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 + 200);
       window.scrollTo({ top: targetY, behavior: 'smooth' });
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
