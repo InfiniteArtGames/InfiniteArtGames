@@ -278,14 +278,20 @@
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
 
-    // Detectar clics fuera del área de juego para devolver el scroll
-   window.addEventListener('click', function(e) {
-    const gameWrapper = document.getElementById('fullscreen-target');
-    const isClickInsideGame = gameWrapper.contains(e.target);
-    const isGameTabActive = document.getElementById('juegos').style.display === 'block';
+// Detectar clics fuera para recuperar scroll y pausar juego
+window.addEventListener('click', function(e) {
+  const gameWrapper = document.getElementById('fullscreen-target');
+  const iframe = document.getElementById('activeGameFrame');
+  const isClickInsideGame = gameWrapper.contains(e.target);
 
-    if (!isClickInsideGame && isGameTabActive) {
+  if (!isClickInsideGame) {
+    // 1. Devolvemos el movimiento a Sét-su [cite: 2025-09-06]
     recuperarScroll();
+
+    // 2. Enviamos orden de pausa al juego dentro del iframe
+    if (iframe.contentWindow) {
+      iframe.contentWindow.postMessage('pauseGame', '*');
+    }
   }
 });
 
