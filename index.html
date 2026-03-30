@@ -80,15 +80,17 @@ function init() {
         });
     }
 
-    // --- IMPLEMENTACIÓN DUALIDAD: SÉT-SU Y SETSU ---
+    // --- CONFIGURACIÓN BLANCO Y NEGRO ---
     tracers = [];
+    // Partícula Blanca (Sét-su)
     tracers.push({ 
         t: 0, speed: 0.07, dir: 1, history: [], 
-        color: '#fff', glow: '#00ffff', type: 'light' // Sét-su
+        color: '#fff', smokeColor: 'rgba(255, 255, 255,' 
     });
+    // Partícula Negra (Setsu)
     tracers.push({ 
         t: Math.PI, speed: 0.07, dir: -1, history: [], 
-        color: '#000', glow: '#ff0000', type: 'dark'  // Setsu (Lobo)
+        color: '#000', smokeColor: 'rgba(50, 50, 50,' // Gris muy oscuro para que se vea sobre el negro
     });
 }
 
@@ -160,33 +162,35 @@ function draw() {
             ctx.beginPath(); ctx.arc(x, y, currentR * 1.8, 0, 6.28); ctx.fill();
         });
 
-        // --- ANIMACIÓN DE TRAZADORES CON EFECTO HUMO ---
+        // --- DIBUJO DE TRACERS (DUALIDAD BALANCEADA) ---
         tracers.forEach(tr => {
             tr.t += tr.speed * tr.dir;
             const pos = getLemniscata(tr.t, scaleInf);
             const x = centerX + pos.x, y = centerY + pos.y;
             
             tr.history.push({x, y});
-            if (tr.history.length > 25) tr.history.shift(); 
+            if (tr.history.length > 20) tr.history.shift();
 
-            ctx.lineCap = 'round';
+            // Dibujo de la columna de humo/estela
+            ctx.lineWidth = 5;
             tr.history.forEach((h, idx) => {
-                const alpha = (idx / tr.history.length) * 0.6;
-                ctx.lineWidth = 4 + (idx / 2); // Efecto de ensanchamiento
-                ctx.strokeStyle = tr.type === 'light' ? `rgba(0, 255, 255, ${alpha})` : `rgba(255, 0, 0, ${alpha})`;
+                const alpha = (idx / tr.history.length) * 0.8;
+                ctx.strokeStyle = tr.smokeColor + alpha + ')';
                 ctx.beginPath();
                 if (idx === 0) ctx.moveTo(h.x, h.y); else ctx.lineTo(h.x, h.y);
                 ctx.stroke();
             });
 
-            ctx.save();
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = tr.glow;
+            // Partícula sólida
             ctx.fillStyle = tr.color;
-            ctx.beginPath();
-            ctx.arc(x, y, 6, 0, 6.28);
-            ctx.fill();
-            ctx.restore();
+            if (tr.color === '#000') {
+                // Pequeño truco: a la negra le damos un borde blanco mínimo para que no desaparezca del todo
+                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+                ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill(); ctx.stroke();
+            } else {
+                ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill();
+            }
         });
     } 
     else if (progress < 0.5) {
