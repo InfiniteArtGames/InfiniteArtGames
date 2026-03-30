@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>BYTE BITER - Infinite Art Games</title>
+    <style>
+        :root { --neon-green: #0f0; --neon-magenta: #f0f; --bg-dark: #000; }
+        body {
+            background-color: var(--bg-dark); color: #eee;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 0; padding: 0; overflow: hidden; 
+            user-select: none; touch-action: none;
+            display: flex; justify-content: center; align-items: center;
+            height: 100vh; width: 100vw;
+        }
+        #gameWrapper { position: relative; box-shadow: 0 0 50px rgba(0, 255, 0, 0.2); background: #000; overflow: hidden; }
+        #gameCanvas { display: block; border: 2px solid var(--neon-green); box-sizing: border-box; }
+        
+        .ui-element { position: absolute; pointer-events: none; font-weight: bold; font-size: 16px; text-shadow: 0 0 8px #000; color: #fff; z-index: 5; }
+        #ui-top-left { top: 15px; left: 15px; }
+        #ui-top-right { top: 15px; right: 15px; text-align: right; }
+        
+        .lives-display { color: #f00; font-size: 1.4em; text-shadow: 0 0 10px #f00; letter-spacing: 2px; }
+        .glitch-text { color: var(--neon-magenta); text-shadow: 0 0 10px var(--neon-magenta); font-size: 0.8em; }
+        .glitch-container { width: 80px; height: 6px; border: 1px solid #fff; background: #111; margin-top: 4px; }
+        .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.2s; }
+        .glitch-ready { animation: neonPulse 0.6s infinite; }
+        
+        @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0, 255, 0, 0.1); border: 1px solid var(--neon-green); color: var(--neon-green); padding: 4px 8px; font-size: 9px; cursor: pointer; opacity: 0.4; z-index: 20; }
+
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
+        #overlay h2 { font-size: 3rem; color: #f00; text-shadow: 0 0 20px #f00; }
+        #restartBtn { margin-top: 25px; padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-family: inherit; font-size: 1.2rem; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div id="gameWrapper">
+        <canvas id="gameCanvas"></canvas>
+        <div class="ui-element" id="ui-top-left">SCORE: <span id="score">0</span><br><span class="lives-display" id="lives">♥♥♥</span></div>
+        <div class="ui-element" id="ui-top-right">LVL: <span id="level">1</span><br><span class="glitch-text">GLITCH DRIVE</span>
+            <div class="glitch-container"><div class="glitch-bar" id="glitchBar"></div></div>
+        </div>
+        <button id="fsBtn">FULLSCREEN</button>
+        <div id="overlay"><h2 id="endStatus">GAME OVER</h2><button id="restartBtn">REINTENTAR</button></div>
+    </div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const gameWrapper = document.getElementById('gameWrapper');
+    window.addEventListener('touchmove', e => e.preventDefault(), { passive: false });
+
+    const LOGICAL_WIDTH = 480, LOGICAL_HEIGHT = 270, GRID_SIZE = 15, GRID_W = 32, GRID_H = 18;
+    let state = { score: 0, level: 1, lives: 3, pelletsLeft: 0, glitchCharge: 0, isGlitchActive: false, isGameOver: false, scaleFactor: 1, currentZoom: 1, isSuper: false };
+    let player = { x: 15, y: 9, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
+    let ghosts = [], pellets = [], powerUps = [];
+
+    const mazeLayout = [
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+        [1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],
+        [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],
+        [1,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1],
+        [1,0,0,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,1],
+        [1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],
+        [1,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,1],
+        [1,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1],
+        [1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1],
+        [1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],
+        [1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,1,1,1,1],
+        [1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1],
+        [1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1],
+        [1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1],
+        [1,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,0,1],
+        [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],
+        [1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1],
+        [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
+    ];
+
+    function resize() {
+        const ratio = LOGICAL_WIDTH / LOGICAL_HEIGHT;
+        let w = window.innerWidth, h = window.innerHeight;
+        if (w/h > ratio) w = h * ratio; else h = w / ratio;
+        gameWrapper.style.width = w + 'px'; gameWrapper.style.height = h + 'px';
+        canvas.width = w; canvas.height = h; state.scaleFactor = w / LOGICAL_WIDTH;
+    }
+    window.onresize = resize; resize();
+
+    function initLevel(reset = false) {
+        if(reset) { state.score = 0; state.level = 1; state.lives = 3; }
+        state.isGameOver = false; state.glitchCharge = 0; state.isGlitchActive = false; state.isSuper = false;
+        document.getElementById('overlay').style.display = 'none';
+        pellets = []; powerUps = [];
+        
+        for(let r=0; r<GRID_H; r++) {
+            for(let c=0; c<GRID_W; c++) {
+                if(mazeLayout[r][c] === 0) {
+                    // Puntos Glitch en posiciones específicas
+                    let isGlitchPoint = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30));
+                    pellets.push({x:c, y:r, isGlitch: isGlitchPoint});
+                }
+            }
+        }
+        // Power Ups de Rayo
+        powerUps = [{x: 15, y: 1, type: 'bolt'}, {x: 15, y: 16, type: 'bolt'}];
+        state.pelletsLeft = pellets.length; resetEntities(); updateUI();
+    }
+
+    function resetEntities() {
+        player.x = 15; player.y = 9; player.dx = player.dy = 0;
+        ghosts = [
+            { x: 1, y: 1, color: '#f00', mode: 'stalker' },
+            { x: 30, y: 1, color: '#0ff', mode: 'random' },
+            { x: 30, y: 16, color: '#f90', mode: 'random' }
+        ];
+    }
+
+    function updateUI() {
+        document.getElementById('score').textContent = state.score;
+        document.getElementById('level').textContent = state.level;
+        document.getElementById('lives').textContent = '♥'.repeat(state.lives);
+        const bar = document.getElementById('glitchBar');
+        bar.style.width = state.glitchCharge + '%';
+        state.glitchCharge >= 100 ? bar.classList.add('glitch-ready') : bar.classList.remove('glitch-ready');
+    }
+
+    function update() {
+        if(state.isGameOver) return;
+        if (player.nextDx || player.nextDy) {
+            if (can(player.x + player.nextDx, player.y + player.nextDy)) {
+                player.dx = player.nextDx; player.dy = player.nextDy;
+                player.nextDx = player.nextDy = 0;
+            }
+        }
+        if (can(player.x + player.dx, player.y + player.dy)) { player.x += player.dx; player.y += player.dy; }
+
+        // Colisión Pellets
+        pellets.forEach((p, i) => {
+            if(p.x === player.x && p.y === player.y) {
+                pellets.splice(i, 1);
+                state.score += 10;
+                if(p.isGlitch) state.glitchCharge = Math.min(100, state.glitchCharge + 25);
+                state.pelletsLeft--; updateUI();
+            }
+        });
+
+        // Colisión Power Ups
+        powerUps.forEach((p, i) => {
+            if(p.x === player.x && p.y === player.y) {
+                powerUps.splice(i, 1); state.isSuper = true;
+                setTimeout(() => state.isSuper = false, 6000);
+            }
+        });
+
+        // IA Enemigos
+        ghosts.forEach(g => {
+            const ds = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => can(g.x+d.x, g.y+d.y, true));
+            let move;
+            if(g.mode === 'stalker' && !state.isSuper && Math.random() > 0.4) {
+                move = ds.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
+            } else { move = ds[Math.floor(Math.random()*ds.length)]; }
+            if(move) { g.x += move.x; g.y += move.y; }
+
+            if(g.x === player.x && g.y === player.y) {
+                if(state.isSuper || state.isGlitchActive) { g.x = 1; g.y = 1; state.score += 200; updateUI(); }
+                else { state.lives--; if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } else resetEntities(); updateUI(); }
+            }
+        });
+
+        if(state.pelletsLeft <= 0) { state.level++; initLevel(); }
+        state.currentZoom += ((state.isGlitchActive ? 1.0 : 1.4) - state.currentZoom) * 0.1;
+    }
+
+    function can(x, y, ghost = false) {
+        if(x<0 || x>=GRID_W || y<0 || y>=GRID_H) return false;
+        return ghost || state.isGlitchActive ? true : mazeLayout[y][x] === 0;
+    }
+
+    function draw() {
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        const pX = player.x * GRID_SIZE + GRID_SIZE/2, pY = player.y * GRID_SIZE + GRID_SIZE/2;
+        ctx.translate(canvas.width/2, canvas.height/2);
+        ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
+        ctx.translate(-pX, -pY);
+
+        // PAREDES SÓLIDAS
+        for(let r=0; r<GRID_H; r++) for(let c=0; c<GRID_W; c++) if(mazeLayout[r][c]) {
+            // Fondo de la pared
+            ctx.fillStyle = state.isGlitchActive ? '#303' : '#020';
+            ctx.fillRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE);
+            // Borde de neón
+            ctx.strokeStyle = state.isGlitchActive ? '#f0f' : '#0f0';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(c*GRID_SIZE+1, r*GRID_SIZE+1, GRID_SIZE-2, GRID_SIZE-2);
+        }
+
+        // Pellets
+        pellets.forEach(p => {
+            ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff';
+            const s = p.isGlitch ? 5 : 2;
+            ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s);
+        });
+
+        // PowerUps
+        powerUps.forEach(p => { 
+            ctx.fillStyle = '#ff0'; ctx.font = "12px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+2, p.y*GRID_SIZE+12);
+        });
+
+        // Player
+        ctx.fillStyle = state.isSuper ? '#0af' : (state.isGlitchActive ? '#f0f' : '#ff0');
+        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+        ctx.fillRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11);
+        ctx.shadowBlur = 0;
+
+        // Enemigos
+        ghosts.forEach(g => {
+            ctx.fillStyle = (state.isSuper || state.isGlitchActive) ? '#888' : g.color;
+            ctx.fillRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2);
+            ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
+        });
+
+        ctx.restore();
+    }
+
+    let lt = 0;
+    function loop(t) { if(t - lt > 130) { update(); draw(); lt = t; } requestAnimationFrame(loop); }
+
+    let ts = null;
+    canvas.addEventListener('touchstart', e => {
+        ts = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+        if(ts.y > window.innerHeight * 0.7 && state.glitchCharge >= 100) {
+            state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); setTimeout(() => state.isGlitchActive = false, 5000);
+        }
+    }, {passive: false});
+    canvas.addEventListener('touchend', e => {
+        if(!ts) return;
+        const dx = e.changedTouches[0].clientX - ts.x, dy = e.changedTouches[0].clientY - ts.y;
+        if(Math.abs(dx) > 25 || Math.abs(dy) > 25) {
+            if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; }
+            else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; }
+        }
+    });
+
+    document.getElementById('fsBtn').onclick = () => gameWrapper.requestFullscreen();
+    document.getElementById('restartBtn').onclick = () => initLevel(true);
+    initLevel(true); requestAnimationFrame(loop);
+</script>
+</body>
+</html>
