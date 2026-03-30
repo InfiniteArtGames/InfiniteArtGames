@@ -273,25 +273,28 @@
     </div>
 
 <div class="galeria">
-  <div class="personaje">
+  <div class="personaje" onclick="abrirZoom(this)">
     <div class="mini-slides">
       <img src="Imágenes/Setsu2.png" class="active" alt="Setsu Lobo">
-      <img src="Imágenes/Setsu_Human.jpg" alt="Sét-su Humano"> </div>
+      <img src="Imágenes/Setsu_Human.png" alt="Sét-su Dios">
+    </div>
     <p>Sét-su [cite: 2025-09-06]</p>
   </div>
 
-  <div class="personaje">
+  <div class="personaje" onclick="abrirZoom(this)">
     <div class="mini-slides">
-      <img src="Imágenes/image-9.jpg" class="active" alt="Infinite Art">
-      <img src="Imágenes/imagen-8.jpg" alt="Infinite Art Games"> </div>
+      <img src="Imágenes/image-9.jpg" class="active" alt="Infinite Art 1">
+      <img src="Imágenes/Logo_Empresa.png" alt="Infinite Art 2">
+    </div>
     <p>Infinite Art [cite: 2025-07-23]</p>
   </div>
 
-  <div class="personaje">
+  <div class="personaje" onclick="abrirZoom(this)">
     <div class="mini-slides">
       <img src="Imágenes/Shana1.png" class="active" alt="Shana">
       <img src="Imágenes/Aisha1.jpg" alt="Aisha">
-      <img src="Imágenes/Camila1.jpg" alt="Camila"> </div>
+      <img src="Imágenes/Camila1.jpg" alt="Camila">
+    </div>
     <p>Diosas [cite: 2025-07-18]</p>
   </div>
 </div>
@@ -524,27 +527,32 @@ window.addEventListener('click', function(e) {
     }, 4000);
 
     showTab('musica');
+    
+// 1. FUNCIÓN DE ROTACIÓN AUTOMÁTICA (4 SEGUNDOS)
 function iniciarMiniCarruseles() {
-    // Buscamos todos los personajes de la galería
-    const personajes = document.querySelectorAll('.personaje');
-
-    personajes.forEach(p => {
-        const slides = p.querySelectorAll('.mini-slides img');
-        if (slides.length <= 1) return; // Si solo hay una imagen, no hace nada
-
-        let current = 0;
-        setInterval(() => {
-            // Quitamos la clase active de la imagen actual
-            slides[current].classList.remove('active');
-            // Pasamos a la siguiente
-            current = (current + 1) % slides.length;
-            // Activamos la nueva imagen
-            slides[current].classList.add('active');
-        }, 4000); // Rotación cada 4 segundos como pediste
-    });
+  const personajes = document.querySelectorAll('.personaje');
+  personajes.forEach(p => {
+    const slides = p.querySelectorAll('.mini-slides img');
+    if (slides.length <= 1) return;
+    let current = 0;
+    setInterval(() => {
+      slides[current].classList.remove('active');
+      current = (current + 1) % slides.length;
+      slides[current].classList.add('active');
+    }, 4000); // 4 segundos
+  });
 }
 
-// Arranca la función cuando la página esté lista
+// 2. FUNCIÓN DE ZOOM CORREGIDA
+function abrirZoom(elemento) {
+  const imagenActiva = elemento.querySelector('.mini-slides img.active');
+  if (imagenActiva) {
+    document.getElementById("miVisor").style.display = "flex";
+    document.getElementById("imgExpandida").src = imagenActiva.src;
+  }
+}
+
+// Iniciar todo al cargar
 window.addEventListener('DOMContentLoaded', iniciarMiniCarruseles);
     
   </script>
