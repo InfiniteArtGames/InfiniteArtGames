@@ -59,7 +59,6 @@ let sword = { y: -1000, v: 0, active: false, landed: false, shockwave: 0, shake:
 function init() {
     infParticles = []; ambientParticles = []; tracers = []; embers = [];
     
-    // Ambiente - Sutil y equilibrado
     const countAmbient = isMobile ? 30 : 60;
     for (let j = 0; j < countAmbient; j++) {
         const radius = 100 + Math.random() * (isMobile ? 200 : 400);
@@ -70,38 +69,28 @@ function init() {
         });
     }
 
-    // INFINITO RESTAURADO: Velocidad 0.005 para flujo balanceado
     for (let i = 0; i < 90; i++) {
         const t = (i / 90) * Math.PI * 2;
         infParticles.push({
             t, r: Math.random() * 4 + 2,
-            speed: 0.005 + Math.random() * 0.002, // Restaurado como antes
+            speed: 0.005 + Math.random() * 0.002, 
             orbitAng: Math.random() * 6.28, 
             orbitRadius: 6 + Math.random() * 14, 
             pulse: Math.random() * Math.PI * 2
         });
     }
 
-// Rayos en colisión (Dualidad: Sét-su y Setsu)
+    // --- IMPLEMENTACIÓN DUALIDAD: SÉT-SU Y SETSU ---
     tracers = [];
     tracers.push({ 
-        t: 0, 
-        speed: 0.07, 
-        dir: 1, 
-        history: [], 
-        color: '#fff', 
-        glow: '#00ffff', 
-        type: 'light' 
+        t: 0, speed: 0.07, dir: 1, history: [], 
+        color: '#fff', glow: '#00ffff', type: 'light' // Sét-su
     });
     tracers.push({ 
-        t: Math.PI, 
-        speed: 0.07, 
-        dir: -1, 
-        history: [], 
-        color: '#000', 
-        glow: '#ff0000', 
-        type: 'dark' 
+        t: Math.PI, speed: 0.07, dir: -1, history: [], 
+        color: '#000', glow: '#ff0000', type: 'dark'  // Setsu (Lobo)
     });
+}
 
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
@@ -111,38 +100,26 @@ function getLemniscata(t, scale) {
 function drawSword(y) {
     ctx.save();
     ctx.translate(centerX, y);
-    
-    // ESCALA COLOSAL
     const sSword = isMobile ? 1.4 : 2.2; 
     ctx.scale(sSword, sSword);
-    
-    // GLOBO AZUL NÍTIDO ( shadowBlur 30 )
     ctx.shadowBlur = 30; ctx.shadowColor = "#00ffff";
-
-    // Hoja (Blanco Puro)
     ctx.fillStyle = "#fff";
     ctx.beginPath();
     ctx.moveTo(0, 0); 
     ctx.lineTo(-14, -25); ctx.lineTo(-14, -135); ctx.lineTo(0, -150); 
     ctx.lineTo(14, -135); ctx.lineTo(14, -25);
     ctx.fill();
-    
-    ctx.shadowBlur = 0; // Quitar globo para detalles
-    
-    // Guarda (Cian sólido)
+    ctx.shadowBlur = 0; 
     ctx.fillStyle = "#00ffff";
     ctx.beginPath();
     ctx.moveTo(-35, -135); ctx.lineTo(-35, -145); ctx.lineTo(-10, -145); ctx.lineTo(-10, -155); 
     ctx.lineTo(10, -155); ctx.lineTo(10, -145); ctx.lineTo(35, -145); ctx.lineTo(35, -135);
     ctx.fill();
-    
-    // Mango y Pomo (Blanco)
     ctx.fillStyle = "#fff";
     ctx.fillRect(-6, -180, 12, 25);
     ctx.beginPath();
     ctx.moveTo(-10, -180); ctx.lineTo(-10, -190); ctx.lineTo(0, -200); ctx.lineTo(10, -190); ctx.lineTo(10, -180);
     ctx.fill();
-    
     ctx.restore();
 }
 
@@ -183,7 +160,8 @@ function draw() {
             ctx.beginPath(); ctx.arc(x, y, currentR * 1.8, 0, 6.28); ctx.fill();
         });
 
-tracers.forEach(tr => {
+        // --- ANIMACIÓN DE TRAZADORES CON EFECTO HUMO ---
+        tracers.forEach(tr => {
             tr.t += tr.speed * tr.dir;
             const pos = getLemniscata(tr.t, scaleInf);
             const x = centerX + pos.x, y = centerY + pos.y;
@@ -191,18 +169,16 @@ tracers.forEach(tr => {
             tr.history.push({x, y});
             if (tr.history.length > 25) tr.history.shift(); 
 
-            // Estela de Humo/Energía
             ctx.lineCap = 'round';
             tr.history.forEach((h, idx) => {
                 const alpha = (idx / tr.history.length) * 0.6;
-                ctx.lineWidth = 4 + (idx / 2); // El rastro se ensancha al final
+                ctx.lineWidth = 4 + (idx / 2); // Efecto de ensanchamiento
                 ctx.strokeStyle = tr.type === 'light' ? `rgba(0, 255, 255, ${alpha})` : `rgba(255, 0, 0, ${alpha})`;
                 ctx.beginPath();
                 if (idx === 0) ctx.moveTo(h.x, h.y); else ctx.lineTo(h.x, h.y);
                 ctx.stroke();
             });
 
-            // Núcleo de la Partícula (Sét-su / Setsu)
             ctx.save();
             ctx.shadowBlur = 15;
             ctx.shadowColor = tr.glow;
@@ -212,7 +188,15 @@ tracers.forEach(tr => {
             ctx.fill();
             ctx.restore();
         });
-        
+    } 
+    else if (progress < 0.5) {
+        const s = 1 - (progress - 0.42) * 12.5;
+        ctx.fillStyle = '#fff';
+        infParticles.forEach(p => {
+            const pos = getLemniscata(p.t, scaleInf * s);
+            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 2.5, 0, 6.28); ctx.fill();
+        });
+    } 
     else {
         if (expParticles.length === 0) {
             infParticles = []; ambientParticles = []; tracers = [];
@@ -248,7 +232,6 @@ tracers.forEach(tr => {
             }
             drawSword(sword.y);
             
-            // Emanaciones alrededor de la espada (Abanico amplio lateral)
             if (sword.landed) {
                 if (embers.length < 50) {
                     const sideSpread = (Math.random() - 0.5) * (isMobile ? 100 : 160);
@@ -291,7 +274,6 @@ tracers.forEach(tr => {
 init();
 draw();
 
-// ← Aquí, justo después del draw():
 setTimeout(() => {
     window.location.replace("index1.html");
 }, 12000);
