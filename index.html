@@ -183,29 +183,36 @@ function draw() {
             ctx.beginPath(); ctx.arc(x, y, currentR * 1.8, 0, 6.28); ctx.fill();
         });
 
-        tracers.forEach(tr => {
+tracers.forEach(tr => {
             tr.t += tr.speed * tr.dir;
             const pos = getLemniscata(tr.t, scaleInf);
             const x = centerX + pos.x, y = centerY + pos.y;
+            
             tr.history.push({x, y});
-            if (tr.history.length > 20) tr.history.shift();
-            ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.beginPath();
+            if (tr.history.length > 25) tr.history.shift(); 
+
+            // Estela de Humo/Energía
+            ctx.lineCap = 'round';
             tr.history.forEach((h, idx) => {
-                ctx.globalAlpha = idx / tr.history.length;
+                const alpha = (idx / tr.history.length) * 0.6;
+                ctx.lineWidth = 4 + (idx / 2); // El rastro se ensancha al final
+                ctx.strokeStyle = tr.type === 'light' ? `rgba(0, 255, 255, ${alpha})` : `rgba(255, 0, 0, ${alpha})`;
+                ctx.beginPath();
                 if (idx === 0) ctx.moveTo(h.x, h.y); else ctx.lineTo(h.x, h.y);
+                ctx.stroke();
             });
-            ctx.stroke(); ctx.globalAlpha = 1;
-            ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill();
+
+            // Núcleo de la Partícula (Sét-su / Setsu)
+            ctx.save();
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = tr.glow;
+            ctx.fillStyle = tr.color;
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 6.28);
+            ctx.fill();
+            ctx.restore();
         });
-    } 
-    else if (progress < 0.5) {
-        const s = 1 - (progress - 0.42) * 12.5;
-        ctx.fillStyle = '#fff';
-        infParticles.forEach(p => {
-            const pos = getLemniscata(p.t, scaleInf * s);
-            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 2.5, 0, 6.28); ctx.fill();
-        });
-    } 
+        
     else {
         if (expParticles.length === 0) {
             infParticles = []; ambientParticles = []; tracers = [];
