@@ -15,10 +15,54 @@
         #health-container { display: flex; align-items: center; gap: 5px; }
         #health-bar { width: 100px; height: 10px; background: #300; border: 1px solid #f00; }
         #health-fill { width: 100%; height: 100%; background: #f00; transition: width 0.2s; }
-        #ui-controls { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: space-around; align-items: center; pointer-events: none; z-index: 20; }
-        #joy-base { width: 110px; height: 110px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid #444; position: relative; pointer-events: auto; }
-        #joy-stick { width: 45px; height: 45px; background: #666; border-radius: 50%; position: absolute; top: 32px; left: 32px; box-shadow: 0 0 10px #000; }
-        #fire-btn { width: 90px; height: 90px; background: #900; border: 4px solid #fff; border-radius: 50%; pointer-events: auto; display: flex; align-items: center; justify-content: center; font-weight: bold; color: #fff; box-shadow: 0 0 20px rgba(255,0,0,0.5); cursor: pointer; }
+        
+        #ui-controls { 
+            position: absolute; 
+            bottom: 20px; 
+            width: 100%; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 0 30px; 
+            box-sizing: border-box;
+            pointer-events: none; 
+            z-index: 20; 
+        }
+        #joy-base { 
+            width: 110px; 
+            height: 110px; 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 50%; 
+            border: 2px solid #444; 
+            position: relative; 
+            pointer-events: auto; 
+            margin-left: 20px;
+        }
+        #joy-stick { 
+            width: 45px; 
+            height: 45px; 
+            background: #666; 
+            border-radius: 50%; 
+            position: absolute; 
+            top: 32px; 
+            left: 32px; 
+            box-shadow: 0 0 10px #000; 
+        }
+        #fire-btn { 
+            width: 90px; 
+            height: 90px; 
+            background: #900; 
+            border: 4px solid #fff; 
+            border-radius: 50%; 
+            pointer-events: auto; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            color: #fff; 
+            box-shadow: 0 0 20px rgba(255,0,0,0.5); 
+            margin-right: 20px;
+        }
     </style>
 </head>
 <body>
@@ -32,7 +76,9 @@
             </div>
             <canvas id="c3d"></canvas>
         </div>
-        <div class="view" id="view-map"><canvas id="cmap"></canvas></div>
+        <div class="view" id="view-map">
+            <canvas id="cmap"></canvas>
+        </div>
     </div>
 
     <div id="ui-controls">
@@ -59,12 +105,14 @@
         ];
 
         let player = { x: 2, y: 1.5, dir: 1.5, ammo: 25, health: 100, score: 0 };
-        // Más enemigos iniciales
         let enemies = [
             {x: 7, y: 3.5, alive: true}, {x: 4, y: 1.5, alive: true},
             {x: 1.5, y: 4.5, alive: true}, {x: 8.5, y: 1.5, alive: true},
             {x: 5.5, y: 4.5, alive: true}
         ];
+
+        let goal = { x: 8.5, y: 4.5 };
+
         let moveX = 0, moveY = 0, isFiring = false, zBuffer = [];
 
         base.addEventListener('touchstart', (e) => { if(gameMusic.paused) gameMusic.play(); handleJoy(e); });
@@ -77,121 +125,332 @@
             const dx = t.clientX - (r.left + r.width/2), dy = t.clientY - (r.top + r.height/2);
             const dist = Math.min(Math.sqrt(dx*dx + dy*dy), 40), ang = Math.atan2(dy, dx);
             stick.style.transform = `translate(${Math.cos(ang)*dist}px, ${Math.sin(ang)*dist}px)`;
-            moveX = Math.cos(ang) * (dist/40); moveY = Math.sin(ang) * (dist/40);
+            moveX = Math.cos(ang) * (dist/40); 
+            moveY = Math.sin(ang) * (dist/40);
         }
 
-        // --- ENEMIGO LLAMATIVO (CACODEMON STYLE) ---
         function drawVisualEnemy(ctx, x, y, size) {
-            ctx.save(); ctx.translate(x, y);
+            ctx.save(); 
+            ctx.translate(x, y);
             let bodyGrad = ctx.createRadialGradient(0, 0, size/8, 0, 0, size/2);
-            bodyGrad.addColorStop(0, "#ff4d4d"); bodyGrad.addColorStop(0.8, "#b30000"); bodyGrad.addColorStop(1, "#330000");
-            ctx.fillStyle = bodyGrad; ctx.beginPath(); ctx.arc(0, 0, size/2, 0, Math.PI*2); ctx.fill();
+            bodyGrad.addColorStop(0, "#ff4d4d"); 
+            bodyGrad.addColorStop(0.8, "#b30000"); 
+            bodyGrad.addColorStop(1, "#330000");
+            ctx.fillStyle = bodyGrad; 
+            ctx.beginPath(); 
+            ctx.arc(0, 0, size/2, 0, Math.PI*2); 
+            ctx.fill();
+
             ctx.fillStyle = "#ffcc00";
             for(let i=0; i<8; i++) {
-                ctx.rotate(Math.PI/4); ctx.beginPath(); ctx.moveTo(size/2-2, 0); ctx.lineTo(size/2+size/4, size/16); ctx.lineTo(size/2+size/4, -size/16); ctx.fill();
+                ctx.rotate(Math.PI/4); 
+                ctx.beginPath(); 
+                ctx.moveTo(size/2-2, 0); 
+                ctx.lineTo(size/2+size/4, size/16); 
+                ctx.lineTo(size/2+size/4, -size/16); 
+                ctx.fill();
             }
-            ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.ellipse(0, -size/10, size/4, size/6, 0, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "#00ccff"; ctx.beginPath(); ctx.arc(Math.sin(Date.now()/200)*5, -size/10, size/8, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(0, size/4, size/4, 0, Math.PI, false); ctx.fill();
+            ctx.fillStyle = "#fff"; 
+            ctx.beginPath(); 
+            ctx.ellipse(0, -size/10, size/4, size/6, 0, 0, Math.PI*2); 
+            ctx.fill();
+            ctx.fillStyle = "#00ccff"; 
+            ctx.beginPath(); 
+            ctx.arc(Math.sin(Date.now()/200)*5, -size/10, size/8, 0, Math.PI*2); 
+            ctx.fill();
+            ctx.fillStyle = "#000"; 
+            ctx.beginPath(); 
+            ctx.arc(0, size/4, size/4, 0, Math.PI, false); 
+            ctx.fill();
             ctx.restore();
         }
 
-        // --- ARMA EN PERSPECTIVA FRONTAL (REDISEÑADA) ---
+        // === ESCOPETA SHOGUN - 140px A LA DERECHA + ROTACIÓN SUTIL A LA IZQUIERDA ===
         function drawPerspectiveWeapon(ctx, w, h, isFiring) {
             ctx.save();
-            let centerX = w * 0.5;
-            let gunY = h;
-            let recoil = isFiring ? 40 : 0;
 
-            // Muzzle Flash
-            if(isFiring) {
-                let flash = ctx.createRadialGradient(centerX, h - 250, 10, centerX, h - 250, 150);
-                flash.addColorStop(0, "#fff"); flash.addColorStop(0.4, "#ff0"); flash.addColorStop(1, "transparent");
-                ctx.fillStyle = flash; ctx.beginPath(); ctx.arc(centerX, h - 250, 150, 0, Math.PI*2); ctx.fill();
-            }
+            const aspect = w / h;
+            let sizeScale = (aspect > 1.2 ? 0.82 : 1.15) * 0.85;
+            let centerX = w * 0.58 + 140;     // 140 px a la derecha (equilibrado entre 125-150)
+            let gunY = h * 0.94;
+            let recoil = isFiring ? 38 : 0;
 
-            // Cuerpo del arma (Culata)
-            ctx.fillStyle = "#222";
+            // Rotación sutil a la izquierda (leve inclinación)
+            ctx.translate(centerX, gunY);
+            ctx.rotate(-0.12);                 // ≈ -7 grados (sutil, como 25px de inclinación visual)
+            ctx.translate(-centerX, -gunY);
+
+            // Sombra
+            ctx.fillStyle = "rgba(0,0,0,0.75)";
             ctx.beginPath();
-            ctx.moveTo(centerX - 120, h);
-            ctx.lineTo(centerX - 60, h - 150 + recoil);
-            ctx.lineTo(centerX + 60, h - 150 + recoil);
-            ctx.lineTo(centerX + 120, h);
+            ctx.ellipse(centerX, gunY + 32, 155 * sizeScale, 32 * sizeScale, 0, 0, Math.PI*2);
             ctx.fill();
 
-            // Cañones proyectados HACIA EL FRENTE
-            function drawBarrel(offset) {
-                let bX = centerX + offset;
-                let grad = ctx.createLinearGradient(bX - 40, 0, bX + 40, 0);
-                grad.addColorStop(0, "#111"); grad.addColorStop(0.5, "#555"); grad.addColorStop(1, "#111");
+            // Culata
+            ctx.fillStyle = "#3C220F";
+            ctx.strokeStyle = "#1C1006";
+            ctx.lineWidth = 12 * sizeScale;
+            ctx.beginPath();
+            ctx.moveTo(centerX - 115 * sizeScale, gunY + 22);
+            ctx.quadraticCurveTo(centerX - 152 * sizeScale, gunY - 45, centerX - 75 * sizeScale, gunY - 142 + recoil);
+            ctx.lineTo(centerX + 75 * sizeScale, gunY - 142 + recoil);
+            ctx.quadraticCurveTo(centerX + 152 * sizeScale, gunY - 45, centerX + 115 * sizeScale, gunY + 22);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+
+            // Vetas de madera
+            ctx.strokeStyle = "#5C3A1F";
+            ctx.lineWidth = 5 * sizeScale;
+            for(let i = -72; i < 76; i += 28) {
+                ctx.beginPath();
+                ctx.moveTo(centerX + i * sizeScale, gunY - 92 + recoil);
+                ctx.lineTo(centerX + (i - 30) * sizeScale, gunY - 37);
+                ctx.stroke();
+            }
+
+            // Receptor
+            ctx.fillStyle = "#1F1F1F";
+            ctx.beginPath();
+            ctx.rect(centerX - 80 * sizeScale, gunY - 145 + recoil, 160 * sizeScale, 62 * sizeScale);
+            ctx.fill();
+            ctx.strokeStyle = "#444";
+            ctx.lineWidth = 8 * sizeScale;
+            ctx.strokeRect(centerX - 80 * sizeScale, gunY - 145 + recoil, 160 * sizeScale, 62 * sizeScale);
+
+            // Gatillo
+            ctx.fillStyle = "#0A0A0A";
+            ctx.beginPath();
+            ctx.moveTo(centerX - 23 * sizeScale, gunY - 119 + recoil);
+            ctx.lineTo(centerX - 11 * sizeScale, gunY - 96 + recoil);
+            ctx.lineTo(centerX + 13 * sizeScale, gunY - 96 + recoil);
+            ctx.lineTo(centerX + 21 * sizeScale, gunY - 119 + recoil);
+            ctx.fill();
+
+            // Cañones
+            function drawBarrel(offsetX) {
+                let bx = centerX + offsetX * sizeScale;
+                let baseHalfWidth = 39 * sizeScale;
+                let tipOffset = offsetX * 0.18 * sizeScale;
+
+                let grad = ctx.createLinearGradient(bx - baseHalfWidth*0.85, gunY - 145 + recoil, 
+                                                     centerX + tipOffset, gunY - 225 + recoil);
+                grad.addColorStop(0, "#2A2A2A");
+                grad.addColorStop(0.42, "#4A4A4A");
+                grad.addColorStop(1, "#111111");
+
                 ctx.fillStyle = grad;
                 ctx.beginPath();
-                ctx.moveTo(bX - 45, h - 150 + recoil); // Base ancha cerca del jugador
-                ctx.lineTo(bX + 45, h - 150 + recoil);
-                ctx.lineTo(bX + 25, h - 260 + recoil); // Punta estrecha hacia el centro
-                ctx.lineTo(bX - 25, h - 260 + recoil);
+                ctx.moveTo(bx - baseHalfWidth, gunY - 143 + recoil);
+                ctx.lineTo(bx + baseHalfWidth, gunY - 143 + recoil);
+                ctx.lineTo(centerX + (offsetX * 0.22 + 9) * sizeScale, gunY - 225 + recoil);
+                ctx.lineTo(centerX + (offsetX * 0.22 - 9) * sizeScale, gunY - 225 + recoil);
                 ctx.fill();
-                // Bocas de los cañones (Efecto 3D)
-                ctx.fillStyle = "#000";
-                ctx.beginPath(); ctx.ellipse(bX, h - 260 + recoil, 25, 12, 0, 0, Math.PI*2); ctx.fill();
+
+                ctx.strokeStyle = "#888";
+                ctx.lineWidth = 5 * sizeScale;
+                ctx.stroke();
+
+                ctx.fillStyle = "#0A0A0A";
+                ctx.beginPath();
+                ctx.ellipse(centerX + offsetX * 0.22 * sizeScale, gunY - 227 + recoil, 15.5 * sizeScale, 8.8 * sizeScale, 0, 0, Math.PI*2);
+                ctx.fill();
+
+                ctx.fillStyle = "#B38B2E";
+                ctx.fillRect(bx - 13 * sizeScale, gunY - 173 + recoil, 26 * sizeScale, 6 * sizeScale);
             }
-            drawBarrel(-35); drawBarrel(35);
+
+            drawBarrel(-34);
+            drawBarrel(34);
+
+            // Flash en la punta de los cañones
+            if(isFiring) {
+                const flashY = gunY - 227 + recoil;
+                const leftTipX = centerX + (-34 * 0.22) * sizeScale;
+                const rightTipX = centerX + (34 * 0.22) * sizeScale;
+
+                let flashLeft = ctx.createRadialGradient(leftTipX - 4, flashY, 7, leftTipX - 4, flashY, 130);
+                flashLeft.addColorStop(0, "#FFFFAA");
+                flashLeft.addColorStop(0.25, "#FFDD00");
+                flashLeft.addColorStop(0.6, "#FF4400");
+                flashLeft.addColorStop(1, "transparent");
+                ctx.fillStyle = flashLeft;
+                ctx.beginPath();
+                ctx.arc(leftTipX, flashY, 130, 0, Math.PI*2);
+                ctx.fill();
+
+                let flashRight = ctx.createRadialGradient(rightTipX + 4, flashY, 7, rightTipX + 4, flashY, 120);
+                flashRight.addColorStop(0, "#FFFFAA");
+                flashRight.addColorStop(0.25, "#FFDD00");
+                flashRight.addColorStop(0.6, "#FF4400");
+                flashRight.addColorStop(1, "transparent");
+                ctx.fillStyle = flashRight;
+                ctx.beginPath();
+                ctx.arc(rightTipX, flashY, 120, 0, Math.PI*2);
+                ctx.fill();
+            }
+
             ctx.restore();
         }
 
         function loop() {
-            c3d.width = c3d.parentElement.offsetWidth; c3d.height = c3d.parentElement.offsetHeight;
-            cmap.width = cmap.parentElement.offsetWidth; cmap.height = cmap.parentElement.offsetHeight;
-            player.dir += moveX * 0.05;
-            let nX = player.x - Math.cos(player.dir)*(moveY*0.1), nY = player.y - Math.sin(player.dir)*(moveY*0.1);
-            if(world[Math.floor(nY)][Math.floor(nX)] !== 1) { player.x = nX; player.y = nY; }
+            c3d.width = c3d.parentElement.offsetWidth; 
+            c3d.height = c3d.parentElement.offsetHeight;
+            cmap.width = cmap.parentElement.offsetWidth; 
+            cmap.height = cmap.parentElement.offsetHeight;
 
-            const w = c3d.width, h = c3d.height; zBuffer = new Array(w).fill(20);
-            ctx3d.fillStyle = "#0a0000"; ctx3d.fillRect(0,0,w,h/2);
-            ctx3d.fillStyle = "#1a1a1a"; ctx3d.fillRect(0,h/2,w,h/2);
+            player.dir += moveX * 0.05;
+            let nX = player.x - Math.cos(player.dir)*(moveY*0.1);
+            let nY = player.y - Math.sin(player.dir)*(moveY*0.1);
+            if(world[Math.floor(nY)][Math.floor(nX)] !== 1) { 
+                player.x = nX; 
+                player.y = nY; 
+            }
+
+            const w = c3d.width, h = c3d.height;
+            zBuffer = new Array(w).fill(20);
+
+            ctx3d.fillStyle = "#0a0000"; 
+            ctx3d.fillRect(0,0,w,h/2);
+            ctx3d.fillStyle = "#1a1a1a"; 
+            ctx3d.fillRect(0,h/2,w,h/2);
 
             for(let i=0; i<w; i+=2) {
                 let rayAng = (player.dir-0.4)+(i/w)*0.8, d=0, hit=false;
                 while(!hit && d<12) {
                     d += 0.05;
-                    let tx = player.x+Math.cos(rayAng)*d, ty = player.y+Math.sin(rayAng)*d;
+                    let tx = player.x + Math.cos(rayAng)*d;
+                    let ty = player.y + Math.sin(rayAng)*d;
                     if(world[Math.floor(ty)][Math.floor(tx)] === 1) {
-                        hit=true; zBuffer[i]=d; zBuffer[i+1]=d;
-                        let wallH = h/d, texX = Math.floor(((tx%1)+(ty%1))*wallTex.width)%wallTex.width;
-                        ctx3d.drawImage(wallTex, texX, 0, 1, wallTex.height, i, h/2-wallH/2, 2, wallH);
-                        ctx3d.fillStyle = `rgba(0,0,0,${d/10})`; ctx3d.fillRect(i, h/2-wallH/2, 2, wallH);
+                        hit = true;
+                        zBuffer[i] = d;
+                        zBuffer[i+1] = d;
+                        let wallH = h / d;
+                        let texX = Math.floor(((tx%1) + (ty%1)) * wallTex.width) % wallTex.width;
+                        ctx3d.drawImage(wallTex, texX, 0, 1, wallTex.height, i, h/2 - wallH/2, 2, wallH);
+                        ctx3d.fillStyle = `rgba(0,0,0,${d/10})`;
+                        ctx3d.fillRect(i, h/2 - wallH/2, 2, wallH);
                     }
                 }
             }
 
-            enemies.sort((a,b) => Math.pow(player.x-b.x,2)-Math.pow(player.x-a.x,2));
+            enemies.sort((a,b) => Math.pow(player.x-b.x,2) - Math.pow(player.x-a.x,2));
             enemies.forEach(e => {
                 if(!e.alive) return;
-                let dx = e.x-player.x, dy = e.y-player.y, dist = Math.sqrt(dx*dx+dy*dy);
-                let ang = Math.atan2(dy, dx)-player.dir;
-                while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
+                let dx = e.x - player.x, dy = e.y - player.y, dist = Math.sqrt(dx*dx + dy*dy);
+                let ang = Math.atan2(dy, dx) - player.dir;
+                while(ang < -Math.PI) ang += Math.PI*2;
+                while(ang > Math.PI) ang -= Math.PI*2;
+
                 if(Math.abs(ang) < 0.7 && dist < zBuffer[Math.floor((0.5*(ang/0.4)+0.5)*w)]) {
                     drawVisualEnemy(ctx3d, (0.5*(ang/0.4)+0.5)*w, h/2, h/dist);
                 }
             });
 
+            // Punto de meta
+            let goalDx = goal.x - player.x;
+            let goalDy = goal.y - player.y;
+            let goalDist = Math.sqrt(goalDx*goalDx + goalDy*goalDy);
+            let goalAng = Math.atan2(goalDy, goalDx) - player.dir;
+            while(goalAng < -Math.PI) goalAng += Math.PI*2;
+            while(goalAng > Math.PI) goalAng -= Math.PI*2;
+
+            if(Math.abs(goalAng) < 0.7 && goalDist < zBuffer[Math.floor((0.5*(goalAng/0.4)+0.5)*w)]) {
+                let goalScreenX = (0.5*(goalAng/0.4)+0.5)*w;
+                let goalSize = h / goalDist * 1.8;
+                ctx3d.fillStyle = "#00ff00";
+                ctx3d.beginPath();
+                ctx3d.arc(goalScreenX, h/2, goalSize/2, 0, Math.PI*2);
+                ctx3d.fill();
+                ctx3d.strokeStyle = "#ffff00";
+                ctx3d.lineWidth = 4;
+                ctx3d.stroke();
+            }
+
             drawPerspectiveWeapon(ctx3d, w, h, isFiring);
+
+            // Mini-mapa (sin cambios)
+            ctxMap.fillStyle = "#111";
+            ctxMap.fillRect(0, 0, cmap.width, cmap.height);
+
+            const scale = Math.min(cmap.width, cmap.height) / 12;
+            const offsetX = cmap.width / 2 - player.x * scale;
+            const offsetY = cmap.height / 2 - player.y * scale;
+
+            ctxMap.strokeStyle = "#555";
+            ctxMap.lineWidth = 3;
+            for(let y = 0; y < world.length; y++) {
+                for(let x = 0; x < world[y].length; x++) {
+                    if(world[y][x] === 1) {
+                        ctxMap.fillStyle = "#444";
+                        ctxMap.fillRect(offsetX + x*scale, offsetY + y*scale, scale, scale);
+                    }
+                }
+            }
+
+            ctxMap.fillStyle = "#00ff00";
+            ctxMap.beginPath();
+            ctxMap.arc(offsetX + goal.x * scale, offsetY + goal.y * scale, scale/1.8, 0, Math.PI*2);
+            ctxMap.fill();
+            ctxMap.strokeStyle = "#ffff00";
+            ctxMap.lineWidth = 3;
+            ctxMap.stroke();
+
+            ctxMap.fillStyle = "#0f0";
+            ctxMap.beginPath();
+            ctxMap.arc(offsetX + player.x * scale, offsetY + player.y * scale, scale/3, 0, Math.PI*2);
+            ctxMap.fill();
+
+            ctxMap.strokeStyle = "#0f0";
+            ctxMap.lineWidth = 2;
+            ctxMap.beginPath();
+            ctxMap.moveTo(offsetX + player.x * scale, offsetY + player.y * scale);
+            ctxMap.lineTo(
+                offsetX + player.x * scale + Math.cos(player.dir) * scale * 1.3,
+                offsetY + player.y * scale + Math.sin(player.dir) * scale * 1.3
+            );
+            ctxMap.stroke();
+
+            ctxMap.fillStyle = "#f00";
+            enemies.forEach(e => {
+                if(e.alive) {
+                    ctxMap.beginPath();
+                    ctxMap.arc(offsetX + e.x * scale, offsetY + e.y * scale, scale/4, 0, Math.PI*2);
+                    ctxMap.fill();
+                }
+            });
+
             requestAnimationFrame(loop);
         }
 
         document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
             if(player.ammo > 0 && !isFiring) {
-                player.ammo--; isFiring = true;
+                player.ammo--;
                 document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo;
+                isFiring = true;
+
+                const spread = 0.28;
                 enemies.forEach(e => {
-                    let ang = Math.atan2(e.y-player.y, e.x-player.x)-player.dir;
-                    while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
-                    if(Math.abs(ang) < 0.12 && e.alive) { e.alive = false; player.score += 100; }
+                    if(!e.alive) return;
+                    let ang = Math.atan2(e.y - player.y, e.x - player.x) - player.dir;
+                    while(ang < -Math.PI) ang += Math.PI*2;
+                    while(ang > Math.PI) ang -= Math.PI*2;
+
+                    for(let p = -1; p <= 1; p++) {
+                        if(Math.abs(ang + p * 0.16) < spread && Math.random() > 0.35) {
+                            e.alive = false;
+                            player.score += 100;
+                            document.getElementById('score-ui').innerText = "SCORE: " + player.score;
+                            break;
+                        }
+                    }
                 });
-                setTimeout(() => isFiring = false, 150);
+
+                setTimeout(() => isFiring = false, 160);
             }
             e.preventDefault();
         });
+
         wallTex.onload = () => loop();
     </script>
 </body>
