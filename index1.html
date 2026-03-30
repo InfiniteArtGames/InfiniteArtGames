@@ -139,6 +139,38 @@
 
     footer { margin-top: 80px; padding: 40px; color: #FFF; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
     a { color: var(--accent); text-decoration: none; }
+/* Contenedor de las imágenes dentro de cada personaje */
+.mini-slides {
+  width: 100%;
+  height: 610px; /* Mantenemos el tamaño original de tu diseño */
+  position: relative;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 3px solid var(--primary); /* El borde neón de Infinite Art Games */
+}
+
+.mini-slides img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0; /* Ocultas por defecto */
+  transition: opacity 1.5s ease-in-out; /* Transición suave de 1.5s */
+  cursor: zoom-in;
+}
+
+.mini-slides img.active {
+  opacity: 1; /* Solo la imagen activa se ve */
+}
+
+/* Efecto hover igual al que ya tenías */
+.mini-slides img:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px var(--primary);
+}
+    
   </style>
 </head>
   
