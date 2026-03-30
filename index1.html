@@ -263,7 +263,8 @@
       if (id !== 'juegos') recuperarScroll();
     }
 
-    function centrarEnJuego() {
+    function centrarEnJuego(event) {
+      if (event) event.stopPropagation(); // Evita que el clic suba al body
       const card = document.getElementById('gameCard');
       const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
@@ -273,6 +274,17 @@
       window.scrollTo({ top: targetY, behavior: 'smooth' });
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
+
+    // Detectar clics fuera del área de juego para devolver el scroll
+   window.addEventListener('click', function(e) {
+    const gameWrapper = document.getElementById('fullscreen-target');
+    const isClickInsideGame = gameWrapper.contains(e.target);
+    const isGameTabActive = document.getElementById('juegos').style.display === 'block';
+
+    if (!isClickInsideGame && isGameTabActive) {
+    recuperarScroll();
+  }
+});
 
     function recuperarScroll() { document.getElementById('mainBody').classList.remove('no-scroll'); }
 
