@@ -80,17 +80,21 @@ function init() {
         });
     }
 
-    // --- CONFIGURACIÓN BLANCO Y NEGRO ---
+    // --- CONFIGURACIÓN DE TRACERS (DUALIDAD VISIBLE) ---
     tracers = [];
-    // Partícula Blanca (Sét-su)
+    // Partícula Blanca: Brillo neón cian (Sét-su)
     tracers.push({ 
         t: 0, speed: 0.07, dir: 1, history: [], 
-        color: '#fff', smokeColor: 'rgba(255, 255, 255,' 
+        color: '#fff', 
+        glowColor: '#00ffff', // Cian intenso
+        type: 'light'
     });
-    // Partícula Negra (Setsu)
+    // Partícula Negra: Emanación de humo oscuro (Setsu)
     tracers.push({ 
         t: Math.PI, speed: 0.07, dir: -1, history: [], 
-        color: '#000', smokeColor: 'rgba(50, 50, 50,' // Gris muy oscuro para que se vea sobre el negro
+        color: '#000', 
+        glowColor: 'rgba(70, 70, 70, 0.7)', // Humo gris oscuro, denso
+        type: 'dark'
     });
 }
 
@@ -162,7 +166,10 @@ function draw() {
             ctx.beginPath(); ctx.arc(x, y, currentR * 1.8, 0, 6.28); ctx.fill();
         });
 
-        // --- DIBUJO DE TRACERS (DUALIDAD BALANCEADA) ---
+        // --- DIBUJO DE TRACERS (SOLUCIÓN DE VISIBILIDAD) ---
+        // Usamos source-over para que el negro pinte sobre el fondo
+        ctx.globalCompositeOperation = 'source-over'; 
+
         tracers.forEach(tr => {
             tr.t += tr.speed * tr.dir;
             const pos = getLemniscata(tr.t, scaleInf);
@@ -171,29 +178,40 @@ function draw() {
             tr.history.push({x, y});
             if (tr.history.length > 20) tr.history.shift();
 
-            // Dibujo de la columna de humo/estela
-            ctx.lineWidth = 5;
+            // 1. Dibujar la estela (Humo o Luz)
+            ctx.lineWidth = 3;
             tr.history.forEach((h, idx) => {
-                const alpha = (idx / tr.history.length) * 0.8;
-                ctx.strokeStyle = tr.smokeColor + alpha + ')';
+                const alpha = (idx / tr.history.length) * 0.6;
+                ctx.strokeStyle = tr.type === 'light' ? `rgba(0, 255, 255, ${alpha})` : `rgba(70, 70, 70, ${alpha})`;
                 ctx.beginPath();
                 if (idx === 0) ctx.moveTo(h.x, h.y); else ctx.lineTo(h.x, h.y);
                 ctx.stroke();
             });
 
-            // Partícula sólida
-            ctx.fillStyle = tr.color;
-            if (tr.color === '#000') {
-                // Pequeño truco: a la negra le damos un borde blanco mínimo para que no desaparezca del todo
-                ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-                ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill(); ctx.stroke();
+            // 2. Dibujar la partícula CON EMANACIÓN
+            ctx.save(); // Aislamos los estilos de brillo
+            
+            if (tr.type === 'light') {
+                // Brillo Neón Cian original para la blanca
+                ctx.shadowBlur = 20;
+                ctx.shadowColor = tr.glowColor;
+                ctx.fillStyle = tr.color;
             } else {
-                ctx.beginPath(); ctx.arc(x, y, 6, 0, 6.28); ctx.fill();
+                // Emanación de "Fuego Negro/Humo" para la negra
+                // Usamos un halo gris oscuro muy difuminado para recortar la silueta
+                ctx.shadowBlur = 25; // Más difuso
+                ctx.shadowColor = tr.glowColor; // Gris oscuro denso
+                ctx.fillStyle = tr.color; // Negro puro
             }
+            
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 6.28);
+            ctx.fill();
+            ctx.restore(); // Restauramos estilos
         });
     } 
     else if (progress < 0.5) {
+        // ... (resto del código igual)
         const s = 1 - (progress - 0.42) * 12.5;
         ctx.fillStyle = '#fff';
         infParticles.forEach(p => {
@@ -202,6 +220,7 @@ function draw() {
         });
     } 
     else {
+        // ... (resto del código igual)
         if (expParticles.length === 0) {
             infParticles = []; ambientParticles = []; tracers = [];
             for (let i = 0; i < 150; i++) {
