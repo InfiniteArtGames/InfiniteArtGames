@@ -11,7 +11,34 @@
       --accent: #00d4ff;
       --bg: #050010;
     }
+.title-wrapper {
+  position: relative;
+  width: 100%;
+  height: 40vh; /* o lo que quieras para que sea grande */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg) url('Imágenes/image-1.png') center/cover no-repeat;
+  background-blend-mode: multiply; /* hace que el logo se vea más oscuro y sutil */
+}
 
+.title-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 0, 16, 0.6); /* overlay negro semi-transparente para que no tape el texto */
+  z-index: 1;
+}
+
+.title-wrapper h1 {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  font-size: 5rem; /* ajusta según tu gusto */
+  color: var(--primary);
+  text-shadow: 0 0 15px var(--primary); /* glow para que resalte */
+    }
+    
     body {
       margin: 0; padding: 0;
       background: url('Imágenes/image-9.jpg') no-repeat center/cover fixed;
