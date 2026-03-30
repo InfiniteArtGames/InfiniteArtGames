@@ -23,24 +23,24 @@
       overflow-x: hidden;
     }
     
-.title-section {
+.title-wrapper {
   position: relative;
-  width: 100%;
-  text-align: center;
-  padding-top: 5vh; /* espacio arriba si hace falta */
+  height: 50vh;
+  background: linear-gradient(to bottom, rgba(160,32,240,0.3), rgba(0,212,255,0.1)); /* morado-azul difuminado */
+  backdrop-filter: blur(8px); /* ¡esto difumina todo! */
+  border: 2px solid var(--primary);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px var(--primary);
 }
 
- .banner-box {
-  width: 100%;
-  height: 60vh; /* alto del cuadro - hazlo más grande si quieres */
-  margin-top: -10vh; /* sube el cuadro para que "invada" la parte del texto */
-  background: url('Imágenes/image-1.png') center/cover no-repeat; /* tu logo negro aquí */
-  background-color: var(--bg); /* negro de respaldo */
-  border-radius: 0 0 20px 20px; /* bordes redondeados abajo si te gusta */
-  box-shadow: 0 10px 30px rgba(160, 32, 240, 0.3); /* glow morado sutil */
-  z-index: -1; /* va detrás del texto */
+.title-wrapper h1 {
+  color: var(--primary);
+  text-shadow: 0 0 20px var(--accent);
+  z-index: 2;
 }
-
   .title-section h1 {
   position: relative;
   z-index: 2;
