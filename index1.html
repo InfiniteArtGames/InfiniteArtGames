@@ -14,7 +14,7 @@
 
     body {
       margin: 0; padding: 0;
-      background: url('Imágenes/image-9.jpg') no-repeat center/cover fixed;
+      background: url('Imágenes/portal-infinito.jpg') no-repeat center/cover fixed;
       background-attachment: fixed;
       background-color: #000;
       color: #fff;
@@ -23,18 +23,16 @@
       overflow-x: hidden;
     }
 
+    /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
+    .no-scroll { overflow: hidden !important; height: 100vh !important; }
+
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
     h1 {
       font-size: clamp(2.5em, 10vw, 5.5em);
-      margin: 20px 0; 
-      font-weight: 900; 
-      letter-spacing: 8px; 
-      text-transform: uppercase;
+      margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
       background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
-      background-size: 200% auto; 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent;
+      background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
       filter: drop-shadow(0 0 15px var(--primary));
     }
@@ -42,78 +40,13 @@
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
     @keyframes titleGlow { from { filter: drop-shadow(0 0 10px var(--primary)); } to { filter: drop-shadow(0 0 25px var(--accent)); } }
 
-    .poema { 
-      font-size: 1.5em; 
-      font-style: italic; 
-      margin: 20px 0 40px; 
-      color: #ccc; 
-    }
+    .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #ccc; }
 
     .bienvenida {
-      font-size: 1.3em; 
-      line-height: 1.6; 
-      margin-bottom: 50px; 
-      padding: 25px;
-      background: rgba(160, 32, 240, 0.1); 
-      border-radius: 20px;
-      backdrop-filter: blur(8px); 
-      border: 1px solid rgba(160, 32, 240, 0.3);
+      font-size: 1.3em; line-height: 1.6; margin-bottom: 50px; padding: 25px;
+      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
+      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
     }
-
-    /* ====================== CUADRO DIFUMINADO CON LOGO DETRÁS ====================== */
-    .hero-panel {
-      position: relative;
-      width: 100%;
-      min-height: 65vh;
-      margin: 40px 0 60px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 50px 20px;
-      border-radius: 25px;
-      background: url('Imágenes/image-1.png');
-      border: 2px solid rgba(160, 32, 240, 0.45);
-      box-shadow: 0 0 60px rgba(160, 32, 240, 0.4);
-      backdrop-filter: blur(14px);
-      overflow: hidden;
-    }
-
-    .logo-bg {
-      position: absolute;
-      inset: 0;
-      background: url('Imágenes/image-1.png') center/contain no-repeat;
-      opacity: 0.22;
-      filter: brightness(0.65);
-      z-index: 1;
-      pointer-events: none;
-    }
-
-    .hero-panel h1 {
-      position: relative;
-      z-index: 3;
-      margin: 10px 0 15px 0;
-      text-shadow: 0 0 30px var(--primary), 0 0 50px var(--accent);
-    }
-
-    .hero-panel .poema {
-      position: relative;
-      z-index: 3;
-      font-size: 1.45em;
-      margin: 15px 0 35px 0;
-      color: #ddd;
-      text-shadow: 0 0 12px rgba(0, 212, 255, 0.5);
-    }
-
-    .hero-panel .bienvenida {
-      position: relative;
-      z-index: 3;
-      max-width: 820px;
-    }
-
-    /* Resto de tus estilos originales (sin cambios) */
-    .no-scroll { overflow: hidden !important; height: 100vh !important; }
 
     .main-card {
       margin: 40px auto; padding: 30px;
@@ -141,6 +74,7 @@
     .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
+    /* CONSOLA DE JUEGO MEJORADA RECUPERADA */
     .game-wrapper {
       position: relative; width: 100%; height: 450px; background: #000;
       border-radius: 15px; border: 2px solid var(--primary); overflow: hidden;
@@ -148,6 +82,7 @@
     }
     #activeGameFrame { width: 100%; height: 100%; border: none; }
 
+    /* ESTILOS DE PLAYLIST Y RESALTADO */
     .playlist-container { margin: 20px 0; text-align: left; }
     .playlist-item {
       padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.05);
@@ -156,6 +91,7 @@
     .playlist-item:hover { background: rgba(160, 32, 240, 0.2); border-left-color: var(--accent); }
     .playlist-item.active { background: rgba(160, 32, 240, 0.4) !important; border-left: 4px solid var(--accent) !important; color: var(--accent); }
 
+    /* SECCIÓN VIDEOS */
     .video-container {
       position: relative; width: 100%; height: 70vh; max-height: 500px;
       margin: 20px auto; overflow: hidden; border-radius: 15px;
@@ -195,17 +131,12 @@
   </div>
 
   <div class="container">
-
-    <!-- CUADRO DIFUMINADO CON LOGO DETRÁS -->
-    <div class="hero-panel">
-      <div class="logo-bg"></div>
-      <h1>Infinite Art Games</h1>
-      <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
-      
-      <div class="bienvenida">
-        Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
-        Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.
-      </div>
+    <h1>Infinite Art Games</h1>
+    <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
+    
+    <div class="bienvenida">
+      Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
+      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.
     </div>
 
     <div class="main-card" id="gameCard">
@@ -230,7 +161,6 @@
         <button class="btn-nav" onclick="showTab('videos')">VIDEOS</button>
       </div>
 
-      <!-- El resto de tu contenido se mantiene igual -->
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
@@ -250,6 +180,7 @@
         <div style="margin-bottom: 20px;">
           <button class="btn-nav" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang')">BING-BANG</button>
           <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas')">ARAÑITAS</button>
+          <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Demon')">ARAÑITAS</button>
         </div>
         
         <div class="game-wrapper" id="fullscreen-target" onclick="centrarEnJuego()">
@@ -304,7 +235,7 @@
 </div>
 
   <script>
-    /* Todo tu script original se mantiene igual */
+    /* NAVEGACIÓN Y PESTAÑAS RECUPERADAS */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
@@ -344,7 +275,7 @@
       }
     });
 
-    /* El resto de tu script (audio, visualizer, videos, carousel, etc.) queda igual */
+    /* MOTOR DE AUDIO COMPLETO Y RESALTADO */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
@@ -386,6 +317,7 @@
         ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
         const size = 1 + (Math.random() * (avg / 20));
         ctx.beginPath(); ctx.arc((canvas.width/2)+x + Math.sin(time+i)*10, (canvas.height/2)+y + Math.cos(time+i)*10, size, 0, Math.PI*2); ctx.fill();
+        if(avg > 30) { ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff'; }
       }
     }
 
@@ -441,7 +373,8 @@
       o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    /* Videos y carousel */
+    /* VIDEOS Y CARRUSEL */
+
     const selector = document.getElementById('videoSelector');
     const player = document.getElementById('videoPlayer');
     const swipeArea = document.getElementById('swipeArea');
@@ -491,6 +424,7 @@
         }
       }
     });
+
 
     let currentS = 0;
     setInterval(() => {
