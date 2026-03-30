@@ -180,7 +180,7 @@
         <div style="margin-bottom: 20px;">
           <button class="btn-nav" onclick="cargarJuego('Juegos/Bing-Bang.html', 'Bing-Bang')">BING-BANG</button>
           <button class="btn-nav" onclick="cargarJuego('Juegos/Arañitas.html', 'Arañitas')">ARAÑITAS</button>
-          <button class="btn-nav" onclick="cargarJuego('Juegos/Infernal Infinity.html', 'Demon')">ARAÑITAS</button>
+          <button class="btn-nav" onclick="cargarJuego('Juegos/Infernal Infinity.html', 'Demon')">DEMON</button>
         </div>
         
         <div class="game-wrapper" id="fullscreen-target" onclick="centrarEnJuego()">
@@ -249,7 +249,7 @@
       body.classList.add('no-scroll');
       const rect = card.getBoundingClientRect();
       const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 - 200);
+      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 - 250);
       window.scrollTo({ top: targetY, behavior: 'smooth' });
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
