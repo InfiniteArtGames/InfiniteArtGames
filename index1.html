@@ -29,16 +29,16 @@
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
     h1 {
+      line-height: 1.6; margin-bottom: 50px; padding: 25px;
+      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
+      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
+      
       font-size: clamp(2.5em, 10vw, 5.5em);
       margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
       background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
       background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
       filter: drop-shadow(0 0 15px var(--primary));
-      
-      line-height: 1.6; margin-bottom: 50px; padding: 25px;
-      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
-      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
     }
     
     @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
