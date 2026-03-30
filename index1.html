@@ -524,6 +524,29 @@ window.addEventListener('click', function(e) {
     }, 4000);
 
     showTab('musica');
+function iniciarMiniCarruseles() {
+    // Buscamos todos los personajes de la galería
+    const personajes = document.querySelectorAll('.personaje');
+
+    personajes.forEach(p => {
+        const slides = p.querySelectorAll('.mini-slides img');
+        if (slides.length <= 1) return; // Si solo hay una imagen, no hace nada
+
+        let current = 0;
+        setInterval(() => {
+            // Quitamos la clase active de la imagen actual
+            slides[current].classList.remove('active');
+            // Pasamos a la siguiente
+            current = (current + 1) % slides.length;
+            // Activamos la nueva imagen
+            slides[current].classList.add('active');
+        }, 4000); // Rotación cada 4 segundos como pediste
+    });
+}
+
+// Arranca la función cuando la página esté lista
+window.addEventListener('DOMContentLoaded', iniciarMiniCarruseles);
+    
   </script>
 </body>
 </html>
