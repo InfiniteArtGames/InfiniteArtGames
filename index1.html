@@ -29,12 +29,23 @@
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
     h1 {
-      line-height: 1.5; margin: 20px calc(-50vw + 50%); border-left: 0;
-      border-right: 0; padding: 20px 0; box-sizing: border-box;
-      background: rgba(160, 32, 240, 0.1); border-radius: 0;
-      backdrop-filter: blur(8px); border-top: 1px solid rgba(160, 32, 240, 0.3);
-      border-bottom: 1px solid rgba(160, 32, 240, 0.3);
-                
+  line-height: 1.5;
+  margin: 20px calc(-50vw + 50%);
+  padding: 20px 0;               /* mantiene el colchón arriba/abajo */
+  box-sizing: border-box;
+  background: rgba(160, 32, 240, 0.1); /* fondo que se expande */
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(160, 32, 240, 0.3);
+  border-bottom: 1px solid rgba(160, 32, 240, 0.3);
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  width: 100vw;                  /* fuerza ancho total del viewport */
+  position: relative;            /* evita que el padre lo recorte */
+  left: 50%;
+  transform: translateX(-50%);   /* centra perfecto sin negativos raros */
+
+      
       font-size: clamp(2.5em, 10vw, 5.5em);
       margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
       background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
