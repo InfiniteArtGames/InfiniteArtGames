@@ -23,11 +23,11 @@
       overflow-x: hidden;
     }
 
-/* --- BLOQUE DEL TÍTULO (FONDO NEGRO REFINADO) --- */
+/* --- BLOQUE DEL TÍTULO (EL EQUILIBRIO DE SÉT-SU) --- */
 h1.main-title {
     margin: 0 !important;
-    /* Reducimos el padding superior de 140px a 80px para que no sea tan gigante */
-    padding: 80px 20px 40px 20px; 
+    /* 110px arriba para un término medio, 40px abajo */
+    padding: 110px 0 50px 0; 
     display: block;
     width: 100vw;
     position: relative;
@@ -36,29 +36,29 @@ h1.main-title {
     box-sizing: border-box;
     z-index: 10;
     
-    /* TRANSPARENCIA REFINADA: Negro al 90% para dejar pasar un poco de luz */
-    background-color: rgba(0, 0, 0, 0.9) !important; 
+    /* Transparencia sutil (0.93) para que se intuya el fondo sin perder oscuridad */
+    background-color: rgba(0, 0, 0, 0.93) !important; 
+    backdrop-filter: blur(10px); 
     
-    /* El blur es clave para que la luz que pase se vea mística y no nítida */
-    backdrop-filter: blur(8px); 
-    
-    /* Sombra interna más suave para Sét-su [cite: 2025-09-06] */
-    box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8); 
-
     border-top: none !important;
-    border-bottom: 2px solid rgba(160, 32, 240, 0.6);
+    border-bottom: 2px solid rgba(160, 32, 240, 0.7);
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9), 0 10px 20px rgba(0, 0, 0, 0.5);
 }
 
-/* --- TEXTO (TAMAÑO AJUSTADO) --- */
+/* --- TEXTO (CON MARGEN LATERAL Y TAMAÑO MEDIO) --- */
 .text-glow {
     display: block;
-    /* Reducimos el tamaño máximo de 5.5em a 4.5em para que sea más estético */
-    font-size: clamp(2.2em, 8vw, 4.5em); 
+    /* Tamaño intermedio: ni 5.5em ni 4.5em. Usamos 5em. */
+    font-size: clamp(2.3em, 9vw, 5em); 
     font-weight: 900;
-    letter-spacing: 6px; /* Letras un poco más juntas para mejor lectura */
+    letter-spacing: 7px;
     text-transform: uppercase;
     text-align: center;
     
+    /* MARGEN LATERAL: Esto evita que las letras toquen los bordes de la pantalla */
+    padding: 0 10%; 
+    
+    /* Estilo visual de David Rodríguez [cite: 2025-07-23] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
