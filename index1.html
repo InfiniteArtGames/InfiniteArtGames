@@ -112,9 +112,19 @@
     /* ESTILOS DE PLAYLIST Y RESALTADO */
     .playlist-container { margin: 20px 0; text-align: left; }
     .playlist-item {
-      padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.05);
-      border-radius: 10px; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent;
-    }
+  padding: 6px 10px;           /* Espaciado interno más compacto */
+  margin: 4px 0;              /* Menos separación entre tracks */
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  border-left: 3px solid transparent;
+
+  /* AJUSTES DE FUENTE OPTIMIZADOS */
+  font-size: 0.75em;           /* Texto notablemente más pequeño */
+  letter-spacing: 0.5px;       /* Mejora la legibilidad en tamaños chicos */
+  font-family: 'Orbitron', sans-serif; /* Mantenemos la estética de Infinite Art Games */
+}
     .playlist-item:hover { background: rgba(160, 32, 240, 0.2); border-left-color: var(--accent); }
     .playlist-item.active { background: rgba(160, 32, 240, 0.4) !important; border-left: 4px solid var(--accent) !important; color: var(--accent); }
 
