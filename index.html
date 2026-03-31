@@ -55,9 +55,7 @@ let time = 0;
 // EXTENSIÓN DE TIEMPO: De 8500 a 11500 (+3 segundos totales)
 const duration = 8500; 
 let infParticles = [], tracers = [], expParticles = [], ambientParticles = [], embers = []; 
-let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0 };
-
-function init() {
+let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0, transitionStarted: false };function init() {
     infParticles = []; ambientParticles = []; tracers = []; embers = [];
     
     const countAmbient = isMobile ? 40 : 80;
