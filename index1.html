@@ -23,18 +23,19 @@
       overflow-x: hidden;
     }
 
-/* --- EL BLOQUE NEGRO (ALTURA FIJA) --- */
+/* --- BLOQUE NEGRO (CON ALTURA MÍNIMA DE SEGURIDAD) --- */
 h1.main-title {
     margin: 0 !important;
-    display: flex; /* Usamos flex para centrar el texto verticalmente */
-    align-items: center; 
+    /* Mantenemos el padding grande para que el fondo se vea imponente */
+    padding: 130px 20px 60px 20px; 
+    
+    /* EL SECRETO: Si la letra es pequeña, la franja mide al menos esto. 
+       Si la letra crece, la franja crece con ella. */
+    min-height: 280px; 
+    
+    display: flex;
+    align-items: center;
     justify-content: center;
-    
-    /* --- EL SECRETO --- */
-    /* Definimos una altura fija para la franja negra. 
-       Así, aunque la letra sea minúscula, el fondo no se achica. */
-    height: 220px; 
-    
     width: 100vw;
     position: relative;
     left: 50%;
@@ -42,34 +43,34 @@ h1.main-title {
     box-sizing: border-box;
     z-index: 10;
     
+    /* Negro semi-transparente de David Rodríguez [cite: 2025-07-23] */
     background-color: rgba(0, 0, 0, 0.93) !important; 
     backdrop-filter: blur(10px); 
     border-bottom: 2px solid rgba(160, 32, 240, 0.7);
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9);
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
 }
 
-/* --- LA FUENTE (AHORA PUEDES BAJARLA SIN MIEDO) --- */
+/* --- LA FUENTE (AHORA AJUSTABLE) --- */
 .text-glow {
     display: block;
     
-    /* --- AQUÍ CONTROLAS EL TAMAÑO DE LA LETRA --- */
-    /* He bajado el máximo a 2.8em para que sea elegante y pequeña */
-    font-size: clamp(1.2em, 5vw, 2.8em); 
+    /* --- MODIFICA EL 3em PARA ACHICAR LA LETRA --- */
+    /* He bajado el máximo a 3em para que sea más fina, pero sin perder fuerza */
+    font-size: clamp(1.4em, 7vw, 3em); 
     
     font-weight: 900;
     letter-spacing: 5px;
     text-transform: uppercase;
     text-align: center;
-    padding: 0 15%; 
+    padding: 0 10%;
     
-    /* Estética de David Rodríguez [cite: 2025-07-23] */
+    /* Estética Infinite Art Games [cite: 2025-07-23] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 }
-
 /* 3. ANIMACIONES (SE MANTIENEN IGUAL) */
 @keyframes gradientMove { 
     0% { background-position: 0% 50%; } 
