@@ -37,38 +37,43 @@
 
 /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
-    /* Tipografía y efectos de texto */
+    /* --- ESTILO TIPOGRÁFICO --- */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
     text-transform: uppercase;
     text-align: center;
     margin: 60px 0;
-    padding: 70px 0; /* Este es el padding que ahora tendrá el fondo oscuro */
+    padding: 80px 0; /* Padding generoso para la marca */
     
-    /* El degradado del texto */
+    /* Efecto de degradado en el texto */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
-    
-    /* --- CORRECCIÓN DEL FONDO (EL PADDING) --- */
+
+    /* --- EL FONDO "BLACKOUT" (CORRECCIÓN) --- */
     box-sizing: border-box;
-    /* Usamos un negro casi puro (#050505) con 0.95 de opacidad */
-    background-color: rgba(5, 5, 5, 0.95); 
-    backdrop-filter: blur(12px); /* Un poco más de desenfoque para que se vea premium */
+    /* Negro absoluto (0,0,0) con 0.98 de opacidad para que no se vea gris */
+    background-color: rgba(0, 0, 0, 0.98); 
     
-    /* Bordes brillantes de neón */
-    border-top: 2px solid rgba(160, 32, 240, 0.6);
-    border-bottom: 2px solid rgba(160, 32, 240, 0.6);
+    /* El blur es lo que causa el efecto "borroso", lo bajamos para que el negro domine */
+    backdrop-filter: blur(5px); 
     
-    /* Estructura Full Width */
+    /* Bordes de neón más definidos */
+    border-top: 2px solid rgba(160, 32, 240, 0.8);
+    border-bottom: 2px solid rgba(160, 32, 240, 0.8);
+    
+    /* Ajuste de pantalla completa */
     width: 100vw;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
     z-index: 10;
+    
+    /* Sombra interna para dar profundidad al negro */
+    box-shadow: inset 0 0 50px rgba(0, 0, 0, 1), 0 0 20px rgba(160, 32, 240, 0.2);
 }
 
 /* 3. ANIMACIONES */
