@@ -36,35 +36,39 @@
 }
 
 /* 2. TÍTULO PRINCIPAL (H1) */
-/* He separado el H1 para que sea independiente y tenga su estilo "Full Width" */
 h1 {
+    /* Tipografía y efectos de texto */
     font-size: clamp(2.5em, 10vw, 5.5em);
-    margin: 60px 0;
-    padding: 70px 0;
     font-weight: 900;
     letter-spacing: 8px;
     text-transform: uppercase;
     text-align: center;
+    margin: 60px 0;
+    padding: 70px 0; /* Este es el padding que ahora tendrá el fondo oscuro */
     
-    /* Efecto de degradado animado */
+    /* El degradado del texto */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
     
-    /* Estilo de fondo de la franja */
+    /* --- CORRECCIÓN DEL FONDO (EL PADDING) --- */
     box-sizing: border-box;
-    background-color: rgba(10, 10, 10, 0.85);
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(160, 32, 240, 0.5);
-    border-bottom: 1px solid rgba(160, 32, 240, 0.5);
+    /* Usamos un negro casi puro (#050505) con 0.95 de opacidad */
+    background-color: rgba(5, 5, 5, 0.95); 
+    backdrop-filter: blur(12px); /* Un poco más de desenfoque para que se vea premium */
     
-    /* Posicionamiento para que ocupe todo el ancho de la pantalla */
+    /* Bordes brillantes de neón */
+    border-top: 2px solid rgba(160, 32, 240, 0.6);
+    border-bottom: 2px solid rgba(160, 32, 240, 0.6);
+    
+    /* Estructura Full Width */
     width: 100vw;
     position: relative;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 10;
 }
 
 /* 3. ANIMACIONES */
