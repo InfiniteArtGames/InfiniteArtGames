@@ -419,67 +419,83 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-// 1. Variables fuera de la función para no recrearlas cada frame
+/* --- MOTOR VISUAL OPTIMIZADO: INFINITE ART GAMES --- */
 let time = 0;
 let lightHistory = []; 
 let darkHistory = [];  
-const pSizes = Array.from({ length: 50 }, () => Math.random() * 2.5 + 2.0); // 50 partículas grandes
+// Pre-calculamos tamaños para que unas partículas sean más grandes que otras
+const pSizes = Array.from({ length: 80 }, () => Math.random() * 2.8 + 1.5);
+
+function getLemniscata(t, scale) {
+    const d = Math.pow(Math.sin(t), 2) + 1;
+    return { 
+        x: (scale * Math.cos(t)) / d, 
+        y: (scale * Math.sin(t) * Math.cos(t)) / d 
+    };
+}
 
 function draw() {
     requestAnimationFrame(draw);
-    if (!analyser) return;
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
-    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
-    // Limpieza simple
+    // Si no hay analizador, dibujamos el infinito estático para que no se vea vacío
+    let avg = 0;
+    if (analyser) {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    }
+
+    // Limpieza total del frame anterior
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    // Escala amplia para visibilidad
-    const scale = (Math.min(canvas.width, canvas.height) * 0.42) + (avg * 0.45);
     
+    // Escala base (0.4) + reacción al audio (avg)
+    const scale = (Math.min(canvas.width, canvas.height) * 0.4) + (avg * 0.45);
+    
+    // El tiempo avanza siempre, pero más rápido con música
     time += 0.015 + (avg * 0.0005); 
 
+    // 1. DIBUJAR PARTÍCULAS AZULES (Cuerpo del Infinito)
     ctx.globalCompositeOperation = 'lighter';
-
-    // 2. Partículas Azules (Menos cantidad, más grandes y desordenadas)
-    for (let i = 0; i < 50; i++) {
-        const t = (i / 50) * Math.PI * 2;
+    for (let i = 0; i < 80; i++) {
+        const t = (i / 80) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Turbulencia orgánica
-        const offX = Math.sin(time + i) * (avg * 0.3);
-        const offY = Math.cos(time + i) * (avg * 0.3);
+        // Turbulencia rebelde de la intro
+        const shakeX = (Math.random() - 0.5) * (avg * 0.3);
+        const shakeY = (Math.random() - 0.5) * (avg * 0.3);
         
         ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
         ctx.beginPath();
-        ctx.arc(centerX + pos.x + offX, centerY + pos.y + offY, pSizes[i], 0, 6.28);
+        ctx.arc(centerX + pos.x + shakeX, centerY + pos.y + shakeY, pSizes[i], 0, 6.28);
         ctx.fill();
     }
 
-    // 3. Estelas y Cabezas (Efecto exacto de la intro)
+    // 2. RASTROS (Haces de luz exactos de la intro)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
     lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
     darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
-    if (lightHistory.length > 20) { lightHistory.shift(); darkHistory.shift(); }
+    if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Dibujado eficiente de estelas
-    ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+    // Dibujar estela blanca
     ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 4;
     lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
     ctx.stroke();
 
-    // Identidad de Sét-su: Blanca y Negra [cite: 2025-09-06]
+    // 3. CABEZAS GUÍAS (Blanca y Negra - Identidad de Sét-su) [cite: 2025-09-06]
     ctx.globalCompositeOperation = 'source-over';
+    
+    // Luz Blanca
     ctx.fillStyle = "#fff";
     ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
 
+    // Oscuridad (Lobo Negro)
     ctx.fillStyle = "#000";
     ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
