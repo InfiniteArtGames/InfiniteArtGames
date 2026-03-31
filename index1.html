@@ -409,17 +409,22 @@ window.addEventListener('click', function(e) {
     const ctx = canvas.getContext('2d');
 
 const notes = { 
-    A3: 220, D4: 293, F4: 349, A4: 440, B4: 493, C5: 523, D5: 587, E5: 659, F5: 698, G5: 783, A5: 880, B5: 987, D6: 1174 
+    A3: 220, C4: 261, D4: 293, E4: 329, F4: 349, G4: 392, A4: 440, B4: 493, C5: 523, D5: 587, E5: 659, F5: 698, G5: 783, A5: 880, C6: 1046 
 };
-  const playlist = [
+ const playlist = [
   { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
   { 
     type: 'api', 
     name: "Melodía de Sét-su", 
     data: [
-        {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
-        {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
-        {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
+        // Frase 1: Introducción suave y mística
+        {f: notes.E4, d: 0.6}, {f: notes.G4, d: 0.3}, {f: notes.A4, d: 0.9}, 
+        // Frase 2: Ascenso melancólico
+        {f: notes.C5, d: 0.3}, {f: notes.B4, d: 0.3}, {f: notes.A4, d: 0.6}, {f: notes.G4, d: 0.9},
+        // Frase 3: El clímax "hermoso" con salto a la octava alta
+        {f: notes.E5, d: 0.6}, {f: notes.D5, d: 0.3}, {f: notes.C5, d: 0.6}, {f: notes.A4, d: 1.2},
+        // Frase 4: Final reconfortante y suave
+        {f: notes.F4, d: 0.3}, {f: notes.E4, d: 0.3}, {f: notes.D4, d: 0.6}, {f: notes.E4, d: 1.5}
     ] 
   },
   { 
