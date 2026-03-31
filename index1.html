@@ -12,6 +12,25 @@
       --bg: #050010;
     }
 
+/* FONDO TITULO */
+h1 {
+  line-height: 1.5;
+  margin: 60px 0;
+  padding: 70px 0;
+  box-sizing: border-box;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(160, 32, 240, 0.5);
+  border-bottom: 1px solid rgba(160, 32, 240, 0.5);
+  border-left: none;
+  border-right: none;
+  border-radius: 0;
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+    
     body {
       margin: 0; padding: 0;
       background: url('Imágenes/image-12.jpg') no-repeat center/cover fixed;
@@ -22,56 +41,11 @@
       text-align: center;
       overflow-x: hidden;
     }
-
-<audio id="introSound">
-    <source src="musica/InfiniteArtGames.mp3" type="audio/mpeg">
-    Tu navegador no soporta el elemento de audio.
-</audio>
-
-
-    const sound = document.getElementById('introSound');
-
-    // Función para intentar reproducir el sonido
-    function playIntro() {
-        sound.play().catch(error => {
-            console.log("El navegador bloqueó el autoplay. Se reproducirá al primer clic.");
-        });
-    }
-
-    // Intentar reproducir al cargar
-    window.addEventListener('load', playIntro);
-
-    // Como los navegadores suelen bloquear el sonido automático, 
-    // esto asegura que suene en cuanto el usuario toque cualquier parte de la pantalla
-    window.addEventListener('click', () => {
-        if (sound.paused) {
-            playIntro();
-        }
-    }, { once: true });
-
-    
+   
     /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
     .no-scroll { overflow: hidden !important; height: 100vh !important; }
 
     .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-
-    h1 {
-  line-height: 1.5;
-  margin: 60px calc(-50vw + 50%);
-  padding: 50px 0;               /* mantiene el colchón arriba/abajo */
-  box-sizing: border-box;
-  background: rgba(1,1,1,0.5); /* fondo que se expande */
-  backdrop-filter: blur(8px);
-  border-top: 1px solid rgba(160, 32, 240, 0.3);
-  border-bottom: 1px solid rgba(160, 32, 240, 0.3);
-  border-left: none;
-  border-right: none;
-  border-radius: 0;
-  width: 100vw;                  /* fuerza ancho total del viewport */
-  position: relative;            /* evita que el padre lo recorte */
-  left: 50%;
-  transform: translateX(-50%);   /* centra perfecto sin negativos raros */
-
       
       font-size: clamp(2.5em, 10vw, 5.5em);
       margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
@@ -127,13 +101,23 @@
     #activeGameFrame { width: 100%; height: 100%; border: none; }
 
     /* ESTILOS DE PLAYLIST Y RESALTADO */
-    .playlist-container { margin: 20px 0; text-align: left; }
     .playlist-item {
-      padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.05);
-      border-radius: 10px; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent;
-    }
-    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); border-left-color: var(--accent); }
-    .playlist-item.active { background: rgba(160, 32, 240, 0.4) !important; border-left: 4px solid var(--accent) !important; color: var(--accent); }
+  font-size: 0.65em !important;   /* Esto hace la letra pequeña */
+  padding: 6px 10px;             /* Compacta el espacio */
+  margin: 4px 0;                /* Reduce la separación entre nombres */
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  transition: 0.3s;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Efecto al pasar el mouse (opcional para estilo Sét-su) */
+    .playlist-item:hover {
+  background: rgba(160, 32, 240, 0.2);
+  color: var(--accent);
+}
 
     /* SECCIÓN VIDEOS */
     .video-container {
@@ -237,10 +221,11 @@
       <div style="display:flex; justify-content:center; flex-wrap:wrap; gap:10px;">
         <button class="btn-nav" onclick="showTab('musica')">MÚSICA</button>
         <button class="btn-nav" onclick="showTab('juegos')">JUEGOS</button>
-        <button class="btn-nav" onclick="showTab('diosas')">DIOSAS</button>
         <button class="btn-nav" onclick="showTab('videos')">VIDEOS</button>
+        <button class="btn-nav" onclick="showTab('diosas')">PERSONAJES</button>
       </div>
 
+    
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
@@ -249,10 +234,6 @@
           <div class="playlist-item" onclick="selectTrack(2)">03. Eco del Infinito (Sintetizada)</div>
           <div class="playlist-item" onclick="selectTrack(3)">04. Bad Wolf (MP3)</div>
           <div class="playlist-item" onclick="selectTrack(4)">05. El Lobo Feroz (MP3)</div>
-        </div>
-        <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
-        <div style="margin-top:25px;">
-          <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
         </div>
       </div>
       
@@ -274,11 +255,22 @@
           <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Click en el juego para calibrar precisión</p>
         </div>
       </div>
+      
 
-      <div id="diosas" class="content-section">
-        <h3 style="color:var(--accent);">DIOSAS DEL INFINITO</h3>
-        <p>Aisha · Shana · Katy · Merlina · Camila</p>
-      </div>
+<div id="diosas" class="content-section">
+  <h3 style="color:var(--accent);">PERSONAJES</h3>
+  <p>
+    <strong style="color:var(--accent);">EL NEXO:</strong> SÉT-SU (David Rodríguez)<br><br>
+    
+    <strong>REALES:</strong>Setsu (Lobo) · Shana · Sabrina . Mia · Merlina · Aisha · Katy · Dani R · Camila · Zoé · Lucía<br>
+    
+    <strong>ANIMÉ:</strong> Aelith · Iris · Azulei · Miluú · Shiori · Ari<br>
+    
+    <strong>CIENCIA FICCIÓN:</strong> Zaryndor · Zark . Vael (ET) <br><br>
+    
+    <span style="opacity: 0.7;"><strong>DESCONOCIDOS:</strong> unknown-S · unknown-A · unknown-D</span>
+  </p>
+</div>
 
       <div id="videos" class="content-section">
         <h3 style="color:var(--accent);">ARTE INFINITO</h3>
@@ -289,7 +281,12 @@
           <video id="videoPlayer" controls loop muted></video>
         </div>
       </div>
-    </div>
+   </div>
+     
+        <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
+        <div style="margin-top:25px;">
+          <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
+        </div>
 
     <h2 style="color:#fff; margin-top:80px; letter-spacing:10px;">GALLERY ∞</h2>
   
@@ -407,14 +404,35 @@ window.addEventListener('click', function(e) {
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
-    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
+const notes = {
+  A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33,
+  E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00,
+  B5: 987.77, C6: 1046.50, D6: 1174.66
+};
     const playlist = [
       { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
-      { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
-      { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
+{ 
+    type: 'api', 
+    name: "Melodía de Sét-su", 
+    data: [
+      {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
+      {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
+      {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
+    ] 
+  },
+  { 
+    type: 'api', 
+    name: "Eco del Infinito", 
+    data: [
+      {f: notes.D5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.2}, {f: notes.D6, d: 0.6},
+      {f: notes.B5, d: 0.4}, {f: notes.G5, d: 0.4}, {f: notes.E5, d: 0.8},
+      {f: notes.F5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.D5, d: 0.8}
+    ] 
+  },
       { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }
-    ];
+      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }];
+
+  
 
     function initAudio() {
       if (audioCtx) return;
