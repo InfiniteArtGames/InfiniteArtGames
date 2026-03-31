@@ -23,75 +23,164 @@
       overflow-x: hidden;
     }
    
-    /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
-    .no-scroll { overflow: hidden !important; height: 100vh !important; }
+/* 1. BLOQUEO DE SCROLL Y CONTENEDORES GENERALES */
+.no-scroll { 
+    overflow: hidden !important; 
+    height: 100vh !important; 
+}
 
-    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-      
-      font-size: clamp(2.5em, 10vw, 5.5em);
-      margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
-      background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
-      background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
-      filter: drop-shadow(0 0 15px var(--primary));
-    }
+.container { 
+    max-width: 1000px; 
+    margin: 0 auto; 
+    padding: 40px 20px; 
+}
+
+/* 2. TÍTULO PRINCIPAL (H1) */
+/* He separado el H1 para que sea independiente y tenga su estilo "Full Width" */
+h1 {
+    font-size: clamp(2.5em, 10vw, 5.5em);
+    margin: 60px 0;
+    padding: 70px 0;
+    font-weight: 900;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    text-align: center;
     
-    @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-    @keyframes titleGlow { from { filter: drop-shadow(0 0 10px var(--primary)); } to { filter: drop-shadow(0 0 25px var(--accent)); } }
-
-    .poema { font-size: 1.5em; font-style: italic; margin: 20px 0 40px; color: #9B59B6; }
-
-
-    .bienvenida {
-      font-size: 1.3em; line-height: 1.6; margin-bottom: 50px; padding: 25px;
-      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
-      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
-    }
-
-    .main-card {
-      margin: 40px auto; padding: 30px;
-      background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
-      border-radius: 30px; border: 2px solid var(--primary);
-      box-shadow: 0 0 40px rgba(160, 32, 240, 0.4); max-width: 800px;
-    }
-
-    .viz-container {
-      position: relative; width: 100%; height: 250px;
-      margin: 20px 0; display: flex; justify-content: center; align-items: center;
-    }
-    #visualizer { width: 100%; height: 100%; filter: drop-shadow(0 0 15px var(--primary)); }
-
-    .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+    /* Efecto de degradado animado */
+    background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
     
-    .btn-nav {  
-      background: linear-gradient(45deg, var(--primary), var(--accent));
-      color: white; border: none; padding: 12px 24px;
-      border-radius: 50px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
-      transition: 0.3s; box-shadow: 0 0 10px var(--primary);
+    /* Estilo de fondo de la franja */
+    box-sizing: border-box;
+    background-color: rgba(10, 10, 10, 0.85);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(160, 32, 240, 0.5);
+    border-bottom: 1px solid rgba(160, 32, 240, 0.5);
+    
+    /* Posicionamiento para que ocupe todo el ancho de la pantalla */
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
 
-            h1 {
-  line-height: 1.5;
-  margin: 60px 0;
-  padding: 70px 0;
-  box-sizing: border-box;
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(160, 32, 240, 0.5);
-  border-bottom: 1px solid rgba(160, 32, 240, 0.5);
-  border-left: none;
-  border-right: none;
-  border-radius: 0;
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
- }           
-  
-    }
-    .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
+/* 3. ANIMACIONES */
+@keyframes gradientMove { 
+    0% { background-position: 0% 50%; } 
+    100% { background-position: 200% 50%; } 
+}
 
-    .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s; }
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes titleGlow { 
+    from { filter: drop-shadow(0 0 10px var(--primary)); } 
+    to { filter: drop-shadow(0 0 25px var(--accent)); } 
+}
+
+@keyframes fadeIn { 
+    from { opacity: 0; } 
+    to { opacity: 1; } 
+}
+
+/* 4. ELEMENTOS DE TEXTO Y SECCIONES */
+.poema { 
+    font-size: 1.5em; 
+    font-style: italic; 
+    margin: 20px 0 40px; 
+    color: #9B59B6; 
+    text-align: center;
+}
+
+.bienvenida {
+    font-size: 1.3em; 
+    line-height: 1.6; 
+    margin-bottom: 50px; 
+    padding: 25px;
+    background: rgba(160, 32, 240, 0.1); 
+    border-radius: 20px;
+    backdrop-filter: blur(8px); 
+    border: 1px solid rgba(160, 32, 240, 0.3);
+}
+
+/* 5. TARJETA PRINCIPAL Y VISUALIZADOR */
+.main-card {
+    margin: 40px auto; 
+    padding: 30px;
+    background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
+    border-radius: 30px; 
+    border: 2px solid var(--primary);
+    box-shadow: 0 0 40px rgba(160, 32, 240, 0.4); 
+    max-width: 800px;
+}
+
+.viz-container {
+    position: relative; 
+    width: 100%; 
+    height: 250px;
+    margin: 20px 0; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center;
+}
+
+#visualizer { 
+    width: 100%; 
+    height: 100%; 
+    filter: drop-shadow(0 0 15px var(--primary)); 
+}
+
+/* 6. BOTONES Y NAVEGACIÓN */
+.controls { 
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    margin: 20px 0; 
+}
+
+.btn-nav {  
+    background: linear-gradient(45deg, var(--primary), var(--accent));
+    color: white; 
+    border: none; 
+    padding: 12px 24px;
+    border-radius: 50px; 
+    cursor: pointer; 
+    font-family: 'Orbitron', sans-serif; 
+    font-weight: bold;
+    transition: 0.3s; 
+    box-shadow: 0 0 10px var(--primary);
+}
+
+.btn-nav:hover { 
+    transform: scale(1.05); 
+    box-shadow: 0 0 20px var(--accent); 
+}
+
+.content-section { 
+    display: none; 
+    margin-top: 25px; 
+    padding: 20px; 
+    animation: fadeIn 0.5s forwards; 
+}
+
+/* 7. CONSOLA DE JUEGO (GAME WRAPPER) */
+.game-wrapper {
+    position: relative; 
+    width: 100%; 
+    height: 450px; 
+    background: #000;
+    border-radius: 15px; 
+    border: 2px solid var(--primary); 
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(160, 32, 240, 0.4); 
+    touch-action: none;
+}
+
+#activeGameFrame { 
+    width: 100%; 
+    height: 100%; 
+    border: none; 
+}
 
     /* CONSOLA DE JUEGO MEJORADA RECUPERADA */
     .game-wrapper {
