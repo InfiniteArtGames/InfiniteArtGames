@@ -428,7 +428,9 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-// 1. Añade esta función matemática (es la misma de la intro)
+let time = 0;
+
+// Fórmula exacta de la Lemniscata de la Intro
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
     return { 
@@ -437,7 +439,6 @@ function getLemniscata(t, scale) {
     };
 }
 
-// 2. Reemplaza tu función draw() por esta:
 function draw() {
     requestAnimationFrame(draw);
     if (!analyser) return;
@@ -445,45 +446,58 @@ function draw() {
     const dataArray = new Uint8Array(analyser.frequencyBinCount);
     analyser.getByteFrequencyData(dataArray);
     
-    // Limpiamos el canvas con un rastro leve para efecto de movimiento
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    // Promedio de audio para la "Turbulencia"
+    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    
+    // Limpiamos con rastro (trail) para fluidez
+    ctx.fillStyle = 'rgba(5, 0, 16, 0.2)'; 
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-    const time = Date.now() * 0.002;
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
     
-    // Ajustamos la escala según el tamaño del visualizador
-    const baseScale = Math.min(canvas.width, canvas.height) * 0.35;
-    // La escala crece con el ritmo de la música
-    const dynamicScale = baseScale + (avg * 0.5);
+    // Escala base + Reacción al ritmo (Turbulencia)
+    const scale = (Math.min(canvas.width, canvas.height) * 0.3) + (avg * 0.6);
+    time += 0.02 + (avg * 0.001); // La velocidad aumenta con el ritmo
 
-    // Dibujamos 120 puntos para formar el infinito perfecto
-    for (let i = 0; i < 120; i++) {
-        const t = (i / 120) * Math.PI * 2;
-        const pos = getLemniscata(t, dynamicScale);
-
-        // Añadimos una pequeña vibración basada en el audio
-        const x = (canvas.width / 2) + pos.x + (Math.sin(time + i) * (avg * 0.05));
-        const y = (canvas.height / 2) + pos.y + (Math.cos(time + i) * (avg * 0.05));
-
-        // Colores de Infinite Art Games: Cian y Púrpura
-        ctx.fillStyle = i % 2 === 0 ? '#00d4ff' : '#a020f0';
+    // 1. DIBUJAR EL RASTRO DE PARTÍCULAS AZULES (Cian)
+    for (let i = 0; i < 100; i++) {
+        const t = (i / 100) * Math.PI * 2;
+        const pos = getLemniscata(t, scale);
         
-        // El tamaño de las partículas reacciona al volumen
-        const size = 1.5 + (avg / 15);
+        // Turbulencia: vibración aleatoria basada en el volumen
+        const drift = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.2) : 0;
         
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.6)'; // Cian de la intro
         ctx.beginPath();
-        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.arc(centerX + pos.x + drift, centerY + pos.y + drift, 1.5, 0, 6.28);
         ctx.fill();
-
-        // Si el volumen es alto, añadimos el brillo (glow) característico
-        if (avg > 45) {
-            ctx.shadowBlur = 15;
+        
+        // Brillo (Glow) si el bajo es fuerte
+        if (avg > 50) {
+            ctx.shadowBlur = 10;
             ctx.shadowColor = '#00d4ff';
         } else {
             ctx.shadowBlur = 0;
         }
     }
+
+    // 2. DIBUJAR LAS 2 PARTÍCULAS NEGRAS GUÍAS (Como en la Intro)
+    // Una en el tiempo actual y otra en el opuesto
+    [time, time + Math.PI].forEach(tOffset => {
+        const p = getLemniscata(tOffset, scale);
+        
+        // Círculo Negro
+        ctx.fillStyle = '#000';
+        ctx.beginPath();
+        ctx.arc(centerX + p.x, centerY + p.y, 5, 0, 6.28);
+        ctx.fill();
+        
+        // Borde Cian para que se vea sobre el fondo
+        ctx.strokeStyle = '#00d4ff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
 }
 
     function selectTrack(index) { 
