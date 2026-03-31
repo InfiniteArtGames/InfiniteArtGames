@@ -44,27 +44,31 @@ h1 {
     text-transform: uppercase;
     text-align: center;
     margin: 60px 0;
-    padding: 120px 0; 
+    padding: 120px 0;
     
-    /* Efecto de degradado en el texto */
+    /* Degradado del texto (Infinite Art Games) */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 
-    /* --- EL FONDO "BLACKOUT" (ACTUALIZADO) --- */
+    /* --- EL BLOQUE NEGRO ABSOLUTO --- */
     box-sizing: border-box;
     
-    /* Negro puro con opacidad 0.99 (Solo 0.01 de transparencia) */
-    background-color: rgba(0, 0, 0, 9.99); 
+    /* Usamos color sólido, sin canal alfa (RGBA) para evitar errores de renderizado */
+    background-color: #000000 !important; 
     
-    /* Eliminamos o reducimos el blur para evitar el tono grisáceo */
-    backdrop-filter: none; 
+    /* Eliminamos el filtro de fondo que suele aclarar los oscuros */
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
     
-    /* Bordes de neón para delimitar el bloque negro */
-    border-top: 2px solid var(--primary);
-    border-bottom: 2px solid var(--primary);
+    /* Opacidad total del elemento */
+    opacity: 1 !important;
+
+    /* Bordes de neón definidos para Infinite Art Games [cite: 2025-07-23] */
+    border-top: 3px solid var(--primary);
+    border-bottom: 3px solid var(--primary);
     
     /* Ajuste de pantalla completa */
     width: 100vw;
@@ -73,8 +77,8 @@ h1 {
     transform: translateX(-50%);
     z-index: 10;
     
-    /* Sombra interna para asegurar que el negro sea absoluto */
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 1);
+    /* Sombra interna para "hundir" el negro y que no refleje nada */
+    box-shadow: inset 0 0 100px #000000;
 }
 
 /* 3. ANIMACIONES */
