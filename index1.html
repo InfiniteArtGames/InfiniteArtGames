@@ -428,7 +428,7 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-    let time = 0;
+let time = 0;
 
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
@@ -446,56 +446,73 @@ function draw() {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
-    // LIMPIEZA TOTAL: Usamos transparencia para que no se vea "fondo azul"
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    // Limpieza con un rastro sutil para que las partículas dejen "estela"
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)'; 
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const scale = (Math.min(canvas.width, canvas.height) * 0.3) + (avg * 0.5);
     
-    time += 0.015 + (avg * 0.0005); 
+    // Escala que reacciona más agresivamente al bajo
+    const scale = (Math.min(canvas.width, canvas.height) * 0.32) + (avg * 0.7);
+    
+    // La velocidad del tiempo ahora es más dinámica según el ritmo
+    time += 0.012 + (avg * 0.0008); 
 
-    // 1. EL RASTRO INFINITO (Partículas Cian)
-    ctx.globalCompositeOperation = 'lighter'; // Para que los colores brillen al encimarse
-    for (let i = 0; i < 120; i++) {
-        const t = (i / 120) * Math.PI * 2;
+    ctx.globalCompositeOperation = 'lighter';
+
+    // 1. EL RASTRO REBELDE (Subimos a 200 partículas para más densidad)
+    for (let i = 0; i < 200; i++) {
+        const t = (i / 200) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Turbulencia: las partículas vibran con el bajo de la música
-        const shake = (avg > 40) ? (Math.random() - 0.5) * (avg * 0.15) : 0;
+        // TURBULENCIA MÁXIMA: Movimiento errático "rebelde" basado en el volumen
+        // Aumentamos el multiplicador para que se note el caos cuando hay bajos
+        const power = avg * 0.25; 
+        const shakeX = (Math.random() - 0.5) * power;
+        const shakeY = (Math.random() - 0.5) * power;
         
-        ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // Cian puro de la intro
+        // Color Cian Eléctrico con más opacidad
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.8)'; 
+        
         ctx.beginPath();
-        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 1.2, 0, 6.28);
+        // Aumentamos el radio de 1.2 a 2.5 para que sean mucho más visibles
+        ctx.arc(centerX + pos.x + shakeX, centerY + pos.y + shakeY, 2.2, 0, 6.28);
         ctx.fill();
+
+        // Glow constante para las partículas pequeñas
+        if (avg > 30) {
+            ctx.shadowBlur = 8;
+            ctx.shadowColor = '#00d4ff';
+        }
     }
 
-    // 2. PARTÍCULAS GUÍAS (Blanca y Negra como en la intro)
+    // 2. PARTÍCULAS MAESTRAS (Blanca y Negra)
     ctx.globalCompositeOperation = 'source-over';
     
-    // Partícula BLANCA (Luz)
+    // Luz Blanca (con mucho brillo)
     const pLight = getLemniscata(time, scale);
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 25;
     ctx.shadowColor = "#fff";
     ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.arc(centerX + pLight.x, centerY + pLight.y, 6, 0, 6.28);
+    ctx.arc(centerX + pLight.x, centerY + pLight.y, 7, 0, 6.28);
     ctx.fill();
 
-    // Partícula NEGRA (Oscuridad)
+    // Oscuridad (Negra con borde blanco nítido)
     const pDark = getLemniscata(time + Math.PI, scale);
-    ctx.shadowBlur = 10;
+    ctx.shadowBlur = 15;
     ctx.shadowColor = "#00d4ff";
-    ctx.fillStyle = "#000"; // Negra por dentro
+    ctx.fillStyle = "#000";
     ctx.beginPath();
-    ctx.arc(centerX + pDark.x, centerY + pDark.y, 6, 0, 6.28);
+    ctx.arc(centerX + pDark.x, centerY + pDark.y, 7, 0, 6.28);
     ctx.fill();
-    // Borde blanco para la negra, igual que en la intro
+    
     ctx.strokeStyle = "#fff";
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 2;
     ctx.stroke();
 
-    ctx.shadowBlur = 0; // Reset para el siguiente frame
+    ctx.shadowBlur = 0; 
 }
 
     function selectTrack(index) { 
