@@ -23,164 +23,74 @@
       overflow-x: hidden;
     }
    
-/* 2. TÍTULO PRINCIPAL (H1) - NEGRO CASI SÓLIDO (estilo del poema) */
-h1 {
-    /* Tipografía y degradado del texto (sin cambios) */
-    font-size: clamp(2.5em, 10vw, 5.5em);
-    font-weight: 900;
-    letter-spacing: 8px;
-    text-transform: uppercase;
-    text-align: center;
-    margin: 60px 0;
-    padding: 140px 0;
+    .no-scroll { overflow: hidden !important; height: 100vh !important; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
 
-    background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
+    /* --- CORRECCIÓN FINAL DEL TÍTULO (H1) --- */
+    h1 {
+      font-size: clamp(2.5em, 10vw, 5.5em);
+      font-weight: 900;
+      letter-spacing: 8px;
+      text-transform: uppercase;
+      text-align: center;
+      margin: 0; /* Eliminamos margen para que el fondo sea continuo */
+      padding: 120px 0;
+      position: relative;
+      width: 100vw;
+      z-index: 10;
+      /* Texto con degradado de David Rodríguez [cite: 2025-07-22] */
+      background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
+    }
 
-    /* === FONDO NEGRO CASI SÓLIDO === */
-    box-sizing: border-box;
-    background-color: #000000;           /* Negro puro sólido */
+    /* CAPA DE FONDO NEGRO SÓLIDO (0.01 de transparencia) */
+    h1::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0, 0, 0, 0.99); /* Negro casi total */
+      z-index: -1;
+      border-top: 2px solid var(--primary);
+      border-bottom: 2px solid var(--primary);
+      backdrop-filter: none !important; /* Evita que Edge lave el color */
+      box-shadow: inset 0 0 100px #000;
+    }
 
-    /* Quitamos el blur completamente para que no se vea el fondo */
-    backdrop-filter: none;
+    @keyframes gradientMove { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    @keyframes titleGlow { from { filter: drop-shadow(0 0 10px var(--primary)); } to { filter: drop-shadow(0 0 25px var(--accent)); } }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-    /* Bordes neón fuertes (como en tu ejemplo) */
-    border-top: 4px solid rgba(160, 32, 240, 0.95);
-    border-bottom: 4px solid rgba(160, 32, 240, 0.95);
+    .poema { font-size: 1.5em; font-style: italic; margin: 40px 0; color: #9B59B6; text-align: center;}
+    .bienvenida {
+      font-size: 1.3em; line-height: 1.6; margin-bottom: 50px; padding: 25px;
+      background: rgba(160, 32, 240, 0.1); border-radius: 20px;
+      backdrop-filter: blur(8px); border: 1px solid rgba(160, 32, 240, 0.3);
+    }
 
-    /* Pantalla completa */
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
+    .main-card {
+      margin: 40px auto; padding: 30px;
+      background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
+      border-radius: 30px; border: 2px solid var(--primary);
+      box-shadow: 0 0 40px rgba(160, 32, 240, 0.4); max-width: 800px;
+    }
 
-    /* Sombra interna ultra fuerte → bloquea casi todo el fondo */
-    box-shadow: 
-        inset 0 0 160px #000000,
-        inset 0 0 80px rgba(0, 0, 0, 0.98),
-        0 0 35px rgba(160, 32, 240, 0.3);
-}
+    .viz-container { position: relative; width: 100%; height: 250px; margin: 20px 0; display: flex; justify-content: center; align-items: center;}
+    #visualizer { width: 100%; height: 100%; filter: drop-shadow(0 0 15px var(--primary)); }
 
-/* 3. ANIMACIONES */
-@keyframes gradientMove { 
-    0% { background-position: 0% 50%; } 
-    100% { background-position: 200% 50%; } 
-}
+    .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+    .btn-nav {  
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: white; border: none; padding: 12px 24px;
+      border-radius: 50px; cursor: pointer; font-family: 'Orbitron', sans-serif; 
+      font-weight: bold; transition: 0.3s; box-shadow: 0 0 10px var(--primary);
+    }
+    .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
+    .content-section { display: none; margin-top: 25px; padding: 20px; animation: fadeIn 0.5s forwards; }
 
-@keyframes titleGlow { 
-    from { filter: drop-shadow(0 0 10px var(--primary)); } 
-    to { filter: drop-shadow(0 0 25px var(--accent)); } 
-}
-
-@keyframes fadeIn { 
-    from { opacity: 0; } 
-    to { opacity: 1; } 
-};
-
-/* 4. ELEMENTOS DE TEXTO Y SECCIONES */
-.poema { 
-    font-size: 1.5em; 
-    font-style: italic; 
-    margin: 20px 0 40px; 
-    color: #9B59B6; 
-    text-align: center;
-}
-
-.bienvenida {
-    font-size: 1.3em; 
-    line-height: 1.6; 
-    margin-bottom: 50px; 
-    padding: 25px;
-    background: rgba(160, 32, 240, 0.1); 
-    border-radius: 20px;
-    backdrop-filter: blur(8px); 
-    border: 1px solid rgba(160, 32, 240, 0.3);
-}
-
-/* 5. TARJETA PRINCIPAL Y VISUALIZADOR */
-.main-card {
-    margin: 40px auto; 
-    padding: 30px;
-    background: linear-gradient(145deg, rgba(30,0,70,0.9), rgba(10,0,30,1));
-    border-radius: 30px; 
-    border: 2px solid var(--primary);
-    box-shadow: 0 0 40px rgba(160, 32, 240, 0.4); 
-    max-width: 800px;
-}
-
-.viz-container {
-    position: relative; 
-    width: 100%; 
-    height: 250px;
-    margin: 20px 0; 
-    display: flex; 
-    justify-content: center; 
-    align-items: center;
-}
-
-#visualizer { 
-    width: 100%; 
-    height: 100%; 
-    filter: drop-shadow(0 0 15px var(--primary)); 
-}
-
-/* 6. BOTONES Y NAVEGACIÓN */
-.controls { 
-    display: flex; 
-    justify-content: center; 
-    gap: 10px; 
-    margin: 20px 0; 
-}
-
-.btn-nav {  
-    background: linear-gradient(45deg, var(--primary), var(--accent));
-    color: white; 
-    border: none; 
-    padding: 12px 24px;
-    border-radius: 50px; 
-    cursor: pointer; 
-    font-family: 'Orbitron', sans-serif; 
-    font-weight: bold;
-    transition: 0.3s; 
-    box-shadow: 0 0 10px var(--primary);
-}
-
-.btn-nav:hover { 
-    transform: scale(1.05); 
-    box-shadow: 0 0 20px var(--accent); 
-}
-
-.content-section { 
-    display: none; 
-    margin-top: 25px; 
-    padding: 20px; 
-    animation: fadeIn 0.5s forwards; 
-}
-
-/* 7. CONSOLA DE JUEGO (GAME WRAPPER) */
-.game-wrapper {
-    position: relative; 
-    width: 100%; 
-    height: 450px; 
-    background: #000;
-    border-radius: 15px; 
-    border: 2px solid var(--primary); 
-    overflow: hidden;
-    box-shadow: 0 0 25px rgba(160, 32, 240, 0.4); 
-    touch-action: none;
-}
-
-#activeGameFrame { 
-    width: 100%; 
-    height: 100%; 
-    border: none; 
-}
-
-    /* CONSOLA DE JUEGO MEJORADA RECUPERADA */
     .game-wrapper {
       position: relative; width: 100%; height: 450px; background: #000;
       border-radius: 15px; border: 2px solid var(--primary); overflow: hidden;
@@ -188,26 +98,13 @@ h1 {
     }
     #activeGameFrame { width: 100%; height: 100%; border: none; }
 
-    /* ESTILOS DE PLAYLIST Y RESALTADO */
     .playlist-item {
-  font-size: 0.65em !important;   /* Esto hace la letra pequeña */
-  padding: 6px 10px;             /* Compacta el espacio */
-  margin: 4px 0;                /* Reduce la separación entre nombres */
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  transition: 0.3s;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-}
+      font-size: 0.65em !important; padding: 6px 10px; margin: 4px 0;
+      cursor: pointer; font-family: 'Orbitron', sans-serif; transition: 0.3s;
+      color: #fff; background: rgba(255, 255, 255, 0.05); border-radius: 8px;
+    }
+    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); color: var(--accent); }
 
-/* Efecto al pasar el mouse (opcional para estilo Sét-su) */
-    .playlist-item:hover {
-  background: rgba(160, 32, 240, 0.2);
-  color: var(--accent);
-}
-
-    /* SECCIÓN VIDEOS */
     .video-container {
       position: relative; width: 100%; height: 70vh; max-height: 500px;
       margin: 20px auto; overflow: hidden; border-radius: 15px;
@@ -222,8 +119,16 @@ h1 {
 
     .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 10px 0; }
     .personaje { width: 420px; height: 610px; display: flex; flex-direction: column; align-items: center; }
-    .personaje img { width: 100%; height: 610px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
-    .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+    .mini-slides {
+      width: 100%; height: 610px; position: relative; border-radius: 15px;
+      overflow: hidden; border: 3px solid var(--primary);
+    }
+    .mini-slides img {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      object-fit: cover; opacity: 0; transition: opacity 1.5s ease-in-out; cursor: zoom-in;
+    }
+    .mini-slides img.active { opacity: 1; }
+    .mini-slides img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
 
     .modal-visor {
       display: none; position: fixed; z-index: 1000; top: 0; left: 0;
@@ -238,61 +143,26 @@ h1 {
 
     footer { margin-top: 80px; padding: 40px; color: #FFF; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
     a { color: var(--accent); text-decoration: none; }
-    
-/* Contenedor de las imágenes dentro de cada personaje */
-.mini-slides {
-  width: 100%;
-  height: 610px; /* Mantenemos el tamaño original de tu diseño */
-  position: relative;
-  border-radius: 15px;
-  overflow: hidden;
-  border: 3px solid var(--primary); /* El borde neón de Infinite Art Games */
-}
-
-.mini-slides img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0; /* Ocultas por defecto */
-  transition: opacity 1.5s ease-in-out; /* Transición suave de 1.5s */
-  cursor: zoom-in;
-}
-
-.mini-slides img.active {
-  opacity: 1; /* Solo la imagen activa se ve */
-}
-
-/* Efecto hover igual al que ya tenías */
-.mini-slides img:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 20px var(--primary);
-}
-    
   </style>
 </head>
   
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
-  
 <body id="mainBody">
-
   <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">
     <img class="modal-content" id="imgExpandida">
   </div>
 
+  <h1>Infinite Art Games</h1>
+
   <div class="container">
-    <h1>Infinite Art Games</h1>
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
     
     <div class="bienvenida">
       Bienvenidos al cruce digital donde la imaginación cobra vida.<br>
-      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables.
+      Sumérgete en un universo donde la inteligencia artificial se fusiona con el arte para crear experiencias audiovisuales y videojuegos inolvidables [cite: 2025-07-23].
     </div>
 
     <div class="main-card" id="gameCard">
-      <div id="status" style="color:var(--accent); font-weight:bold; letter-spacing: 2px;">SINFONÍA DEL INFINITO</div>
+      <div id="status" style="color:var(--accent); font-weight:bold; letter-spacing: 2px;">SINFONÍA DEL INFINITO [cite: 2025-09-06]</div>
       <div id="trackName" style="font-size:1.1em; margin:10px 0; min-height: 1.2em; color:#fff;">SISTEMA LISTO</div>
       
       <div class="viz-container">
@@ -313,12 +183,11 @@ h1 {
         <button class="btn-nav" onclick="showTab('diosas')">PERSONAJES</button>
       </div>
 
-    
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
           <div class="playlist-item" onclick="selectTrack(0)">01. InfiniteArtGames (MP3)</div>
-          <div class="playlist-item" onclick="selectTrack(1)">02. Melodía de Sét-su (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(1)">02. Melodía de Sét-su (Sintetizada) [cite: 2025-09-06]</div>
           <div class="playlist-item" onclick="selectTrack(2)">03. Eco del Infinito (Sintetizada)</div>
           <div class="playlist-item" onclick="selectTrack(3)">04. Bad Wolf (MP3)</div>
           <div class="playlist-item" onclick="selectTrack(4)">05. El Lobo Feroz (MP3)</div>
@@ -333,51 +202,41 @@ h1 {
           <button class="btn-nav" onclick="cargarJuego('Juegos/Infernal Infinity.html', 'Demon')">DEMON</button>
           <button class="btn-nav" onclick="cargarJuego('Juegos/PIC-PIC.html', 'PIC')">PIC-PIC</button>
         </div>
-        
         <div class="game-wrapper" id="fullscreen-target" onclick="centrarEnJuego()">
           <iframe id="activeGameFrame" src="about:blank"></iframe>
         </div>
-        
         <div style="margin-top: 15px; padding-bottom: 20px;">
           <button class="btn-nav" onclick="requestFullScreen()">🔲 PANTALLA COMPLETA</button>
           <p id="gameDesc" style="margin-top:10px; font-size:0.85em; color:var(--accent);">Click en el juego para calibrar precisión</p>
         </div>
       </div>
-      
 
-<div id="diosas" class="content-section">
-  <h3 style="color:var(--accent);">PERSONAJES</h3>
-  <p>
-    <strong style="color:var(--accent);">EL NEXO:</strong> SÉT-SU (David Rodríguez)<br><br>
-    
-    <strong>REALES:</strong>Setsu (Lobo) · Shana · Sabrina . Mia · Merlina · Aisha · Katy · Dani R · Camila · Zoé · Lucía<br>
-    
-    <strong>ANIMÉ:</strong> Aelith · Iris · Azulei · Miluú · Shiori · Ari<br>
-    
-    <strong>CIENCIA FICCIÓN:</strong> Zaryndor · Zark . Vael (ET) <br><br>
-    
-    <span style="opacity: 0.7;"><strong>DESCONOCIDOS:</strong> unknown-S · unknown-A · unknown-D</span>
-  </p>
-</div>
+      <div id="diosas" class="content-section">
+        <h3 style="color:var(--accent);">PERSONAJES [cite: 2025-07-18]</h3>
+        <p>
+          <strong style="color:var(--accent);">EL NEXO:</strong> SÉT-SU (David Rodríguez) [cite: 2025-07-22]<br><br>
+          <strong>REALES:</strong> Setsu (Lobo) · Shana · Sabrina · Mia · Merlina · Aisha · Katy · Dani R · Camila · Zoé · Lucía [cite: 2025-09-04]<br>
+          <strong>ANIMÉ:</strong> Aelith · Iris · Azulei · Miluú · Shiori · Ari<br>
+          <strong>CIENCIA FICCIÓN:</strong> Zaryndor · Zark · Vael (ET) <br><br>
+          <span style="opacity: 0.7;"><strong>DESCONOCIDOS:</strong> unknown-S · unknown-A · unknown-D</span>
+        </p>
+      </div>
 
       <div id="videos" class="content-section">
         <h3 style="color:var(--accent);">ARTE INFINITO</h3>
-        <select id="videoSelector">
-          <option value="">-- Selecciona --</option>
-        </select>
+        <select id="videoSelector"><option value="">-- Selecciona --</option></select>
         <div class="video-container" id="swipeArea">
           <video id="videoPlayer" controls loop muted></video>
         </div>
       </div>
-   </div>
+    </div>
      
-        <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
-        <div style="margin-top:25px;">
-          <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
-        </div>
+    <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
+    <div style="margin-top:25px;">
+      <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
+    </div>
 
     <h2 style="color:#fff; margin-top:80px; letter-spacing:10px;">GALLERY ∞</h2>
-  
     
     <div class="carousel">
       <div class="slides" id="slides">
@@ -387,33 +246,33 @@ h1 {
       </div>
     </div>
 
-<div class="galeria">
-  <div class="personaje" onclick="abrirZoom(this)">
-    <div class="mini-slides">
-      <img src="Imágenes/Shana1.png" class="active" alt="Shana">
-      <img src="Imágenes/Aisha1.jpg" alt="Aisha">
-      <img src="Imágenes/Camila1.jpg" alt="Camila">
-      <img src="Imágenes/Katy1.jpg" alt="Camila">
-    </div>
-    <p>Diosas del Infinito [cite: 2025-07-18]</p>
-  </div>
+    <div class="galeria">
+      <div class="personaje" onclick="abrirZoom(this)">
+        <div class="mini-slides">
+          <img src="Imágenes/Shana1.png" class="active" alt="Shana">
+          <img src="Imágenes/Aisha1.jpg" alt="Aisha">
+          <img src="Imágenes/Camila1.jpg" alt="Camila">
+          <img src="Imágenes/Katy1.jpg" alt="Katy">
+        </div>
+        <p>Diosas del Infinito [cite: 2025-07-18]</p>
+      </div>
 
-  <div class="personaje" onclick="abrirZoom(this)">
-    <div class="mini-slides">
-      <img src="Imágenes/Setsu2.png" class="active" alt="Setsu Lobo">
-      <img src="Imágenes/Setsu_Human.jpg" alt="Sét-su Dios">
-    </div>
-    <p>Sét-su [cite: 2025-09-06]</p>
-  </div>
+      <div class="personaje" onclick="abrirZoom(this)">
+        <div class="mini-slides">
+          <img src="Imágenes/Setsu2.png" class="active" alt="Setsu Lobo">
+          <img src="Imágenes/Setsu_Human.jpg" alt="Sét-su Dios">
+        </div>
+        <p>Sét-su [cite: 2025-09-06]</p>
+      </div>
 
-  <div class="personaje" onclick="abrirZoom(this)">
-    <div class="mini-slides">
-      <img src="Imágenes/image-9.jpg" class="active" alt="Infinite Art 1">
-      <img src="Imágenes/image-8.jpg" alt="Infinite Art 2">
+      <div class="personaje" onclick="abrirZoom(this)">
+        <div class="mini-slides">
+          <img src="Imágenes/image-9.jpg" class="active" alt="Infinite Art 1">
+          <img src="Imágenes/image-8.jpg" alt="Infinite Art 2">
+        </div>
+        <p>Arte Infinito [cite: 2025-07-23]</p>
+      </div>
     </div>
-    <p>Arte Infinito [cite: 2025-07-23]</p>
-  </div>
-</div>
   
     <footer>
       © 2026 Sét-su - Infinite Art Games S.A. - CREADO POR DAVID RODRIGUEZ [cite: 2025-07-23]<br>
@@ -421,13 +280,11 @@ h1 {
     </footer>
   </div>
 
-<div id="visitCounter" style="color:var(--accent); margin-bottom:10px; letter-spacing:2px; font-size:0.5em;">
-  ACCESOS AL PORTAL: 
-  <span id="count" onclick="menuSecreto()" style="cursor:help; border-bottom: 1px dashed var(--accent);">0</span>
-</div>
+  <div id="visitCounter" style="color:var(--accent); margin-bottom:10px; letter-spacing:2px; font-size:0.5em; text-align:center;">
+    ACCESOS AL PORTAL: <span id="count" style="cursor:help; border-bottom: 1px dashed var(--accent);">0</span>
+  </div>
 
   <script>
-    /* NAVEGACIÓN Y PESTAÑAS RECUPERADAS */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
@@ -436,33 +293,22 @@ h1 {
     }
 
     function centrarEnJuego(event) {
-      if (event) event.stopPropagation(); // Evita que el clic suba al body
+      if (event) event.stopPropagation();
       const card = document.getElementById('gameCard');
       const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
       const rect = card.getBoundingClientRect();
-      const absoluteTop = rect.top + window.pageYOffset;
-      const targetY = absoluteTop + (rect.height / 2) - (window.innerHeight / 2 - 250);
-      window.scrollTo({ top: targetY, behavior: 'smooth' });
-      document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
+      window.scrollTo({ top: rect.top + window.pageYOffset - 50, behavior: 'smooth' });
     }
 
-// Detectar clics fuera para recuperar scroll y pausar juego
-window.addEventListener('click', function(e) {
-  const gameWrapper = document.getElementById('fullscreen-target');
-  const iframe = document.getElementById('activeGameFrame');
-  const isClickInsideGame = gameWrapper.contains(e.target);
-
-  if (!isClickInsideGame) {
-    // 1. Devolvemos el movimiento a Sét-su [cite: 2025-09-06]
-    recuperarScroll();
-
-    // 2. Enviamos orden de pausa al juego dentro del iframe
-    if (iframe.contentWindow) {
-      iframe.contentWindow.postMessage('pauseGame', '*');
-    }
-  }
-});
+    window.addEventListener('click', function(e) {
+      const gameWrapper = document.getElementById('fullscreen-target');
+      if (!gameWrapper.contains(e.target)) {
+        recuperarScroll();
+        const iframe = document.getElementById('activeGameFrame');
+        if (iframe.contentWindow) iframe.contentWindow.postMessage('pauseGame', '*');
+      }
+    });
 
     function recuperarScroll() { document.getElementById('mainBody').classList.remove('no-scroll'); }
 
@@ -478,49 +324,20 @@ window.addEventListener('click', function(e) {
       else if (target.webkitRequestFullscreen) target.webkitRequestFullscreen();
     }
 
-    document.querySelectorAll('.personaje img').forEach(img => {
-      img.onclick = function() {
-        document.getElementById("miVisor").style.display = "flex";
-        document.getElementById("imgExpandida").src = this.src;
-      }
-    });
-
-    /* MOTOR DE AUDIO COMPLETO Y RESALTADO */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
     const playerMP3 = document.getElementById('playerMP3');
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
-const notes = {
-  A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33,
-  E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00,
-  B5: 987.77, C6: 1046.50, D6: 1174.66
-};
+    const notes = { A4: 440.00, C5: 523.25, E5: 659.25, G5: 783.99, F5: 698.46, D5: 587.33, A5: 880.00, D6: 1174.66, B5: 987.77 };
     const playlist = [
       { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
-{ 
-    type: 'api', 
-    name: "Melodía de Sét-su", 
-    data: [
-      {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
-      {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
-      {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
-    ] 
-  },
-  { 
-    type: 'api', 
-    name: "Eco del Infinito", 
-    data: [
-      {f: notes.D5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.2}, {f: notes.D6, d: 0.6},
-      {f: notes.B5, d: 0.4}, {f: notes.G5, d: 0.4}, {f: notes.E5, d: 0.8},
-      {f: notes.F5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.D5, d: 0.8}
-    ] 
-  },
+      { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6}] },
+      { type: 'api', name: "Eco del Infinito", data: [{f: notes.D5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.2}, {f: notes.D6, d: 0.6}] },
       { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }];
-
-  
+      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }
+    ];
 
     function initAudio() {
       if (audioCtx) return;
@@ -534,199 +351,86 @@ const notes = {
       draw();
     }
 
-/* --- MOTOR VISUAL OPTIMIZADO: INFINITE ART GAMES --- */
-let time = 0;
-let lightHistory = []; 
-let darkHistory = [];  
-// Pre-calculamos tamaños para que unas partículas sean más grandes que otras
-const pSizes = Array.from({ length: 80 }, () => Math.random() * 2.8 + 1.5);
-
-function getLemniscata(t, scale) {
-    const d = Math.pow(Math.sin(t), 2) + 1;
-    return { 
-        x: (scale * Math.cos(t)) / d, 
-        y: (scale * Math.sin(t) * Math.cos(t)) / d 
-    };
-}
-
-function draw() {
-    requestAnimationFrame(draw);
-    
-    // Si no hay analizador, dibujamos el infinito estático para que no se vea vacío
-    let avg = 0;
-    if (analyser) {
+    let time = 0;
+    function draw() {
+      requestAnimationFrame(draw);
+      let avg = 0;
+      if (analyser) {
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
         analyser.getByteFrequencyData(dataArray);
         avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-    }
-
-    // Limpieza total del frame anterior
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    
-    // Escala base (0.4) + reacción al audio (avg)
-    const scale = (Math.min(canvas.width, canvas.height) * 0.4) + (avg * 0.45);
-    
-    // El tiempo avanza siempre, pero más rápido con música
-    time += 0.015 + (avg * 0.0005); 
-
-    // 1. DIBUJAR PARTÍCULAS AZULES (Cuerpo del Infinito)
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 80; i++) {
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2, centerY = canvas.height / 2;
+      const scale = (Math.min(canvas.width, canvas.height) * 0.4) + (avg * 0.45);
+      time += 0.015 + (avg * 0.0005);
+      ctx.fillStyle = 'rgba(0, 212, 255, 0.9)';
+      for (let i = 0; i < 80; i++) {
         const t = (i / 80) * Math.PI * 2;
-        const pos = getLemniscata(t, scale);
-        
-        // Turbulencia rebelde de la intro
-        const shakeX = (Math.random() - 0.5) * (avg * 0.3);
-        const shakeY = (Math.random() - 0.5) * (avg * 0.3);
-        
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
-        ctx.beginPath();
-        ctx.arc(centerX + pos.x + shakeX, centerY + pos.y + shakeY, pSizes[i], 0, 6.28);
-        ctx.fill();
+        const d = Math.pow(Math.sin(t), 2) + 1;
+        const x = (scale * Math.cos(t)) / d, y = (scale * Math.sin(t) * Math.cos(t)) / d;
+        ctx.beginPath(); ctx.arc(centerX + x, centerY + y, 2, 0, 6.28); ctx.fill();
+      }
     }
 
-    // 2. RASTROS (Haces de luz exactos de la intro)
-    const pL = getLemniscata(time, scale);
-    const pD = getLemniscata(time + Math.PI, scale);
-    
-    lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
-    darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
-    if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
-
-    // Dibujar estela blanca
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 4;
-    lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
-    ctx.stroke();
-
-// === AÑADE ESTO AQUÍ: Estela de la partícula negra (Cian) ===
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(60, 60, 60, 0.7)'; // Cian eléctrico como en la intro
-    ctx.lineWidth = 6; // Un poco más gruesa para que sea visible
-    darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
-    ctx.stroke();
-
-    // 3. CABEZAS GUÍAS (Blanca y Negra - Identidad de Sét-su) [cite: 2025-09-06]
-    ctx.globalCompositeOperation = 'source-over';
-    
-    // Luz Blanca
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
-
-    // Oscuridad (Lobo Negro)
-    ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
-}
-
-    function selectTrack(index) { 
-      stopAudio(); 
-      currentTrack = index; 
-      const items = document.querySelectorAll('.playlist-item');
-      items.forEach((item, i) => i === index ? item.classList.add('active') : item.classList.remove('active'));
-      togglePlay(); 
-    }
-
+    function selectTrack(index) { stopAudio(); currentTrack = index; togglePlay(); }
     function togglePlay() {
       initAudio();
       const track = playlist[currentTrack];
       if (!isPlaying) {
-        isPlaying = true; isPaused = false;
-        document.getElementById('playBtn').innerText = "⏸ PAUSE";
+        isPlaying = true; document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
         if (track.type === 'api') sequence(); else { playerMP3.src = track.url; playerMP3.play(); }
       } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        if (track.type === 'api' && !isPaused) sequence(); else isPaused ? playerMP3.pause() : playerMP3.play();
+        if (track.type === 'mp3') isPaused ? playerMP3.pause() : playerMP3.play();
       }
     }
-
     function stopAudio() {
       isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
       document.getElementById('playBtn').innerText = "▶ PLAY";
       document.getElementById('trackName').innerText = "SISTEMA LISTO";
-      currentNote = 0;
-      document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
     }
-
-    function nextTrack() { selectTrack((currentTrack + 1) % playlist.length); }
-    function prevTrack() { selectTrack((currentTrack - 1 + playlist.length) % playlist.length); }
 
     function sequence() {
       if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
       const melody = playlist[currentTrack].data;
-      playNote(melody[currentNote].f, melody[currentNote].d);
-      currentNote = (currentNote + 1) % melody.length;
-      audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
-    }
-
-    function playNote(f, d) {
-      if (!audioCtx || isPaused) return;
       const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
+      o.type = 'triangle'; o.frequency.value = melody[currentNote].f;
       g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + melody[currentNote].d);
       o.connect(analyser); o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + d);
+      o.start(); o.stop(audioCtx.currentTime + melody[currentNote].d);
+      audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
+      currentNote = (currentNote + 1) % melody.length;
     }
 
-    /* VIDEOS Y CARRUSEL */
-
+    const videos = ["grok_video_2026-03-27-12-13-18.mp4", "grok_video_2026-03-27-12-13-34.mp4", "grok_video_2026-03-27-12-13-58.mp4"];
     const selector = document.getElementById('videoSelector');
-    const player = document.getElementById('videoPlayer');
-    const swipeArea = document.getElementById('swipeArea');
-   
-    const basePath = 'Videos/';
-    const videos = [
-      "grok_video_2026-03-27-12-13-18.mp4",
-      "grok_video_2026-03-27-12-13-34.mp4",
-      "grok_video_2026-03-27-12-13-58.mp4",
-      "grok_video_2026-03-27-12-14-22.mp4",
-      "grok_video_2026-02-26-00-29-40.mp4",
-      "grok_video_2026-02-23-20-56-41.mp4",
-    ];
-
-    let currentIndex = -1;
-    let touchStartY = 0;
-
-    videos.forEach((vid, idx) => {
-      const opt = document.createElement('option');
-      opt.value = basePath + vid;
-      opt.textContent = vid.replace('grok_video_', '').replace('.mp4', '');
-      selector.appendChild(opt);
+    videos.forEach(v => {
+      const opt = document.createElement('option'); opt.value = 'Videos/' + v;
+      opt.textContent = v.replace('.mp4', ''); selector.appendChild(opt);
     });
+    selector.onchange = function() { document.getElementById('videoPlayer').src = this.value; document.getElementById('videoPlayer').play(); };
 
-    selector.addEventListener('change', function() {
-      if (this.value) {
-        currentIndex = videos.findIndex(v => this.value.endsWith(v));
-        player.src = this.value;
-        player.load();
-        player.play().catch(() => {});
-      }
-    });
+    function abrirZoom(elemento) {
+      const imgActiva = elemento.querySelector('.mini-slides img.active');
+      document.getElementById("miVisor").style.display = "flex";
+      document.getElementById("imgExpandida").src = imgActiva.src;
+    }
 
-    swipeArea.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
-    swipeArea.addEventListener('touchend', e => {
-      const deltaY = e.changedTouches[0].clientY - touchStartY;
-      if (Math.abs(deltaY) > 80) {
-        if (deltaY < 0 && currentIndex < videos.length - 1) currentIndex++;
-        else if (deltaY > 0 && currentIndex > 0) currentIndex--;
-
-        if (currentIndex >= 0) {
-          const nextPath = basePath + videos[currentIndex];
-          selector.value = nextPath;
-          player.src = nextPath;
-          player.load();
-          player.play().catch(() => {});
-        }
-      }
-    });
-
+    function iniciarMiniCarruseles() {
+      document.querySelectorAll('.personaje').forEach(p => {
+        const slides = p.querySelectorAll('.mini-slides img');
+        let current = 0;
+        setInterval(() => {
+          slides[current].classList.remove('active');
+          current = (current + 1) % slides.length;
+          slides[current].classList.add('active');
+        }, 4000);
+      });
+    }
 
     let currentS = 0;
     setInterval(() => {
@@ -734,35 +438,7 @@ function draw() {
       if(s) { currentS = (currentS + 1) % 3; s.style.transform = `translateX(-${currentS * 100}%)`; }
     }, 4000);
 
-    showTab('musica');
-    
-// 1. FUNCIÓN DE ROTACIÓN AUTOMÁTICA (4 SEGUNDOS)
-function iniciarMiniCarruseles() {
-  const personajes = document.querySelectorAll('.personaje');
-  personajes.forEach(p => {
-    const slides = p.querySelectorAll('.mini-slides img');
-    if (slides.length <= 1) return;
-    let current = 0;
-    setInterval(() => {
-      slides[current].classList.remove('active');
-      current = (current + 1) % slides.length;
-      slides[current].classList.add('active');
-    }, 4000); // 4 segundos
-  });
-}
-
-// 2. FUNCIÓN DE ZOOM CORREGIDA
-function abrirZoom(elemento) {
-  const imagenActiva = elemento.querySelector('.mini-slides img.active');
-  if (imagenActiva) {
-    document.getElementById("miVisor").style.display = "flex";
-    document.getElementById("imgExpandida").src = imagenActiva.src;
-  }
-}
-
-// Iniciar todo al cargar
-window.addEventListener('DOMContentLoaded', iniciarMiniCarruseles);
-    
+    window.addEventListener('DOMContentLoaded', () => { iniciarMiniCarruseles(); showTab('musica'); });
   </script>
 </body>
 </html>
