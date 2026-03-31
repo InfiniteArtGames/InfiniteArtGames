@@ -23,40 +23,20 @@
       overflow-x: hidden;
     }
 
-/* --- BLOQUE DEL TÍTULO (EL EQUILIBRIO DE SÉT-SU) --- */
-h1.main-title {
-    margin: 0 !important;
-    /* 110px arriba para un término medio, 40px abajo */
-    padding: 110px 0 50px 0; 
-    display: block;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    box-sizing: border-box;
-    z-index: 10;
-    
-    /* Transparencia sutil (0.93) para que se intuya el fondo sin perder oscuridad */
-    background-color: rgba(0, 0, 0, 0.93) !important; 
-    backdrop-filter: blur(10px); 
-    
-    border-top: none !important;
-    border-bottom: 2px solid rgba(160, 32, 240, 0.7);
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.9), 0 10px 20px rgba(0, 0, 0, 0.5);
-}
-
-/* --- TEXTO (CON MARGEN LATERAL Y TAMAÑO MEDIO) --- */
+/* --- TEXTO OPTIMIZADO PARA MÓVILES Y ESCRITORIO --- */
 .text-glow {
     display: block;
-    /* Tamaño intermedio: ni 5.5em ni 4.5em. Usamos 5em. */
-    font-size: clamp(2.3em, 9vw, 5em); 
+    /* Bajamos el mínimo a 1.5em para que quepa en celulares pequeños */
+    font-size: clamp(1.5em, 8vw, 5em); 
     font-weight: 900;
-    letter-spacing: 7px;
     text-transform: uppercase;
     text-align: center;
     
-    /* MARGEN LATERAL: Esto evita que las letras toquen los bordes de la pantalla */
-    padding: 0 10%; 
+    /* Espaciado de letras adaptable */
+    letter-spacing: 6px; 
+    
+    /* Margen lateral responsivo */
+    padding: 0 5%; 
     
     /* Estilo visual de David Rodríguez [cite: 2025-07-23] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
@@ -64,6 +44,23 @@ h1.main-title {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
+    
+    /* Evita que las palabras se corten bruscamente */
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* --- AJUSTES ESPECÍFICOS PARA PANTALLAS MUY PEQUEÑAS (MÓVILES) --- */
+@media (max-width: 480px) {
+    .text-glow {
+        letter-spacing: 2px; /* Reducimos el espacio entre letras en móvil */
+        font-size: 1.6em;    /* Forzamos un tamaño legible que no se salga */
+        padding: 0 10px;    /* Reducimos el margen lateral para ganar espacio */
+    }
+    
+    h1.main-title {
+        padding: 60px 0 30px 0; /* Hacemos el bloque negro más pequeño en móvil */
+    }
 }
 
 /* 3. ANIMACIONES (SE MANTIENEN IGUAL) */
