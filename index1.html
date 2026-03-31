@@ -542,8 +542,13 @@ function draw() {
       items.forEach((item, i) => i === index ? item.classList.add('active') : item.classList.remove('active'));
       togglePlay(); 
     }
+  
+  // Reiniciamos el contador de notas para que la próxima vez empiece desde el inicio
+  currentNote = 0; 
+  document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
+}
 
-    function togglePlay() {
+        function togglePlay() {
       initAudio();
       const track = playlist[currentTrack];
       if (!isPlaying) {
@@ -586,11 +591,6 @@ function draw() {
       o.connect(analyser); o.connect(g); g.connect(audioCtx.destination);
       o.start(); o.stop(audioCtx.currentTime + d);
     }
-  
-  // Reiniciamos el contador de notas para que la próxima vez empiece desde el inicio
-  currentNote = 0; 
-  document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
-}
 
     /* VIDEOS Y CARRUSEL */
 
