@@ -452,38 +452,37 @@ function draw() {
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const scale = (Math.min(canvas.width, canvas.height) * 0.35) + (avg * 0.4);
+    
+    // ESCALA AUMENTADA: Ahora ocupa más espacio visual (base 0.45)
+    const scale = (Math.min(canvas.width, canvas.height) * 0.45) + (avg * 0.5);
     
     time += 0.015 + (avg * 0.0005); 
 
-    // 1. PARTÍCULAS AZULES FLOTANTES (REBELDES Y VISIBLES)
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 100; i++) { 
+
+    // 1. PARTÍCULAS AZULES MÁS VISIBLES (Grosor y Opacidad)
+    for (let i = 0; i < 100; i++) {
         const t = (i / 100) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Efecto de flotación: cada partícula orbita levemente su posición original
-        const floatX = Math.sin(time * 0.5 + i) * 3;
-        const floatY = Math.cos(time * 0.5 + i) * 3;
+        // Turbulencia rebelde pero fluida
+        const shake = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.25) : 0;
         
-        // Turbulencia reactiva al audio
-        const shake = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.3) : 0;
-        
-        // Tamaño variado para dar profundidad (de 1.5 a 3.0)
-        const particleSize = 1.8 + Math.sin(i + time) * 0.8;
-        
-        ctx.fillStyle = `rgba(0, 212, 255, ${0.6 + Math.sin(time + i) * 0.2})`; 
+        // Color Cian más sólido y visible
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
         ctx.beginPath();
-        ctx.arc(centerX + pos.x + floatX + shake, centerY + pos.y + floatY + shake, particleSize, 0, 6.28);
+        // Aumentamos el radio a 2.5 para que tengan "cuerpo"
+        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 2.5, 0, 6.28);
         ctx.fill();
-
-        if (avg > 40) {
-            ctx.shadowBlur = 12;
+        
+        // Brillo (Glow) reforzado
+        if (avg > 35) {
+            ctx.shadowBlur = 10;
             ctx.shadowColor = '#00d4ff';
         }
     }
 
-    // 2. HACES DE LUZ (ESTELAS - EXACTO A LA INTRO)
+    // 2. ESTELAS DE LUZ (Haz de luz de la intro)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
@@ -492,32 +491,32 @@ function draw() {
     
     if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Trazo de Luz Blanco
+    // Haz Blanco
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 5; // Más grueso
     lightHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
-    // Trazo de Sombra/Cian
+    // Haz Negro/Cian (Dualidad de Sét-su) [cite: 2025-09-06]
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
-    ctx.lineWidth = 5;
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.4)';
+    ctx.lineWidth = 8; // Más presencia
     darkHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
-    // 3. CABEZAS MAESTRAS (SÉT-SU Y EL INFINITO) [cite: 2025-09-06]
+    // 3. CABEZAS GUÍAS
     ctx.globalCompositeOperation = 'source-over';
     
-    // Luz Blanca
+    // Guía Blanca (Luz)
     ctx.shadowBlur = 20; ctx.shadowColor = "#fff";
     ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6.5, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 7, 0, 6.28); ctx.fill();
 
-    // Lobo Negro / Oscuridad (Con borde blanco nítido) [cite: 2025-09-06]
-    ctx.shadowBlur = 10; ctx.shadowColor = "#00d4ff";
+    // Guía Negra (Lobo de ojos rojos/Sét-su) [cite: 2025-09-06]
+    ctx.shadowBlur = 12; ctx.shadowColor = "#00d4ff";
     ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6.5, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 7, 0, 6.28); ctx.fill();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
 
     ctx.shadowBlur = 0; 
