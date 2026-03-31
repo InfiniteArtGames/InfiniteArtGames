@@ -428,12 +428,10 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
+// Variables de rastro (mismo sistema que la intro para optimizar)
 let time = 0;
-let lightHistory = []; 
-let darkHistory = [];  
-
-// Pre-calculamos un array de tamaños para evitar cálculos aleatorios pesados en cada frame
-const particleSizes = Array.from({ length: 60 }, () => Math.random() * 2.5 + 1.2);
+let lightHistory = []; // Para el haz de luz blanco
+let darkHistory = [];  // Para el haz de luz negro
 
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
@@ -451,70 +449,67 @@ function draw() {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
-    // Limpieza total para máxima nitidez
+    // Limpieza rápida y eficiente
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const scale = (Math.min(canvas.width, canvas.height) * 0.45) + (avg * 0.5);
+    const scale = (Math.min(canvas.width, canvas.height) * 0.35) + (avg * 0.4);
     
+    // Velocidad controlada
     time += 0.015 + (avg * 0.0005); 
 
-    // 1. PARTÍCULAS REBELDES OPTIMIZADAS (Solo 60, pero variadas)
+    // 1. EL CUERPO DEL INFINITO (Partículas Azules - Cantidad Optimizada)
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 60; i++) {
-        const t = (i / 60) * Math.PI * 2;
+    for (let i = 0; i < 100; i++) { // Bajamos a 100 para fluidez total
+        const t = (i / 100) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Desorden orgánico: Cada partícula tiene un "offset" único basado en el audio
-        const noise = (avg * 0.3);
-        const offX = Math.sin(time + i) * noise;
-        const offY = Math.cos(time + i) * noise;
+        // Turbulencia sutil pero visible
+        const shake = (avg > 35) ? (Math.random() - 0.5) * (avg * 0.2) : 0;
         
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.85)'; 
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.7)'; 
         ctx.beginPath();
-        // Usamos los tamaños pre-calculados (algunas grandes, otras pequeñas)
-        ctx.arc(centerX + pos.x + offX, centerY + pos.y + offY, particleSizes[i], 0, 6.28);
+        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 1.8, 0, 6.28);
         ctx.fill();
-        
-        if (avg > 40 && i % 2 === 0) { // Solo aplicamos brillo a la mitad para ahorrar CPU
-            ctx.shadowBlur = 12;
-            ctx.shadowColor = '#00d4ff';
-        }
     }
 
-    // 2. HACES DE LUZ (Estelas optimizadas)
+    // 2. SISTEMA DE HACES DE LUZ (ESTELAS)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
+    // Guardamos la posición actual en el historial
     lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
     darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
     
-    if (lightHistory.length > 20) { lightHistory.shift(); darkHistory.shift(); }
+    // Limitamos el historial a 25 frames para optimizar memoria (como en la intro)
+    if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Dibujado de estelas con líneas simples (muy rápido)
+    // Dibujar el haz de luz Blanco
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
     ctx.lineWidth = 4;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.beginPath();
-    lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
+    lightHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
+    // Dibujar el haz de luz Negro/Cian
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
     ctx.lineWidth = 6;
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
-    ctx.beginPath();
-    darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
+    darkHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
-    // 3. CABEZAS GUÍAS (Identidad de Sét-su) [cite: 2025-09-06]
+    // 3. CABEZAS GUÍAS (Blanca y Negra)
     ctx.globalCompositeOperation = 'source-over';
-    ctx.shadowBlur = 15;
     
-    // Luz
-    ctx.shadowColor = "#fff"; ctx.fillStyle = "#fff";
+    // Guía Blanca
+    ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
+    ctx.fillStyle = "#fff";
     ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
 
-    // Oscuridad
-    ctx.shadowColor = "#00d4ff"; ctx.fillStyle = "#000";
+    // Guía Negra (Dualidad de Sét-su) [cite: 2025-09-06]
+    ctx.shadowBlur = 10; ctx.shadowColor = "#00d4ff";
+    ctx.fillStyle = "#000";
     ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
 
