@@ -12,22 +12,6 @@
       --bg: #050010;
     }
 
-    body {
-      margin: 0; padding: 0;
-      background: url('Imágenes/image-12.jpg') no-repeat center/cover fixed;
-      background-attachment: fixed;
-      background-color: #000;
-      color: #fff;
-      font-family: 'Orbitron', sans-serif;
-      text-align: center;
-      overflow-x: hidden;
-    }
-   
-    /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
-    .no-scroll { overflow: hidden !important; height: 100vh !important; }
-
-    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-
 /* FONDO TITULO */
     h1 {
   line-height: 1.5;
@@ -46,7 +30,22 @@
   left: 50%;
   transform: translateX(-50%);
 }
+    
+    body {
+      margin: 0; padding: 0;
+      background: url('Imágenes/image-12.jpg') no-repeat center/cover fixed;
+      background-attachment: fixed;
+      background-color: #000;
+      color: #fff;
+      font-family: 'Orbitron', sans-serif;
+      text-align: center;
+      overflow-x: hidden;
+    }
+   
+    /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
+    .no-scroll { overflow: hidden !important; height: 100vh !important; }
 
+    .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
       
       font-size: clamp(2.5em, 10vw, 5.5em);
       margin: 20px 0; font-weight: 900; letter-spacing: 8px; text-transform: uppercase;
