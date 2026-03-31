@@ -38,6 +38,7 @@
 /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
     /* --- AJUSTE DE ESPACIO (PADDING) --- */
+    /* Mantenemos el padding ancho para que el bloque negro sea grande */
     padding: 100px 0; 
     
     /* --- ESTILO TIPOGRÁFICO --- */
@@ -55,16 +56,16 @@ h1 {
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 
-    /* --- FONDO NEGRO PURO (Casi 100% Sólido) --- */
+    /* --- FONDO NEGRO PURO (Blackout Casi Total - CORREGIDO) --- */
     box-sizing: border-box;
-    /* 0.99 es el límite antes de ser totalmente opaco. Cero transparencia visual. */
+    /* Negro puro (0,0,0) con una opacidad del 99%. Prácticamente sólido. */
     background-color: rgba(0, 0, 0, 0.99); 
     
-    /* Eliminamos el blur porque el blur delata la transparencia */
+    /* ELIMINADO EL BLUR. Esto es vital para que no se vea gris ni borroso. */
     backdrop-filter: none; 
     -webkit-backdrop-filter: none;
 
-    /* Bordes de neón para que el negro resalte más por contraste */
+    /* Bordes de neón nítidos */
     border-top: 2px solid rgba(160, 32, 240, 0.9);
     border-bottom: 2px solid rgba(160, 32, 240, 0.9);
     
@@ -75,8 +76,8 @@ h1 {
     transform: translateX(-50%);
     z-index: 10;
     
-    /* Sombra interna para asegurar que el centro sea un pozo de sombra */
-    box-shadow: inset 0 0 80px rgba(0, 0, 0, 1);
+    /* Sombra interna para asegurar que sea un pozo de sombra negra */
+    box-shadow: inset 0 0 100px rgba(0, 0, 0, 1);
 }
 
 /* 3. ANIMACIONES */
