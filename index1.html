@@ -325,13 +325,21 @@
 </div>
 
   <script>
-    /* NAVEGACIÓN Y PESTAÑAS RECUPERADAS */
-    function showTab(id) {
-      const sections = document.getElementsByClassName('content-section');
-      for (let s of sections) { s.style.display = 'none'; }
-      document.getElementById(id).style.display = 'block';
-      if (id !== 'juegos') recuperarScroll();
+function showTab(id) {
+    const sections = document.getElementsByClassName('content-section');
+    for (let s of sections) { s.style.display = 'none'; }
+    document.getElementById(id).style.display = 'block';
+
+    // OPTIMIZACIÓN: Si no estamos en videos, pausamos el video
+    const video = document.getElementById('videoPlayer');
+    if (id !== 'videos' && video) { video.pause(); }
+
+    // Si no estamos en juegos, limpiamos el iframe para liberar RAM
+    if (id !== 'juegos') {
+        document.getElementById('activeGameFrame').src = 'about:blank';
+        recuperarScroll();
     }
+}
 
     function centrarEnJuego(event) {
       if (event) event.stopPropagation(); // Evita que el clic suba al body
