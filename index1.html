@@ -428,24 +428,86 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-    function draw() {
-      requestAnimationFrame(draw);
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(dataArray);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const avg = dataArray.reduce((a,b) => a+b)/dataArray.length;
-      const time = Date.now() * 0.002;
-      for(let i = 0; i < 200; i++) {
-        const t = (i / 200) * Math.PI * 2;
-        const scale = 90 + (avg * 0.5);
-        const x = (scale * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
-        const y = (scale * Math.sin(t) * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
-        ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
-        const size = 1 + (Math.random() * (avg / 20));
-        ctx.beginPath(); ctx.arc((canvas.width/2)+x + Math.sin(time+i)*10, (canvas.height/2)+y + Math.cos(time+i)*10, size, 0, Math.PI*2); ctx.fill();
-        if(avg > 30) { ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff'; }
-      }
+let time = 0;
+let lightHistory = []; 
+let darkHistory = [];  
+// Pre-calculamos tamaños para que unas partículas sean más grandes que otras
+const pSizes = Array.from({ length: 80 }, () => Math.random() * 2.8 + 1.5);
+
+function getLemniscata(t, scale) {
+    const d = Math.pow(Math.sin(t), 2) + 1;
+    return { 
+        x: (scale * Math.cos(t)) / d, 
+        y: (scale * Math.sin(t) * Math.cos(t)) / d 
+    };
+}
+
+function draw() {
+    requestAnimationFrame(draw);
+    
+    // Si no hay analizador, dibujamos el infinito estático para que no se vea vacío
+    let avg = 0;
+    if (analyser) {
+        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+        analyser.getByteFrequencyData(dataArray);
+        avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     }
+
+    // Limpieza total del frame anterior
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    
+    // Escala base (0.4) + reacción al audio (avg)
+    const scale = (Math.min(canvas.width, canvas.height) * 0.4) + (avg * 0.45);
+    
+    // El tiempo avanza siempre, pero más rápido con música
+    time += 0.015 + (avg * 0.0005); 
+
+    // 1. DIBUJAR PARTÍCULAS AZULES (Cuerpo del Infinito)
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 80; i++) {
+        const t = (i / 80) * Math.PI * 2;
+        const pos = getLemniscata(t, scale);
+        
+        // Turbulencia rebelde de la intro
+        const shakeX = (Math.random() - 0.5) * (avg * 0.3);
+        const shakeY = (Math.random() - 0.5) * (avg * 0.3);
+        
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
+        ctx.beginPath();
+        ctx.arc(centerX + pos.x + shakeX, centerY + pos.y + shakeY, pSizes[i], 0, 6.28);
+        ctx.fill();
+    }
+
+    // 2. RASTROS (Haces de luz exactos de la intro)
+    const pL = getLemniscata(time, scale);
+    const pD = getLemniscata(time + Math.PI, scale);
+    
+    lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
+    darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
+    if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
+
+    // Dibujar estela blanca
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.lineWidth = 4;
+    lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
+    ctx.stroke();
+
+    // 3. CABEZAS GUÍAS (Blanca y Negra - Identidad de Sét-su) [cite: 2025-09-06]
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Luz Blanca
+    ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
+
+    // Oscuridad (Lobo Negro)
+    ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
+}
 
     function selectTrack(index) { 
       stopAudio(); 
