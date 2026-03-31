@@ -313,9 +313,23 @@ function draw() {
 
 init();
 draw();
-// AJUSTE REDIRECCIÓN: De 12000 a 15000 para compensar el tiempo extra
-setTimeout(() => window.location.replace("index1.html"), 20000);
-
-</script>
+// Al final del script, en vez del replace directo
+setTimeout(() => {
+    // Fade del canvas y logo
+    canvas.style.transition = 'opacity 1.2s ease-out';
+    canvas.style.opacity = '0';
+    
+    logoContainer.style.transition = 'opacity 1s ease-out';
+    logoContainer.style.opacity = '0';
+    
+    // Fondo negro total
+    document.body.style.transition = 'background 1.5s ease';
+    document.body.style.background = '#000';
+    
+    // Redirige después del fade
+    setTimeout(() => {
+        window.location.href = "index1.html";  // usa href, más natural
+    }, 1600);
+}, 18000);  // empieza fade a los 18s, total 20s aprox</script>
 </body>
 </html>
