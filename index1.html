@@ -428,24 +428,63 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-    function draw() {
-      requestAnimationFrame(draw);
-      const dataArray = new Uint8Array(analyser.frequencyBinCount);
-      analyser.getByteFrequencyData(dataArray);
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const avg = dataArray.reduce((a,b) => a+b)/dataArray.length;
-      const time = Date.now() * 0.002;
-      for(let i = 0; i < 200; i++) {
-        const t = (i / 200) * Math.PI * 2;
-        const scale = 90 + (avg * 0.5);
-        const x = (scale * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
-        const y = (scale * Math.sin(t) * Math.cos(t)) / (1 + Math.pow(Math.sin(t), 2));
-        ctx.fillStyle = i % 2 === 0 ? '#a020f0' : '#00d4ff';
-        const size = 1 + (Math.random() * (avg / 20));
-        ctx.beginPath(); ctx.arc((canvas.width/2)+x + Math.sin(time+i)*10, (canvas.height/2)+y + Math.cos(time+i)*10, size, 0, Math.PI*2); ctx.fill();
-        if(avg > 30) { ctx.shadowBlur = 15; ctx.shadowColor = '#00d4ff'; }
-      }
+// 1. Añade esta función matemática (es la misma de la intro)
+function getLemniscata(t, scale) {
+    const d = Math.pow(Math.sin(t), 2) + 1;
+    return { 
+        x: (scale * Math.cos(t)) / d, 
+        y: (scale * Math.sin(t) * Math.cos(t)) / d 
+    };
+}
+
+// 2. Reemplaza tu función draw() por esta:
+function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser) return;
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
+    
+    // Limpiamos el canvas con un rastro leve para efecto de movimiento
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    const time = Date.now() * 0.002;
+    
+    // Ajustamos la escala según el tamaño del visualizador
+    const baseScale = Math.min(canvas.width, canvas.height) * 0.35;
+    // La escala crece con el ritmo de la música
+    const dynamicScale = baseScale + (avg * 0.5);
+
+    // Dibujamos 120 puntos para formar el infinito perfecto
+    for (let i = 0; i < 120; i++) {
+        const t = (i / 120) * Math.PI * 2;
+        const pos = getLemniscata(t, dynamicScale);
+
+        // Añadimos una pequeña vibración basada en el audio
+        const x = (canvas.width / 2) + pos.x + (Math.sin(time + i) * (avg * 0.05));
+        const y = (canvas.height / 2) + pos.y + (Math.cos(time + i) * (avg * 0.05));
+
+        // Colores de Infinite Art Games: Cian y Púrpura
+        ctx.fillStyle = i % 2 === 0 ? '#00d4ff' : '#a020f0';
+        
+        // El tamaño de las partículas reacciona al volumen
+        const size = 1.5 + (avg / 15);
+        
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Si el volumen es alto, añadimos el brillo (glow) característico
+        if (avg > 45) {
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = '#00d4ff';
+        } else {
+            ctx.shadowBlur = 0;
+        }
     }
+}
 
     function selectTrack(index) { 
       stopAudio(); 
