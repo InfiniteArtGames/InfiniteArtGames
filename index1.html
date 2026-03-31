@@ -24,6 +24,7 @@
     }
     /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
+    /* --- ESTRUCTURA Y PEGADO --- */
     margin: 0 !important;
     padding: 140px 20px 40px 20px;
     display: block;
@@ -34,20 +35,21 @@ h1 {
     box-sizing: border-box;
     z-index: 10;
     
-    /* --- CORRECCIÓN PARA NEGRO PROFUNDO --- */
-    /* Usamos 0.99 para que sea un 99% negro sólido */
-    background-color: rgba(0, 0, 0, 0.99) !important; 
+    /* --- COLOR NEGRO ABSOLUTO (CORREGIDO) --- */
+    /* Usamos color sólido hexadecimal para que no haya transparencia */
+    background-color: #000000 !important; 
     
-    /* Bajamos el blur para que no aclare el negro */
-    backdrop-filter: blur(4px); 
+    /* ELIMINAMOS el backdrop-filter porque es lo que lo vuelve morado */
+    backdrop-filter: none !important; 
     
-    /* Sombra interna pesada para oscurecer los bordes */
-    box-shadow: inset 0 0 100px rgba(0, 0, 0, 1); 
-    
+    /* Añadimos una sombra interna negra muy fuerte para absorber cualquier brillo */
+    box-shadow: inset 0 0 100px #000000; 
+
+    /* --- BORDES Y NEONES --- */
     border-top: none !important;
     border-bottom: 2px solid rgba(160, 32, 240, 0.8);
 
-    /* Estilo de Texto Infinite Art Games [cite: 2025-07-23] */
+    /* --- ESTILO DE TEXTO --- */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
