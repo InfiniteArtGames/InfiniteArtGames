@@ -390,14 +390,28 @@ window.addEventListener('click', function(e) {
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
 
-    const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
+    const notes = { 
+    A3: 220, D4: 293, F4: 349, A4: 440, B4: 493, C5: 523, D5: 587, E5: 659, F5: 698, G5: 783, A5: 880, B5: 987, D6: 1174 };
     const playlist = [
       { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
-      { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
-      { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
-      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }
-    ];
+{ 
+    type: 'api', 
+    name: "Melodía de Sét-su", 
+    data: [
+        {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
+        {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
+        {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
+    ] 
+  },
+  { 
+    type: 'api', 
+    name: "Eco del Infinito", 
+    data: [
+        {f: notes.D5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.2}, {f: notes.D6, d: 0.6},
+        {f: notes.B5, d: 0.4}, {f: notes.G5, d: 0.4}, {f: notes.E5, d: 0.8},
+        {f: notes.F5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.D5, d: 0.8}
+    ] 
+  },
 
     function initAudio() {
       if (audioCtx) return;
