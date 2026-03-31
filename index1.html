@@ -37,7 +37,7 @@
 
 /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
-    /* --- IDENTIDAD VISUAL --- */
+    /* --- TIPOGRAFÍA --- */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
@@ -46,39 +46,35 @@ h1 {
     margin: 60px 0;
     padding: 120px 0;
     
-    /* Animación de Sét-su [cite: 2025-09-06] */
+    /* Efecto de Sét-su [cite: 2025-09-06] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 
-    /* --- BLOQUEO DE TRANSPARENCIA (CORRECCIÓN FINAL) --- */
+    /* --- SOLUCIÓN DE FONDO SÓLIDO --- */
     box-sizing: border-box;
     
-    /* Negro casi absoluto (0.01 de transparencia) */
-    background-color: rgba(0, 0, 0, 0.99) !important; 
+    /* Forzamos negro sólido con 0.01 de transparencia real */
+    background: rgba(0, 0, 0, 0.99) !important;
     
-    /* FORZAR LA DESACTIVACIÓN DE FILTROS QUE ACLARAN EL NEGRO */
+    /* ELIMINACIÓN TOTAL DE FILTROS (Culpables de la transparencia en Edge) */
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    filter: none !important;
-
-    /* Bordes de neón para Infinite Art Games [cite: 2025-07-23] */
-    border-top: 4px solid #a020f0; /* var(--primary) */
-    border-bottom: 4px solid #a020f0;
     
-    /* Posicionamiento para romper el contenedor y ser pantalla completa */
+    /* NUEVO MÉTODO DE CENTRADO (Sin transform para evitar bugs de renderizado) */
     width: 100vw;
     position: relative;
-    left: 50%;
-    right: 50%;
-    margin-left: -50vw;
-    margin-right: -50vw;
-    z-index: 99; /* Asegura que esté por encima de cualquier otro efecto */
+    left: calc(-50vw + 50%); /* Centrado matemático perfecto sin 'transform' */
     
-    /* Sombra interna para eliminar cualquier reflejo del fondo */
-    box-shadow: inset 0 0 150px #000, 0 0 30px rgba(0,0,0,1);
+    /* BORDES Y SOMBRAS */
+    border-top: 3px solid #a020f0;
+    border-bottom: 3px solid #a020f0;
+    box-shadow: 0 0 50px #000, inset 0 0 100px #000;
+    
+    /* Aseguramos que nada brille por detrás */
+    z-index: 9999;
 }
 
 /* 3. ANIMACIONES */
