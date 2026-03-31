@@ -490,7 +490,7 @@ function draw() {
 
   // === AÑADE ESTO AQUÍ: Estela de la partícula negra (Cian) ===
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.4)'; // Cian eléctrico como en la intro
+    ctx.strokeStyle = 'rgba(60, 60, 60, 0.7)'; // Cian eléctrico como en la intro
     ctx.lineWidth = 6; // Un poco más gruesa para que sea visible
     darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
     ctx.stroke();
