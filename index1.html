@@ -548,20 +548,58 @@ function draw() {
       togglePlay(); 
     }
 
-    function togglePlay() {
-      initAudio();
-      const track = playlist[currentTrack];
-      if (!isPlaying) {
-        isPlaying = true; isPaused = false;
-        document.getElementById('playBtn').innerText = "⏸ PAUSE";
-        document.getElementById('trackName').innerText = track.name;
-        if (track.type === 'api') sequence(); else { playerMP3.src = track.url; playerMP3.play(); }
-      } else {
-        isPaused = !isPaused;
-        document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        if (track.type === 'api' && !isPaused) sequence(); else isPaused ? playerMP3.pause() : playerMP3.play();
-      }
+function togglePlay() {
+  initAudio();
+  const track = playlist[currentTrack];
+  
+  // Forzar desbloqueo del AudioContext (Seguridad del navegador)
+  if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+  }
+
+  if (!isPlaying) {
+    isPlaying = true; 
+    isPaused = false;
+    document.getElementById('playBtn').innerText = "⏸ PAUSE";
+    document.getElementById('trackName').innerText = track.name;
+    
+    if (track.type === 'api') {
+        currentNote = 0; // Empezar desde el inicio
+        sequence(); 
+    } else { 
+        playerMP3.src = track.url; 
+        playerMP3.play(); 
     }
+  } else {
+    isPaused = !isPaused;
+    document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
+    if (track.type === 'api') {
+        if (!isPaused) sequence(); 
+    } else { 
+        isPaused ? playerMP3.pause() : playerMP3.play(); 
+    }
+  }
+}
+
+function sequence() {
+  // Verificamos que el sistema esté activo y sea una pista de tipo API
+  if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
+  
+  const melody = playlist[currentTrack].data;
+  
+  // Reproducir la nota actual
+  playNote(melody[currentNote].f, melody[currentNote].d);
+  
+  // Guardamos la duración de la nota actual para el siguiente paso
+  let noteDuration = melody[currentNote].d * 1000;
+
+  // Avanzamos a la siguiente nota. El símbolo % hace que al llegar al final vuelva a 0 (Loop)
+  currentNote = (currentNote + 1) % melody.length;
+  
+  // Programamos la siguiente ejecución
+  clearTimeout(audioTimeout);
+  audioTimeout = setTimeout(sequence, noteDuration);
+}
 
 function stopAudio() {
   isPlaying = false; 
@@ -597,26 +635,6 @@ function playNote(f, d) {
   o.stop(audioCtx.currentTime + d);
 }
 
-function playNote(f, d) {
-  if (!audioCtx || isPaused) return;
-  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-  
-  // Usamos 'sine' para la pureza de la ocarina
-  o.type = 'sine'; 
-  o.frequency.value = f;
-  
-  // Envolvente profesional: Soplido inicial y desvanecimiento épico
-  g.gain.setValueAtTime(0, audioCtx.currentTime);
-  g.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.08); // Ataque
-  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d); // Caída
-  
-  o.connect(analyser); 
-  o.connect(g); 
-  g.connect(audioCtx.destination);
-  
-  o.start(); 
-  o.stop(audioCtx.currentTime + d);
-}
 
     /* VIDEOS Y CARRUSEL */
 
