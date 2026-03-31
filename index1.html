@@ -244,10 +244,11 @@
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
-          <div class="playlist-item" onclick="selectTrack(0)">01. Melodía de Sét-su (Sintetizada)</div>
-          <div class="playlist-item" onclick="selectTrack(1)">02. Eco del Infinito (Sintetizada)</div>
-          <div class="playlist-item" onclick="selectTrack(2)">03. Bad Wolf (MP3)</div>
-          <div class="playlist-item" onclick="selectTrack(3)">04. El Lobo Feroz (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(3)">01. InfiniteArtGames (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(0)">02. Melodía de Sét-su (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(1)">03. Eco del Infinito (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(2)">04. Bad Wolf (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(3)">05. El Lobo Feroz (MP3)</div>
         </div>
         <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
         <div style="margin-top:25px;">
@@ -408,6 +409,7 @@ window.addEventListener('click', function(e) {
 
     const notes = { A4: 440, C5: 523, E5: 659, G4: 392, B4: 493, D5: 587, F4: 349, E4: 329 };
     const playlist = [
+      { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
       { type: 'api', name: "Melodía de Sét-su", data: [{f: notes.A4, d: 0.6}, {f: notes.C5, d: 0.6}, {f: notes.E5, d: 0.9}] },
       { type: 'api', name: "Eco del Infinito", data: [{f: notes.E4, d: 0.7}, {f: notes.G4, d: 0.7}, {f: notes.B4, d: 0.7}] },
       { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
