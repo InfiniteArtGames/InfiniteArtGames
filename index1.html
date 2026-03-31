@@ -23,31 +23,11 @@
       overflow-x: hidden;
     }
 
-<audio id="introSound">
-    <source src="musica/InfiniteArtGames.mp3" type="audio/mpeg">
-    Tu navegador no soporta el elemento de audio.
-</audio>
-
-
-    const sound = document.getElementById('introSound');
-
-    // Función para intentar reproducir el sonido
-    function playIntro() {
-        sound.play().catch(error => {
-            console.log("El navegador bloqueó el autoplay. Se reproducirá al primer clic.");
-        });
-    }
-
-    // Intentar reproducir al cargar
-    window.addEventListener('load', playIntro);
-
-    // Como los navegadores suelen bloquear el sonido automático, 
-    // esto asegura que suene en cuanto el usuario toque cualquier parte de la pantalla
-    window.addEventListener('click', () => {
-        if (sound.paused) {
-            playIntro();
-        }
-    }, { once: true });
+#visualizer {
+  filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.6));
+  will-change: transform;
+  image-rendering: -webkit-optimize-contrast;
+}
 
     
     /* BLOQUEO DE SCROLL DINÁMICO RECUPERADO */
