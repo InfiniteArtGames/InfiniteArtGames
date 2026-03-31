@@ -23,10 +23,9 @@
       overflow-x: hidden;
     }
    
-/* 2. TÍTULO PRINCIPAL (H1) - VERSIÓN "BLACKOUT TOTAL" */
-/* 2. TÍTULO PRINCIPAL (H1) - BLACKOUT CASI SÓLIDO */
+/* 2. TÍTULO PRINCIPAL (H1) - NEGRO CASI SÓLIDO (estilo del poema) */
 h1 {
-    /* Tipografía (sin cambios) */
+    /* Tipografía y degradado del texto (sin cambios) */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
@@ -35,21 +34,20 @@ h1 {
     margin: 60px 0;
     padding: 140px 0;
 
-    /* Degradado del texto (se mantiene) */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 
-    /* === BLACKOUT FUERTE === */
+    /* === FONDO NEGRO CASI SÓLIDO === */
     box-sizing: border-box;
-    background-color: #000000;                    /* Negro puro sólido */
-    
-    /* Quitamos o minimizamos el blur (es el principal culpable) */
-    backdrop-filter: blur(1px);                   /* Muy bajo o quítalo si quieres negro total */
+    background-color: #000000;           /* Negro puro sólido */
 
-    /* Bordes neón más visibles */
+    /* Quitamos el blur completamente para que no se vea el fondo */
+    backdrop-filter: none;
+
+    /* Bordes neón fuertes (como en tu ejemplo) */
     border-top: 4px solid rgba(160, 32, 240, 0.95);
     border-bottom: 4px solid rgba(160, 32, 240, 0.95);
 
@@ -60,11 +58,11 @@ h1 {
     transform: translateX(-50%);
     z-index: 10;
 
-    /* Sombra interna ultra fuerte para bloquear el fondo */
+    /* Sombra interna ultra fuerte → bloquea casi todo el fondo */
     box-shadow: 
-        inset 0 0 120px rgba(0, 0, 0, 1),
-        inset 0 0 60px rgba(0, 0, 0, 0.95),
-        0 0 40px rgba(160, 32, 240, 0.25);
+        inset 0 0 160px #000000,
+        inset 0 0 80px rgba(0, 0, 0, 0.98),
+        0 0 35px rgba(160, 32, 240, 0.3);
 }
 
 /* 3. ANIMACIONES */
