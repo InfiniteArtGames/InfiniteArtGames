@@ -24,42 +24,34 @@
     }
     /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
+    margin: 0 !important;
+    padding: 140px 20px 40px 20px;
+    display: block;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+    z-index: 10;
+    
+    /* Fondo Blackout Casi Negro [cite: 2025-07-23] */
+    background-color: rgba(0, 0, 0, 0.97) !important;
+    backdrop-filter: blur(12px);
+    border-top: none !important;
+    border-bottom: 2px solid rgba(160, 32, 240, 0.8);
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 1), 0 10px 30px rgba(0, 0, 0, 0.5);
+
+    /* Estilo de Texto Infinite Art Games [cite: 2025-07-23] */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
     text-transform: uppercase;
     text-align: center;
-    margin: 0px 0;
-    padding: 140px; /* Padding generoso para la marca */
-    
-    /* Efecto de degradado en el texto */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
-
-    /* --- EL FONDO "BLACKOUT" (CORRECCIÓN) --- */
-    box-sizing: border-box;
-    /* Negro absoluto (0,0,0) con 0.98 de opacidad para que no se vea gris */
-    background-color: rgba(0, 0, 0, 0.98); 
-    
-    /* El blur es lo que causa el efecto "borroso", lo bajamos para que el negro domine */
-    backdrop-filter: blur(5px); 
-    
-    /* Bordes de neón más definidos */
-    border-top: 2px solid rgba(160, 32, 240, 0.8);
-    border-bottom: 2px solid rgba(160, 32, 240, 0.8);
-    
-    /* Ajuste de pantalla completa */
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
-    
-    /* Sombra interna para dar profundidad al negro */
-    box-shadow: inset 0 0 50px rgba(0, 0, 0, 1), 0 0 20px rgba(160, 32, 240, 0.2);
 }
 
 /* 3. ANIMACIONES */
