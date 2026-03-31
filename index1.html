@@ -563,16 +563,18 @@ function draw() {
       }
     }
 
-    function stopAudio() {
-      isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
-      document.getElementById('playBtn').innerText = "▶ PLAY";
-      document.getElementById('trackName').innerText = "SISTEMA LISTO";
-      currentNote = 0;
-      document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
-    }
-
-    function nextTrack() { selectTrack((currentTrack + 1) % playlist.length); }
-    function prevTrack() { selectTrack((currentTrack - 1 + playlist.length) % playlist.length); }
+function stopAudio() {
+  isPlaying = false; 
+  isPaused = false; 
+  clearTimeout(audioTimeout); 
+  playerMP3.pause();
+  document.getElementById('playBtn').innerText = "▶ PLAY";
+  document.getElementById('trackName').innerText = "SISTEMA LISTO";
+  
+  // Reiniciamos el contador de notas para que la próxima vez empiece desde el inicio
+  currentNote = 0; 
+  document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
+}
 
 function playNote(f, d) {
   if (!audioCtx || isPaused) return;
