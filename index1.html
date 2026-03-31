@@ -37,7 +37,7 @@
 
 /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
-    /* --- TIPOGRAFÍA --- */
+    /* --- CONFIGURACIÓN DEL TEXTO --- */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
@@ -45,36 +45,40 @@ h1 {
     text-align: center;
     margin: 60px 0;
     padding: 120px 0;
+    position: relative; /* Necesario para la capa de fondo */
+    z-index: 10;
     
-    /* Efecto de Sét-su [cite: 2025-09-06] */
+    /* El degradado de Infinite Art Games [cite: 2025-07-23] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
+}
 
-    /* --- SOLUCIÓN DE FONDO SÓLIDO --- */
-    box-sizing: border-box;
-    
-    /* Forzamos negro sólido con 0.01 de transparencia real */
-    background: rgba(0, 0, 0, 0.99) !important;
-    
-    /* ELIMINACIÓN TOTAL DE FILTROS (Culpables de la transparencia en Edge) */
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
-    
-    /* NUEVO MÉTODO DE CENTRADO (Sin transform para evitar bugs de renderizado) */
+/* --- LA CAPA DE FONDO NEGRO (EL PADDING) --- */
+h1::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    /* Estiramos el fondo para que sea pantalla completa */
+    left: calc(-50vw + 50%); 
     width: 100vw;
-    position: relative;
-    left: calc(-50vw + 50%); /* Centrado matemático perfecto sin 'transform' */
+    height: 100%;
     
-    /* BORDES Y SOMBRAS */
-    border-top: 3px solid #a020f0;
-    border-bottom: 3px solid #a020f0;
-    box-shadow: 0 0 50px #000, inset 0 0 100px #000;
+    /* NEGRO CASI SÓLIDO: 0.99 de opacidad (0.01 de transparencia) */
+    background-color: rgba(0, 0, 0, 0.99); 
     
-    /* Aseguramos que nada brille por detrás */
-    z-index: 9999;
+    /* Capa por debajo del texto */
+    z-index: -1; 
+    
+    /* Bordes de neón de la empresa [cite: 2025-07-23] */
+    border-top: 2px solid var(--primary);
+    border-bottom: 2px solid var(--primary);
+    
+    /* Eliminamos cualquier filtro que Edge interprete mal */
+    backdrop-filter: none;
+    pointer-events: none;
 }
 
 /* 3. ANIMACIONES */
