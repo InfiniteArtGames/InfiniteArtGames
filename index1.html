@@ -261,23 +261,30 @@ h1.main-title {
 
 .modal-visor {
   display: none; 
-  position: fixed; /* Esto hace que se vea siempre en el centro de tu pantalla */
+  position: fixed; /* Fijo para que no se mueva al hacer scroll */
+  z-index: 10000; 
   top: 0; 
   left: 0;
-  width: 100%; 
-  height: 100%; 
-  background: rgba(0, 0, 0, 0.95); /* Fondo oscuro profundo */
-  z-index: 9999; /* Por encima de todo el portal */
+  width: 100vw; 
+  height: 100vh; 
+  background: rgba(0,0,0,0.98);
   align-items: center; 
-  justify-content: center;
+  justify-content: center; 
+  cursor: zoom-out;
 }
 
-.modal-content {
+/* ESTE ES EL QUE TENÍAS COMO MODAL-CONTENT */
+.modal-content { 
+  display: block;
   max-width: 90%; 
   max-height: 90%; 
-  object-fit: contain; /* Mantiene la proporción de las Diosas o Sét-su */
-  border: 2px solid var(--accent);
-  box-shadow: 0 0 20px var(--primary);
+  /* Agregamos esto para que la imagen tenga cuerpo al cargar */
+  min-width: 200px; 
+  min-height: 200px;
+  object-fit: contain; 
+  border: 2px solid var(--accent); 
+  border-radius: 15px;
+  box-shadow: 0 0 30px var(--primary);
 }
 
     .carousel { position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; border: 1px solid var(--accent); }
