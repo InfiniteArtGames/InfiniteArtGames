@@ -428,8 +428,75 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
+    let time = 0;
 
-431
+function getLemniscata(t, scale) {
+    const d = Math.pow(Math.sin(t), 2) + 1;
+    return { 
+        x: (scale * Math.cos(t)) / d, 
+        y: (scale * Math.sin(t) * Math.cos(t)) / d 
+    };
+}
+
+function draw() {
+    requestAnimationFrame(draw);
+    if (!analyser) return;
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(dataArray);
+    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+    
+    // LIMPIEZA TOTAL: Usamos transparencia para que no se vea "fondo azul"
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const scale = (Math.min(canvas.width, canvas.height) * 0.3) + (avg * 0.5);
+    
+    time += 0.015 + (avg * 0.0005); 
+
+    // 1. EL RASTRO INFINITO (Partículas Cian)
+    ctx.globalCompositeOperation = 'lighter'; // Para que los colores brillen al encimarse
+    for (let i = 0; i < 120; i++) {
+        const t = (i / 120) * Math.PI * 2;
+        const pos = getLemniscata(t, scale);
+        
+        // Turbulencia: las partículas vibran con el bajo de la música
+        const shake = (avg > 40) ? (Math.random() - 0.5) * (avg * 0.15) : 0;
+        
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.5)'; // Cian puro de la intro
+        ctx.beginPath();
+        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 1.2, 0, 6.28);
+        ctx.fill();
+    }
+
+    // 2. PARTÍCULAS GUÍAS (Blanca y Negra como en la intro)
+    ctx.globalCompositeOperation = 'source-over';
+    
+    // Partícula BLANCA (Luz)
+    const pLight = getLemniscata(time, scale);
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = "#fff";
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(centerX + pLight.x, centerY + pLight.y, 6, 0, 6.28);
+    ctx.fill();
+
+    // Partícula NEGRA (Oscuridad)
+    const pDark = getLemniscata(time + Math.PI, scale);
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = "#00d4ff";
+    ctx.fillStyle = "#000"; // Negra por dentro
+    ctx.beginPath();
+    ctx.arc(centerX + pDark.x, centerY + pDark.y, 6, 0, 6.28);
+    ctx.fill();
+    // Borde blanco para la negra, igual que en la intro
+    ctx.strokeStyle = "#fff";
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    ctx.shadowBlur = 0; // Reset para el siguiente frame
+}
 
     function selectTrack(index) { 
       stopAudio(); 
