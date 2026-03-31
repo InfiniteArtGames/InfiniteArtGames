@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Infinite Art Games</title>
+    <title>BYTE BITER - Sólido - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; 
             --neon-magenta: #f0f; 
             --neon-cyan: #0ff;
-            --bg-dark: #050505; 
+            --wall-bg: #011a01; /* Fondo sólido para paredes normales */
+            --wall-bg-glitch: #1a011a; /* Fondo sólido para paredes glitch */
+            --bg-dark: #000; 
         }
         body {
             background-color: #000; color: #eee;
@@ -75,7 +77,7 @@
     </div>
 
 <script>
-    /** * BYTE BITER - Optimized by Gemini for Infinite Art Games 
+    /** * BYTE BITER - Sólido - Infinite Art Games 
      */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
@@ -84,7 +86,7 @@
     const LOGICAL_WIDTH = 480, LOGICAL_HEIGHT = 270, GRID_SIZE = 15, GRID_W = 32, GRID_H = 18;
     let state = { score: 0, level: 1, lives: 3, pelletsLeft: 0, glitchCharge: 0, isGlitchActive: false, isGameOver: false, scaleFactor: 1, currentZoom: 1.2, isSuper: false };
     let player = { x: 15, y: 9, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
-    let ghosts = [], pellets = [], powerUps = [];
+    let ghosts = [], pellets = [], powerUps = [], particles = [];
 
     const mazeLayout = [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -120,7 +122,7 @@
         if(reset) { state.score = 0; state.level = 1; state.lives = 3; }
         state.isGameOver = false; state.glitchCharge = 0; state.isGlitchActive = false; state.isSuper = false;
         document.getElementById('overlay').style.display = 'none';
-        pellets = []; powerUps = [];
+        pellets = []; powerUps = []; particles = [];
         
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
@@ -153,10 +155,20 @@
         state.glitchCharge >= 100 ? bar.classList.add('glitch-ready') : bar.classList.remove('glitch-ready');
     }
 
+    function createParticle(x, y, color) {
+        return {
+            x: x * GRID_SIZE + GRID_SIZE/2,
+            y: y * GRID_SIZE + GRID_SIZE/2,
+            vx: (Math.random() - 0.5) * 4,
+            vy: (Math.random() - 0.5) * 4,
+            life: 15 + Math.random() * 10,
+            color: color
+        };
+    }
+
     function update() {
         if(state.isGameOver) return;
 
-        // Movimiento suave del jugador
         if (player.nextDx || player.nextDy) {
             if (can(player.x + player.nextDx, player.y + player.nextDy)) {
                 player.dx = player.nextDx; player.dy = player.nextDy;
@@ -166,8 +178,18 @@
         if (can(player.x + player.dx, player.y + player.dy)) { 
             player.x += player.dx; player.y += player.dy; 
         } else {
-            player.dx = player.dy = 0; // Detenerse si choca
+            player.dx = player.dy = 0;
         }
+
+        // Partículas si es Super
+        if (state.isSuper && Math.random() > 0.2) {
+            particles.push(createParticle(player.x, player.y, varColor('--neon-cyan')));
+        }
+        // Actualizar partículas
+        particles.forEach((p, i) => {
+            p.x += p.vx; p.y += p.vy; p.life--;
+            if(p.life <= 0) particles.splice(i, 1);
+        });
 
         // Colisión Pellets
         for(let i = pellets.length - 1; i >= 0; i--) {
@@ -184,22 +206,18 @@
         powerUps.forEach((p, i) => {
             if(p.x === player.x && p.y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
+                // Explosión de chispas al cogerlo
+                for(let j=0; j<15; j++) particles.push(createParticle(player.x, player.y, '#fff'));
                 setTimeout(() => state.isSuper = false, 6000);
             }
         });
 
-        // IA Enemigos Mejorada
+        // IA Enemigos
         ghosts.forEach(g => {
-            // Obtener direcciones posibles (NO pueden atravesar paredes ahora)
-            const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => {
-                const nx = g.x + d.x;
-                const ny = g.y + d.y;
-                return can(nx, ny, false); // ghost = false para que los fantasmas respeten el laberinto
-            });
+            const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => can(g.x + d.x, g.y + d.y, false));
 
             if (dirs.length > 0) {
                 let move;
-                // Evitar volver inmediatamente atrás si hay más opciones
                 const choices = dirs.filter(d => !(g.x + d.x === g.lastX && g.y + d.y === g.lastY));
                 const finalDirs = choices.length > 0 ? choices : dirs;
 
@@ -215,10 +233,10 @@
                 }
             }
 
-            // Colisión con jugador
             if(g.x === player.x && g.y === player.y) {
                 if(state.isSuper || state.isGlitchActive) { 
                     g.x = 1; g.y = 1; state.score += 200; updateUI(); 
+                    for(let j=0; j<10; j++) particles.push(createParticle(g.x, g.y, g.color));
                 } else { 
                     state.lives--; 
                     if(state.lives <= 0) { 
@@ -233,14 +251,12 @@
         });
 
         if(state.pelletsLeft <= 0) { state.level++; initLevel(); }
-        // Zoom dinámico
         const targetZoom = state.isGlitchActive ? 1.0 : 1.35;
         state.currentZoom += (targetZoom - state.currentZoom) * 0.05;
     }
 
     function can(x, y, isPlayer = true) {
         if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false;
-        // El modo Glitch permite atravesar todo
         if (state.isGlitchActive && isPlayer) return true;
         return mazeLayout[y][x] === 0;
     }
@@ -254,21 +270,31 @@
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-pX, -pY);
 
-        // Renderizado del Laberinto
+        // Renderizado del Laberinto (PAREDES SÓLIDAS)
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
                 if(mazeLayout[r][c]) {
-                    ctx.fillStyle = state.isGlitchActive ? '#202' : '#0a0a0a';
+                    // Fondo Sólido del bloque
+                    ctx.fillStyle = state.isGlitchActive ? varColor('--wall-bg-glitch') : varColor('--wall-bg');
                     ctx.beginPath();
-                    ctx.roundRect(c*GRID_SIZE+1, r*GRID_SIZE+1, GRID_SIZE-2, GRID_SIZE-2, 3);
+                    ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 2);
                     ctx.fill();
                     
+                    // Borde Neón Brillante
                     ctx.strokeStyle = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
-                    ctx.lineWidth = 0.5;
+                    ctx.lineWidth = 1.5;
                     ctx.stroke();
                 }
             }
         }
+
+        // Partículas
+        particles.forEach(p => {
+            ctx.fillStyle = p.color;
+            ctx.globalAlpha = p.life / 25;
+            ctx.fillRect(p.x, p.y, 2, 2);
+        });
+        ctx.globalAlpha = 1;
 
         // Pellets
         pellets.forEach(p => {
@@ -282,7 +308,7 @@
 
         // PowerUps (Rayos)
         powerUps.forEach(p => { 
-            ctx.font = "10px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11);
+            ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11);
         });
 
         // Player (BYTE BITER)
@@ -295,16 +321,26 @@
 
         // Enemigos
         ghosts.forEach(g => {
-            ctx.fillStyle = (state.isSuper || state.isGlitchActive) ? '#555' : g.color;
-            ctx.shadowBlur = (state.isSuper || state.isGlitchActive) ? 0 : 10;
+            const isScared = (state.isSuper || state.isGlitchActive);
+            ctx.fillStyle = isScared ? '#777' : g.color;
+            ctx.shadowBlur = isScared ? 0 : 10;
             ctx.shadowColor = g.color;
             ctx.beginPath();
             ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4);
             ctx.fill();
-            // Ojos
-            ctx.fillStyle = '#fff';
-            ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2);
-            ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
+            
+            // Ojos / Cara
+            ctx.shadowBlur = 0;
+            if (isScared) {
+                // Cara triste >_<
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial";
+                ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9);
+            } else {
+                // Ojos normales
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2);
+                ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
+            }
         });
 
         ctx.restore();
@@ -314,13 +350,13 @@
 
     let lt = 0;
     function loop(t) { 
-        if(t - lt > 120) { // Un poco más rápido para mayor fluidez
+        if(t - lt > 110) { 
             update(); draw(); lt = t; 
         } 
         requestAnimationFrame(loop); 
     }
 
-    // Controles Táctiles y Teclado
+    // Controles
     let ts = null;
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') { player.nextDx = 0; player.nextDy = -1; }
