@@ -54,23 +54,24 @@ resize();
 let time = 0;
 const duration = 8500; 
 let infParticles = [], tracers = [], expParticles = [], ambientParticles = [], embers = []; 
-let sword = { y: -1000, v: 0, active: false, landed: false, shockwave: 0, shake: 0 };
+let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0 };
 
 function init() {
     infParticles = []; ambientParticles = []; tracers = []; embers = [];
     
-    const countAmbient = isMobile ? 30 : 60;
+    const countAmbient = isMobile ? 40 : 80;
     for (let j = 0; j < countAmbient; j++) {
-        const radius = 100 + Math.random() * (isMobile ? 200 : 400);
+        const radius = 100 + Math.random() * (isMobile ? 200 : 450);
         const ang = Math.random() * 6.28;
         ambientParticles.push({
             x: centerX + Math.cos(ang) * radius, y: centerY + Math.sin(ang) * radius,
-            v: 0.1 + Math.random() * 0.4, r: Math.random() * 1.5 + 0.5, a: 0.1 + Math.random() * 0.4
+            v: 0.1 + Math.random() * 0.4, r: Math.random() * 1.5 + 0.5, a: 0.1 + Math.random() * 0.4,
+            vx: 0, vy: 0 
         });
     }
 
-    for (let i = 0; i < 90; i++) {
-        const t = (i / 90) * Math.PI * 2;
+    for (let i = 0; i < 100; i++) {
+        const t = (i / 100) * Math.PI * 2;
         infParticles.push({
             t, r: Math.random() * 4 + 2,
             speed: 0.005 + Math.random() * 0.002, 
@@ -81,18 +82,11 @@ function init() {
         });
     }
 
-    // TRACERS: DUALIDAD PURA (BLANCO Y NEGRO)
     tracers = [];
-    // Sét-su: Partícula Blanca con estela de luz blanca
-    tracers.push({ 
-        t: 0, speed: 0.07, dir: 1, history: [], 
-        color: '#fff', glow: '#fff', type: 'light' 
-    });
-    // Setsu: Partícula Negra con estela de sombra
-    tracers.push({ 
-        t: Math.PI, speed: 0.07, dir: -1, history: [], 
-        color: '#000', glow: '#ffffff', type: 'dark' 
-    });
+    // Sét-su (Luz)
+    tracers.push({ t: 0, speed: 0.07, dir: 1, history: [], color: '#fff', glow: '#fff', type: 'light' });
+    // Setsu (Sombra/Lobo)
+    tracers.push({ t: Math.PI, speed: 0.07, dir: -1, history: [], color: '#000', glow: '#ffffff', type: 'dark' });
 }
 
 function getLemniscata(t, scale) {
@@ -105,24 +99,19 @@ function drawSword(y) {
     ctx.translate(centerX, y);
     const sSword = isMobile ? 1.4 : 2.2; 
     ctx.scale(sSword, sSword);
-    ctx.shadowBlur = 30; ctx.shadowColor = "#00ffff";
+    ctx.shadowBlur = 40; ctx.shadowColor = "#00ffff";
     ctx.fillStyle = "#fff";
     ctx.beginPath();
-    ctx.moveTo(0, 0); 
-    ctx.lineTo(-14, -25); ctx.lineTo(-14, -135); ctx.lineTo(0, -150); 
-    ctx.lineTo(14, -135); ctx.lineTo(14, -25);
-    ctx.fill();
+    ctx.moveTo(0, 0); ctx.lineTo(-14, -25); ctx.lineTo(-14, -135); ctx.lineTo(0, -150); ctx.lineTo(14, -135); ctx.lineTo(14, -25); ctx.fill();
     ctx.shadowBlur = 0; 
     ctx.fillStyle = "#00ffff";
     ctx.beginPath();
     ctx.moveTo(-35, -135); ctx.lineTo(-35, -145); ctx.lineTo(-10, -145); ctx.lineTo(-10, -155); 
-    ctx.lineTo(10, -155); ctx.lineTo(10, -145); ctx.lineTo(35, -145); ctx.lineTo(35, -135);
-    ctx.fill();
+    ctx.lineTo(10, -155); ctx.lineTo(10, -145); ctx.lineTo(35, -145); ctx.lineTo(35, -135); ctx.fill();
     ctx.fillStyle = "#fff";
     ctx.fillRect(-6, -180, 12, 25);
     ctx.beginPath();
-    ctx.moveTo(-10, -180); ctx.lineTo(-10, -190); ctx.lineTo(0, -200); ctx.lineTo(10, -190); ctx.lineTo(10, -180);
-    ctx.fill();
+    ctx.moveTo(-10, -180); ctx.lineTo(-10, -190); ctx.lineTo(0, -200); ctx.lineTo(10, -190); ctx.lineTo(10, -180); ctx.fill();
     ctx.restore();
 }
 
@@ -134,7 +123,7 @@ function draw() {
     ctx.save();
     ctx.translate(shakeX, shakeY);
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.35)'; 
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.4)'; 
     ctx.fillRect(-100, -100, w + 200, h + 200);
 
     const progress = time / duration;
@@ -144,8 +133,11 @@ function draw() {
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
             const dx = ap.x - centerX, dy = ap.y - centerY;
-            ap.x = centerX + Math.cos(Math.atan2(dy, dx) + ap.v * 0.005) * Math.hypot(dx, dy);
-            ap.y = centerY + Math.sin(Math.atan2(dy, dx) + ap.v * 0.005) * Math.hypot(dx, dy);
+            const dist = Math.hypot(dx, dy);
+            const ang = Math.atan2(dy, dx) + ap.v * 0.005;
+            ap.x = centerX + Math.cos(ang) * dist + ap.vx;
+            ap.y = centerY + Math.sin(ang) * dist + ap.vy;
+            ap.vx *= 0.94; ap.vy *= 0.94;
             ctx.fillStyle = `rgba(0, 255, 255, ${ap.a})`;
             ctx.beginPath(); ctx.arc(ap.x, ap.y, ap.r, 0, 6.28); ctx.fill();
         });
@@ -158,31 +150,30 @@ function draw() {
             tracers.forEach(tr => {
                 const trPos = getLemniscata(tr.t, scaleInf);
                 const dist = Math.hypot(p.curX - trPos.x, p.curY - trPos.y);
-                if (dist < 75) {
-                    const power = (75 - dist) * 0.1;
-                    if (tr.type === 'dark') { 
-                        p.vx += (p.curX - trPos.x) * (power * 0.035);
-                        p.vy += (p.curY - trPos.y) * (power * 0.035);
-                    } else { 
-                        p.vx += (targetPos.x - p.curX) * (power * 0.045);
-                        p.vy += (targetPos.y - p.curY) * (power * 0.045);
+                if (dist < 85) {
+                    const power = (85 - dist) * 0.25;
+                    if (tr.type === 'dark') { // Setsu
+                        p.vx += (p.curX - trPos.x) * (power * 0.05);
+                        p.vy += (p.curY - trPos.y) * (power * 0.05);
+                    } else { // Sét-su
+                        p.vx += (targetPos.x - p.curX) * (power * 0.08);
+                        p.vy += (targetPos.y - p.curY) * (power * 0.08);
                     }
                 }
             });
 
-            p.vx += (targetPos.x - p.curX) * 0.012;
-            p.vy += (targetPos.y - p.curY) * 0.012;
-            p.vx *= 0.94; p.vy *= 0.94;
+            p.vx += (targetPos.x - p.curX) * 0.015;
+            p.vy += (targetPos.y - p.curY) * 0.015;
+            p.vx *= 0.92; p.vy *= 0.92;
             p.curX += p.vx; p.curY += p.vy;
 
             const x = centerX + p.curX + Math.cos(p.orbitAng + time*0.002) * p.orbitRadius;
             const y = centerY + p.curY + Math.sin(p.orbitAng + time*0.002) * p.orbitRadius;
-            
             const currentR = p.r + Math.sin(p.pulse) * 1.5;
             ctx.fillStyle = '#fff';
             ctx.beginPath(); ctx.arc(x, y, currentR * 0.4, 0, 6.28); ctx.fill();
-            ctx.fillStyle = 'rgba(0, 255, 255, 0.4)';
-            ctx.beginPath(); ctx.arc(x, y, currentR * 1.8, 0, 6.28); ctx.fill();
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.5)';
+            ctx.beginPath(); ctx.arc(x, y, currentR * 2, 0, 6.28); ctx.fill();
         });
 
         ctx.globalCompositeOperation = 'source-over';
@@ -191,18 +182,18 @@ function draw() {
             const pos = getLemniscata(tr.t, scaleInf);
             const x = centerX + pos.x, y = centerY + pos.y;
             tr.history.push({x, y});
-            if (tr.history.length > 30) tr.history.shift();
+            if (tr.history.length > 35) tr.history.shift();
             
             tr.history.forEach((h, idx) => {
                 const p = idx / tr.history.length;
                 ctx.save();
                 if (tr.type === 'light') {
-                    ctx.lineWidth = 2 + (p * 8);
+                    ctx.lineWidth = 2 + (p * 12);
                     ctx.strokeStyle = `rgba(255, 255, 255, ${p * 0.7})`;
-                    ctx.shadowBlur = 10; ctx.shadowColor = "#fff";
+                    ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
                 } else {
-                    ctx.lineWidth = 3 + (p * 12);
-                    ctx.strokeStyle = `rgba(150, 150, 150, ${p * 0.4})`;
+                    ctx.lineWidth = 4 + (p * 18);
+                    ctx.strokeStyle = `rgba(200, 200, 200, ${p * 0.3})`;
                 }
                 ctx.beginPath();
                 const nextH = tr.history[idx + 1] || {x: x, y: y};
@@ -212,8 +203,8 @@ function draw() {
             });
 
             ctx.save();
-            ctx.shadowBlur = 20; ctx.shadowColor = tr.glow; ctx.fillStyle = tr.color;
-            ctx.beginPath(); ctx.arc(x, y, 7, 0, 6.28); ctx.fill();
+            ctx.shadowBlur = 25; ctx.shadowColor = tr.glow; ctx.fillStyle = tr.color;
+            ctx.beginPath(); ctx.arc(x, y, 8, 0, 6.28); ctx.fill();
             if (tr.type === 'dark') {
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
             }
@@ -225,14 +216,14 @@ function draw() {
         ctx.fillStyle = '#fff';
         infParticles.forEach(p => {
             const pos = getLemniscata(p.t, scaleInf * s);
-            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 2.5, 0, 6.28); ctx.fill();
+            ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 3, 0, 6.28); ctx.fill();
         });
     } 
     else {
         if (expParticles.length === 0) {
-            infParticles = []; ambientParticles = []; tracers = [];
-            for (let i = 0; i < 150; i++) {
-                const ang = Math.random() * 6.28, spd = Math.random() * (isMobile ? 35 : 65) + 20;
+            infParticles = []; tracers = [];
+            for (let i = 0; i < 180; i++) {
+                const ang = Math.random() * 6.28, spd = Math.random() * 45 + 25;
                 expParticles.push({ x: centerX, y: centerY, vx: Math.cos(ang)*spd, vy: Math.sin(ang)*spd, l: 1 });
             }
             sword.active = true;
@@ -240,52 +231,78 @@ function draw() {
 
         ctx.globalCompositeOperation = 'lighter';
         expParticles.forEach(p => {
-            const ox = p.x, oy = p.y;
-            p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; p.l -= 0.015;
+            p.x += p.vx; p.y += p.vy; p.vx *= 0.98; p.vy *= 0.98; p.l -= 0.012;
             if (p.l > 0) {
                 ctx.strokeStyle = `rgba(0, 255, 255, ${p.l})`; ctx.lineWidth = 6;
-                ctx.beginPath(); ctx.moveTo(ox, oy); ctx.lineTo(p.x, p.y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x-p.vx*1.5, p.y-p.vy*1.5); ctx.stroke();
             }
         });
 
         if (sword.active) {
             const groundY = centerY + (isMobile ? h*0.2 : 180);
             if (!sword.landed) {
-                sword.v += 4.5; sword.y += sword.v;
+                sword.v += 5; sword.y += sword.v;
                 if (sword.y >= groundY) {
                     sword.y = groundY; sword.landed = true; 
-                    sword.shockwave = 1; sword.shake = 45;
+                    sword.shake = 60;
+                    
+                    // --- GENERAR TRIPLE ONDA DE CHOQUE ---
+                    sword.shockwaves = [
+                        { r: 1, speed: 45, alpha: 1, width: 5 },
+                        { r: -100, speed: 38, alpha: 1, width: 3 }, // Retardo negativo para inicio desfasado
+                        { r: -200, speed: 30, alpha: 1, width: 2 }  // Tercer pulso
+                    ];
+
                     logoContainer.style.visibility = 'visible';
                     logoContainer.style.opacity = '1';
                     logoText.classList.add('glitch'); 
-                    setTimeout(() => logoText.classList.remove('glitch'), 600);
+                    
+                    ambientParticles.forEach(ap => {
+                        const dx = ap.x - centerX, dy = ap.y - groundY;
+                        const dist = Math.hypot(dx, dy);
+                        const force = (1200 - dist) * 0.12;
+                        if (force > 0) {
+                            ap.vx = (dx / dist) * force;
+                            ap.vy = (dy / dist) * force;
+                        }
+                    });
+                    setTimeout(() => logoText.classList.remove('glitch'), 800);
                 }
             }
             drawSword(sword.y);
             
             if (sword.landed) {
-                if (embers.length < 50) {
-                    const sideSpread = (Math.random() - 0.5) * (isMobile ? 100 : 160);
-                    embers.push({ baseX: centerX + sideSpread, y: groundY, vx: sideSpread * 0.02, vy: -Math.random() * 4 - 2, rBase: Math.random() * 5 + 3, angSeed: Math.random() * 20, l: 1 });
+                if (embers.length < 60) {
+                    const sideSpread = (Math.random() - 0.5) * (isMobile ? 120 : 180);
+                    embers.push({ baseX: centerX + sideSpread, y: groundY, vx: sideSpread * 0.02, vy: -Math.random() * 5 - 3, rBase: Math.random() * 6 + 3, angSeed: Math.random() * 20, l: 1 });
                 }
                 embers.forEach((eb, idx) => {
-                    eb.baseX += eb.vx; eb.y += eb.vy; eb.angSeed += 0.04; eb.l -= 0.006;
+                    eb.baseX += eb.vx; eb.y += eb.vy; eb.angSeed += 0.04; eb.l -= 0.005;
                     if (eb.l <= 0) { embers.splice(idx, 1); return; }
-                    const offset = Math.sin(time*0.01 + eb.angSeed) * 35 * (1-eb.l); 
+                    const offset = Math.sin(time*0.01 + eb.angSeed) * 45 * (1-eb.l); 
                     const curX = eb.baseX + offset;
                     ctx.fillStyle = `rgba(0, 255, 255, ${eb.l * 0.9})`;
-                    const curR = (eb.rBase + Math.sin(time*0.02 + eb.angSeed)*2) * eb.l;
+                    const curR = (eb.rBase + Math.sin(time*0.02 + eb.angSeed)*2.5) * eb.l;
                     ctx.beginPath(); ctx.arc(curX, eb.y, curR, 0, 6.28); ctx.fill();
                 });
-            }
 
-            if (sword.shockwave > 0) {
-                sword.shockwave += 35; 
-                const alpha = 1 - (sword.shockwave / (isMobile ? 450 : 850));
-                if (alpha > 0) {
-                    ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`; ctx.lineWidth = 4;
-                    ctx.beginPath(); ctx.ellipse(centerX, groundY, sword.shockwave, sword.shockwave/6, 0, 0, 6.28); ctx.stroke();
-                }
+                // --- DIBUJAR MÚLTIPLES ONDAS ---
+                sword.shockwaves.forEach((sw, idx) => {
+                    if (sw.alpha > 0) {
+                        sw.r += sw.speed;
+                        sw.alpha = 1 - (sw.r / (isMobile ? 500 : 950));
+                        
+                        if (sw.r > 0 && sw.alpha > 0) {
+                            ctx.save();
+                            ctx.strokeStyle = `rgba(255, 255, 255, ${sw.alpha})`;
+                            ctx.lineWidth = sw.width;
+                            ctx.beginPath();
+                            ctx.ellipse(centerX, groundY, sw.r, sw.r/6, 0, 0, 6.28);
+                            ctx.stroke();
+                            ctx.restore();
+                        }
+                    }
+                });
             }
         }
     }
