@@ -22,11 +22,14 @@
       text-align: center;
       overflow-x: hidden;
     }
-    /* 2. TÍTULO PRINCIPAL (H1) */
-h1 {
-    /* --- ESTRUCTURA Y PEGADO --- */
+
+    
+    
+/* --- CONTENEDOR DEL TÍTULO (EL BLOQUE NEGRO) --- */
+h1.main-title {
+    /* ESTRUCTURA Y PEGADO */
     margin: 0 !important;
-    padding: 140px 20px 40px 20px;
+    padding: 140px 20px 40px 20px; /* Tu padding original */
     display: block;
     width: 100vw;
     position: relative;
@@ -35,34 +38,36 @@ h1 {
     box-sizing: border-box;
     z-index: 10;
     
-    /* --- COLOR NEGRO ABSOLUTO (CORREGIDO) --- */
-    /* Usamos color sólido hexadecimal para que no haya transparencia */
+    /* NEGRO ABSOLUTO Y SÓLIDO */
     background-color: #000000 !important; 
-    
-    /* ELIMINAMOS el backdrop-filter porque es lo que lo vuelve morado */
     backdrop-filter: none !important; 
-    
-    /* Añadimos una sombra interna negra muy fuerte para absorber cualquier brillo */
     box-shadow: inset 0 0 100px #000000; 
 
-    /* --- BORDES Y NEONES --- */
+    /* BORDES */
     border-top: none !important;
     border-bottom: 2px solid rgba(160, 32, 240, 0.8);
+}
 
-    /* --- ESTILO DE TEXTO --- */
+/* --- ESTILO DEL TEXTO (EL BRILLO Y DEGRADADO) --- */
+.text-glow {
+    display: block;
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
     text-transform: uppercase;
     text-align: center;
+    
+    /* Efecto de degradado de David Rodríguez [cite: 2025-07-23] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
+    
+    /* Aplicamos las animaciones al texto */
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 }
 
-/* 3. ANIMACIONES */
+/* 3. ANIMACIONES (SE MANTIENEN IGUAL) */
 @keyframes gradientMove { 
     0% { background-position: 0% 50%; } 
     100% { background-position: 200% 50%; } 
@@ -290,7 +295,9 @@ h1 {
 <body id="mainBody">
   <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">...</div>
 
-  <h1>Infinite Art Games</h1> 
+  <h1 class="main-title">
+    <span class="text-glow">Infinite Art Games</span>
+  </h1> 
 
   <div class="container">
     <div class="poema">El arte es magia liberada de la mentira de ser verdad</div>
