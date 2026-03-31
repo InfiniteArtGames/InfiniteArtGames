@@ -63,8 +63,13 @@
 
     .controls { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
     
-    .btn-nav {
-          /* FONDO TITULO */
+    .btn-nav {  
+      background: linear-gradient(45deg, var(--primary), var(--accent));
+      color: white; border: none; padding: 12px 24px;
+      border-radius: 50px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
+      transition: 0.3s; box-shadow: 0 0 10px var(--primary);
+
+                /* FONDO TITULO */
 h1 {
   line-height: 1.5;
   margin: 60px 0;
@@ -81,11 +86,8 @@ h1 {
   position: relative;
   left: 50%;
   transform: translateX(-50%);
+
   
-      background: linear-gradient(45deg, var(--primary), var(--accent));
-      color: white; border: none; padding: 12px 24px;
-      border-radius: 50px; cursor: pointer; font-family: 'Orbitron'; font-weight: bold;
-      transition: 0.3s; box-shadow: 0 0 10px var(--primary);
     }
     .btn-nav:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--accent); }
 
