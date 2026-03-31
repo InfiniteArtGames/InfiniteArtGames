@@ -428,77 +428,8 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-let time = 0;
 
-// Fórmula exacta de la Lemniscata de la Intro
-function getLemniscata(t, scale) {
-    const d = Math.pow(Math.sin(t), 2) + 1;
-    return { 
-        x: (scale * Math.cos(t)) / d, 
-        y: (scale * Math.sin(t) * Math.cos(t)) / d 
-    };
-}
-
-function draw() {
-    requestAnimationFrame(draw);
-    if (!analyser) return;
-
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-    analyser.getByteFrequencyData(dataArray);
-    
-    // Promedio de audio para la "Turbulencia"
-    const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
-    
-    // Limpiamos con rastro (trail) para fluidez
-    ctx.fillStyle = 'rgba(5, 0, 16, 0.2)'; 
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    const centerX = canvas.width / 2;
-    const centerY = canvas.height / 2;
-    
-    // Escala base + Reacción al ritmo (Turbulencia)
-    const scale = (Math.min(canvas.width, canvas.height) * 0.3) + (avg * 0.6);
-    time += 0.02 + (avg * 0.001); // La velocidad aumenta con el ritmo
-
-    // 1. DIBUJAR EL RASTRO DE PARTÍCULAS AZULES (Cian)
-    for (let i = 0; i < 100; i++) {
-        const t = (i / 100) * Math.PI * 2;
-        const pos = getLemniscata(t, scale);
-        
-        // Turbulencia: vibración aleatoria basada en el volumen
-        const drift = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.2) : 0;
-        
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.6)'; // Cian de la intro
-        ctx.beginPath();
-        ctx.arc(centerX + pos.x + drift, centerY + pos.y + drift, 1.5, 0, 6.28);
-        ctx.fill();
-        
-        // Brillo (Glow) si el bajo es fuerte
-        if (avg > 50) {
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#00d4ff';
-        } else {
-            ctx.shadowBlur = 0;
-        }
-    }
-
-    // 2. DIBUJAR LAS 2 PARTÍCULAS NEGRAS GUÍAS (Como en la Intro)
-    // Una en el tiempo actual y otra en el opuesto
-    [time, time + Math.PI].forEach(tOffset => {
-        const p = getLemniscata(tOffset, scale);
-        
-        // Círculo Negro
-        ctx.fillStyle = '#000';
-        ctx.beginPath();
-        ctx.arc(centerX + p.x, centerY + p.y, 5, 0, 6.28);
-        ctx.fill();
-        
-        // Borde Cian para que se vea sobre el fondo
-        ctx.strokeStyle = '#00d4ff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    });
-}
+431
 
     function selectTrack(index) { 
       stopAudio(); 
