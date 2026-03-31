@@ -52,7 +52,7 @@ window.addEventListener('resize', () => { resize(); init(); });
 resize();
 
 let time = 0;
-const duration = 6500; 
+const duration = 8500; 
 let infParticles = [], tracers = [], expParticles = [], ambientParticles = [], embers = []; 
 let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0, transitionStarted: false };
 
@@ -127,7 +127,7 @@ function draw() {
     const progress = time / duration;
     const scaleInf = isMobile ? Math.min(w, h) * 0.35 : Math.min(w, h) * 0.38;
 
-    if (progress < 0.55) { 
+    if (progress < 0.35) { 
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
             const dx = ap.x - centerX, dy = ap.y - centerY;
