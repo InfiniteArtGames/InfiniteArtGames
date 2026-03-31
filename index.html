@@ -247,6 +247,25 @@ function draw() {
                 if (sword.y >= groundY) {
                     sword.y = groundY; sword.landed = true; 
                     sword.shake = 60;
+
+                    if (sword.landed && !sword.transitionStarted) {
+    sword.transitionStarted = true;  // bandera para no repetir
+
+    setTimeout(() => {
+        // Fade suave
+        canvas.style.transition = 'opacity 1.2s ease-out';
+        canvas.style.opacity = '0';
+        
+        logoContainer.style.transition = 'opacity 0.8s ease-out';
+        logoContainer.style.opacity = '0';
+        
+        document.body.style.transition = 'background 1.5s ease';
+        document.body.style.background = '#000';
+        
+        // Redirige cuando el fade termine
+        setTimeout(() => window.location.href = "index1.html", 1600);
+    }, 2500);  // 2.5s después del impacto —ajusta si quieres más/menos drama
+    }
                     
                     sword.shockwaves = [
                         { r: 1, speed: 45, alpha: 1, width: 5 },
@@ -313,23 +332,5 @@ function draw() {
 
 init();
 draw();
-// Al final del script, en vez del replace directo
-setTimeout(() => {
-    // Fade del canvas y logo
-    canvas.style.transition = 'opacity 1.2s ease-out';
-    canvas.style.opacity = '0';
-    
-    logoContainer.style.transition = 'opacity 1s ease-out';
-    logoContainer.style.opacity = '0';
-    
-    // Fondo negro total
-    document.body.style.transition = 'background 1.5s ease';
-    document.body.style.background = '#000';
-    
-    // Redirige después del fade
-    setTimeout(() => {
-        window.location.href = "index1.html";  // usa href, más natural
-    }, 1600);
-}, 18000);  // empieza fade a los 18s, total 20s aprox</script>
 </body>
 </html>
