@@ -127,7 +127,7 @@ function draw() {
     const progress = time / duration;
     const scaleInf = isMobile ? Math.min(w, h) * 0.35 : Math.min(w, h) * 0.38;
 
-    if (progress < 0.40) { 
+    if (progress < 0.50) { 
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
             const dx = ap.x - centerX, dy = ap.y - centerY;
