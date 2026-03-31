@@ -800,15 +800,18 @@ function iniciarMiniCarruseles() {
 }
 
 function abrirZoom(elemento) {
-  // Buscamos la imagen que tiene la clase 'active' dentro del cuadro donde hiciste clic
+  // BUSQUEDA CRÍTICA: Solo la imagen que tiene la clase 'active'
   const imagenVisible = elemento.querySelector('.mini-slides img.active');
   const visor = document.getElementById("miVisor");
   const imgExpandida = document.getElementById("imgExpandida");
 
-  if (imagenVisible) {
-    imgExpandida.src = imagenVisible.src; // Captura la foto exacta (ej. Shana o el Lobo)
-    visor.style.display = "flex"; // Muestra el visor centrado
-    document.body.style.overflow = "hidden"; // Bloquea el fondo para que no se mueva
+  if (imagenVisible && imgExpandida) {
+    // Forzamos la carga de la ruta
+    imgExpandida.src = imagenVisible.getAttribute('src'); 
+    visor.style.display = "flex";
+    document.body.style.overflow = "hidden";
+  } else {
+    console.error("No se encontró la imagen activa en este cuadro.");
   }
 }
 
