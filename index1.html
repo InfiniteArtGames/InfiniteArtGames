@@ -582,15 +582,26 @@ function draw() {
       audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
     }
 
-    function playNote(f, d) {
-      if (!audioCtx || isPaused) return;
-      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
-      g.gain.setValueAtTime(0.1, audioCtx.currentTime);
-      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
-      o.connect(analyser); o.connect(g); g.connect(audioCtx.destination);
-      o.start(); o.stop(audioCtx.currentTime + d);
-    }
+function playNote(f, d) {
+  if (!audioCtx || isPaused) return;
+  const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  
+  // Usamos 'sine' para la pureza de la ocarina
+  o.type = 'sine'; 
+  o.frequency.value = f;
+  
+  // Envolvente profesional: Soplido inicial y desvanecimiento épico
+  g.gain.setValueAtTime(0, audioCtx.currentTime);
+  g.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 0.08); // Ataque
+  g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d); // Caída
+  
+  o.connect(analyser); 
+  o.connect(g); 
+  g.connect(audioCtx.destination);
+  
+  o.start(); 
+  o.stop(audioCtx.currentTime + d);
+}
 
     /* VIDEOS Y CARRUSEL */
 
