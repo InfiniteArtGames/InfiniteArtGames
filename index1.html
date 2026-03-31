@@ -543,92 +543,49 @@ function draw() {
       togglePlay(); 
     }
 
-function togglePlay() {
-    initAudio();
-    const track = playlist[currentTrack];
-    
-    // Asegura que el audio se reactive si el navegador lo bloqueó
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-
-    if (!isPlaying) {
-        isPlaying = true; 
-        isPaused = false;
+    function togglePlay() {
+      initAudio();
+      const track = playlist[currentTrack];
+      if (!isPlaying) {
+        isPlaying = true; isPaused = false;
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
         document.getElementById('trackName').innerText = track.name;
-        
-        if (track.type === 'api') {
-            currentNote = 0; // Inicia siempre desde la primera nota
-            sequence(); 
-        } else { 
-            playerMP3.src = track.url; 
-            playerMP3.play(); 
-        }
-    } else {
+        if (track.type === 'api') sequence(); else { playerMP3.src = track.url; playerMP3.play(); }
+      } else {
         isPaused = !isPaused;
         document.getElementById('playBtn').innerText = isPaused ? "▶ RESUME" : "⏸ PAUSE";
-        
-        if (track.type === 'api') {
-            if (!isPaused) sequence(); 
-        } else { 
-            isPaused ? playerMP3.pause() : playerMP3.play(); 
-        }
+        if (track.type === 'api' && !isPaused) sequence(); else isPaused ? playerMP3.pause() : playerMP3.play();
+      }
     }
-}
 
-function stopAudio() {
-    isPlaying = false; 
-    isPaused = false; 
-    clearTimeout(audioTimeout); 
-    if(playerMP3) playerMP3.pause();
-    
-    document.getElementById('playBtn').innerText = "▶ PLAY";
-    document.getElementById('trackName').innerText = "SISTEMA LISTO";
-    currentNote = 0;
-    document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
-}
+    function stopAudio() {
+      isPlaying = false; isPaused = false; clearTimeout(audioTimeout); playerMP3.pause();
+      document.getElementById('playBtn').innerText = "▶ PLAY";
+      document.getElementById('trackName').innerText = "SISTEMA LISTO";
+      currentNote = 0;
+      document.querySelectorAll('.playlist-item').forEach(i => i.classList.remove('active'));
+    }
 
-function nextTrack() { selectTrack((currentTrack + 1) % playlist.length); }
-function prevTrack() { selectTrack((currentTrack - 1 + playlist.length) % playlist.length); }
+    function nextTrack() { selectTrack((currentTrack + 1) % playlist.length); }
+    function prevTrack() { selectTrack((currentTrack - 1 + playlist.length) % playlist.length); }
 
-function sequence() {
-    // Si la música se detiene o pausa, cortamos la ejecución
-    if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
-    
-    const melody = playlist[currentTrack].data;
-    const note = melody[currentNote];
+    function sequence() {
+      if (!isPlaying || isPaused || playlist[currentTrack].type !== 'api') return;
+      const melody = playlist[currentTrack].data;
+      playNote(melody[currentNote].f, melody[currentNote].d);
+      currentNote = (currentNote + 1) % melody.length;
+      audioTimeout = setTimeout(sequence, melody[currentNote].d * 1000);
+    }
 
-    // Reproduce la nota con el efecto de ocarina
-    playNote(note.f, note.d);
-
-    // Avanzamos a la siguiente nota y volvemos a empezar al terminar (Loop)
-    currentNote = (currentNote + 1) % melody.length;
-
-    // Programamos la siguiente nota basada en la duración de la actual
-    clearTimeout(audioTimeout);
-    audioTimeout = setTimeout(sequence, note.d * 1000);
-}
-
-function playNote(f, d) {
-    if (!audioCtx || isPaused) return;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    
-    // Onda 'sine' para el sonido de ocarina que te gusta
-    o.type = 'sine'; 
-    o.frequency.value = f;
-    
-    g.gain.setValueAtTime(0, audioCtx.currentTime);
-    g.gain.linearRampToValueAtTime(0.15, audioCtx.currentTime + 0.1); 
-    g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
-    
-    o.connect(analyser); 
-    o.connect(g); 
-    g.connect(audioCtx.destination);
-    
-    o.start(); 
-    o.stop(audioCtx.currentTime + d);
-}
+    function playNote(f, d) {
+      if (!audioCtx || isPaused) return;
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0.1, audioCtx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + d);
+      o.connect(analyser); o.connect(g); g.connect(audioCtx.destination);
+      o.start(); o.stop(audioCtx.currentTime + d);
+    }
   
   // Reiniciamos el contador de notas para que la próxima vez empiece desde el inicio
   currentNote = 0; 
