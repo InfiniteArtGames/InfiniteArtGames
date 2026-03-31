@@ -37,7 +37,7 @@
 
 /* 2. TÍTULO PRINCIPAL (H1) */
 h1 {
-    /* --- ESTILO TIPOGRÁFICO --- */
+    /* --- IDENTIDAD VISUAL --- */
     font-size: clamp(2.5em, 10vw, 5.5em);
     font-weight: 900;
     letter-spacing: 8px;
@@ -46,39 +46,39 @@ h1 {
     margin: 60px 0;
     padding: 120px 0;
     
-    /* Degradado del texto (Infinite Art Games) */
+    /* Animación de Sét-su [cite: 2025-09-06] */
     background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
     background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 
-    /* --- EL BLOQUE NEGRO ABSOLUTO --- */
+    /* --- BLOQUEO DE TRANSPARENCIA (CORRECCIÓN FINAL) --- */
     box-sizing: border-box;
     
-    /* Usamos color sólido, sin canal alfa (RGBA) para evitar errores de renderizado */
-    background-color: #000000 !important; 
+    /* Negro casi absoluto (0.01 de transparencia) */
+    background-color: rgba(0, 0, 0, 0.99) !important; 
     
-    /* Eliminamos el filtro de fondo que suele aclarar los oscuros */
+    /* FORZAR LA DESACTIVACIÓN DE FILTROS QUE ACLARAN EL NEGRO */
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
-    
-    /* Opacidad total del elemento */
-    opacity: 1 !important;
+    filter: none !important;
 
-    /* Bordes de neón definidos para Infinite Art Games [cite: 2025-07-23] */
-    border-top: 3px solid var(--primary);
-    border-bottom: 3px solid var(--primary);
+    /* Bordes de neón para Infinite Art Games [cite: 2025-07-23] */
+    border-top: 4px solid #a020f0; /* var(--primary) */
+    border-bottom: 4px solid #a020f0;
     
-    /* Ajuste de pantalla completa */
+    /* Posicionamiento para romper el contenedor y ser pantalla completa */
     width: 100vw;
     position: relative;
     left: 50%;
-    transform: translateX(-50%);
-    z-index: 10;
+    right: 50%;
+    margin-left: -50vw;
+    margin-right: -50vw;
+    z-index: 99; /* Asegura que esté por encima de cualquier otro efecto */
     
-    /* Sombra interna para "hundir" el negro y que no refleje nada */
-    box-shadow: inset 0 0 100px #000000;
+    /* Sombra interna para eliminar cualquier reflejo del fondo */
+    box-shadow: inset 0 0 150px #000, 0 0 30px rgba(0,0,0,1);
 }
 
 /* 3. ANIMACIONES */
