@@ -52,10 +52,11 @@ window.addEventListener('resize', () => { resize(); init(); });
 resize();
 
 let time = 0;
-// EXTENSIÓN DE TIEMPO: De 8500 a 11500 (+3 segundos totales)
 const duration = 8500; 
 let infParticles = [], tracers = [], expParticles = [], ambientParticles = [], embers = []; 
-let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0, transitionStarted: false };function init() {
+let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0, transitionStarted: false };
+
+function init() {
     infParticles = []; ambientParticles = []; tracers = []; embers = [];
     
     const countAmbient = isMobile ? 40 : 80;
@@ -126,7 +127,6 @@ function draw() {
     const progress = time / duration;
     const scaleInf = isMobile ? Math.min(w, h) * 0.35 : Math.min(w, h) * 0.38;
 
-    // FASE 1: Símbolo del Infinito (Ajustada para durar más proporción del tiempo)
     if (progress < 0.55) { 
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
@@ -209,7 +209,6 @@ function draw() {
             ctx.restore();
         });
     } 
-    // FASE 2: Transición (Contraer)
     else if (progress < 0.62) {
         const s = 1 - (progress - 0.55) * 14.2;
         ctx.fillStyle = '#fff';
@@ -218,7 +217,6 @@ function draw() {
             ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 3, 0, 6.28); ctx.fill();
         });
     } 
-    // FASE 3: Espada e Impacto
     else {
         if (expParticles.length === 0) {
             infParticles = []; tracers = [];
@@ -243,28 +241,28 @@ function draw() {
             if (!sword.landed) {
                 sword.v += 5; sword.y += sword.v;
                 if (sword.y >= groundY) {
-                    sword.y = groundY; sword.landed = true; 
+                    sword.y = groundY; 
+                    sword.landed = true; 
                     sword.shake = 60;
 
-                    if (sword.landed && !sword.transitionStarted) {
-    sword.transitionStarted = true;  // bandera para no repetir
+                    // Fade suave justo cuando la espada aterriza
+                    if (!sword.transitionStarted) {
+                        sword.transitionStarted = true;
 
-    setTimeout(() => {
-        // Fade suave
-        canvas.style.transition = 'opacity 1.2s ease-out';
-        canvas.style.opacity = '0';
-        
-        logoContainer.style.transition = 'opacity 0.8s ease-out';
-        logoContainer.style.opacity = '0';
-        
-        document.body.style.transition = 'background 1.5s ease';
-        document.body.style.background = '#000';
-        
-        // Redirige cuando el fade termine
-        setTimeout(() => window.location.href = "index1.html", 1600);
-    }, 2500);  // 2.5s después del impacto —ajusta si quieres más/menos drama
-    }
-                    
+                        setTimeout(() => {
+                            canvas.style.transition = 'opacity 1.2s ease-out';
+                            canvas.style.opacity = '0';
+                            
+                            logoContainer.style.transition = 'opacity 0.8s ease-out';
+                            logoContainer.style.opacity = '0';
+                            
+                            document.body.style.transition = 'background 1.5s ease';
+                            document.body.style.background = '#000';
+                            
+                            setTimeout(() => window.location.href = "index1.html", 1600);
+                        }, 2500);
+                    }
+
                     sword.shockwaves = [
                         { r: 1, speed: 45, alpha: 1, width: 5 },
                         { r: -100, speed: 38, alpha: 1, width: 3 }, 
@@ -330,5 +328,7 @@ function draw() {
 
 init();
 draw();
+
+</script>
 </body>
 </html>
