@@ -448,45 +448,42 @@ function draw() {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
-    // Limpiamos el canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    // Escala base que reacciona al pulso de la música
     const scale = (Math.min(canvas.width, canvas.height) * 0.35) + (avg * 0.4);
     
     time += 0.015 + (avg * 0.0005); 
 
-    // 1. PARTÍCULAS AZULES: Efecto Flotante y más Grandes
+    // 1. PARTÍCULAS AZULES FLOTANTES (REBELDES Y VISIBLES)
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 100; i++) { 
         const t = (i / 100) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // EFECTO FLOTANTE: Cada partícula tiene su propio "balanceo" espacial
-        // Usamos el índice 'i' para que cada una flote diferente
-        const floatX = Math.sin(time * 2 + i) * 8; 
-        const floatY = Math.cos(time * 2 + i) * 8;
+        // Efecto de flotación: cada partícula orbita levemente su posición original
+        const floatX = Math.sin(time * 0.5 + i) * 3;
+        const floatY = Math.cos(time * 0.5 + i) * 3;
         
-        // TURBULENCIA: Se vuelven "rebeldes" con el volumen fuerte
+        // Turbulencia reactiva al audio
         const shake = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.3) : 0;
         
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.8)'; // Cian vibrante
-        ctx.beginPath();
+        // Tamaño variado para dar profundidad (de 1.5 a 3.0)
+        const particleSize = 1.8 + Math.sin(i + time) * 0.8;
         
-        // TAMAÑO: Subido a 2.8 para que sea muy visible pero elegante
-        ctx.arc(centerX + pos.x + floatX + shake, centerY + pos.y + floatY + shake, 2.8, 0, 6.28);
+        ctx.fillStyle = `rgba(0, 212, 255, ${0.6 + Math.sin(time + i) * 0.2})`; 
+        ctx.beginPath();
+        ctx.arc(centerX + pos.x + floatX + shake, centerY + pos.y + floatY + shake, particleSize, 0, 6.28);
         ctx.fill();
 
-        // Glow dinámico
         if (avg > 40) {
             ctx.shadowBlur = 12;
             ctx.shadowColor = '#00d4ff';
         }
     }
 
-    // 2. SISTEMA DE HACES DE LUZ (Estelas de la Intro)
+    // 2. HACES DE LUZ (ESTELAS - EXACTO A LA INTRO)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
@@ -495,22 +492,29 @@ function draw() {
     
     if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Dibujar el haz Blanco (Luz)
+    // Trazo de Luz Blanco
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.lineWidth = 3;
     lightHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
-    // 3. CABEZAS GUÍAS (Blanca y Negra) [cite: 2025-09-06]
+    // Trazo de Sombra/Cian
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
+    ctx.lineWidth = 5;
+    darkHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
+    ctx.stroke();
+
+    // 3. CABEZAS MAESTRAS (SÉT-SU Y EL INFINITO) [cite: 2025-09-06]
     ctx.globalCompositeOperation = 'source-over';
     
-    // Guía Blanca con brillo fuerte
+    // Luz Blanca
     ctx.shadowBlur = 20; ctx.shadowColor = "#fff";
     ctx.fillStyle = "#fff";
     ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6.5, 0, 6.28); ctx.fill();
 
-    // Guía Negra con contorno (Sét-su) [cite: 2025-09-06]
+    // Lobo Negro / Oscuridad (Con borde blanco nítido) [cite: 2025-09-06]
     ctx.shadowBlur = 10; ctx.shadowColor = "#00d4ff";
     ctx.fillStyle = "#000";
     ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6.5, 0, 6.28); ctx.fill();
