@@ -432,6 +432,9 @@ let time = 0;
 let lightHistory = []; 
 let darkHistory = [];  
 
+// Pre-calculamos un array de tamaños para evitar cálculos aleatorios pesados en cada frame
+const particleSizes = Array.from({ length: 60 }, () => Math.random() * 2.5 + 1.2);
+
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
     return { 
@@ -448,76 +451,72 @@ function draw() {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
+    // Limpieza total para máxima nitidez
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    
-    // ESCALA AUMENTADA: Ahora ocupa más espacio visual (base 0.45)
     const scale = (Math.min(canvas.width, canvas.height) * 0.45) + (avg * 0.5);
     
     time += 0.015 + (avg * 0.0005); 
 
+    // 1. PARTÍCULAS REBELDES OPTIMIZADAS (Solo 60, pero variadas)
     ctx.globalCompositeOperation = 'lighter';
-
-    // 1. PARTÍCULAS AZULES MÁS VISIBLES (Grosor y Opacidad)
-    for (let i = 0; i < 100; i++) {
-        const t = (i / 100) * Math.PI * 2;
+    for (let i = 0; i < 60; i++) {
+        const t = (i / 60) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Turbulencia rebelde pero fluida
-        const shake = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.25) : 0;
+        // Desorden orgánico: Cada partícula tiene un "offset" único basado en el audio
+        const noise = (avg * 0.3);
+        const offX = Math.sin(time + i) * noise;
+        const offY = Math.cos(time + i) * noise;
         
-        // Color Cian más sólido y visible
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.85)'; 
         ctx.beginPath();
-        // Aumentamos el radio a 2.5 para que tengan "cuerpo"
-        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 2.5, 0, 6.28);
+        // Usamos los tamaños pre-calculados (algunas grandes, otras pequeñas)
+        ctx.arc(centerX + pos.x + offX, centerY + pos.y + offY, particleSizes[i], 0, 6.28);
         ctx.fill();
         
-        // Brillo (Glow) reforzado
-        if (avg > 35) {
-            ctx.shadowBlur = 10;
+        if (avg > 40 && i % 2 === 0) { // Solo aplicamos brillo a la mitad para ahorrar CPU
+            ctx.shadowBlur = 12;
             ctx.shadowColor = '#00d4ff';
         }
     }
 
-    // 2. ESTELAS DE LUZ (Haz de luz de la intro)
+    // 2. HACES DE LUZ (Estelas optimizadas)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
     lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
     darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
     
-    if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
+    if (lightHistory.length > 20) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Haz Blanco
+    // Dibujado de estelas con líneas simples (muy rápido)
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-    ctx.lineWidth = 5; // Más grueso
-    lightHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
+    lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
     ctx.stroke();
 
-    // Haz Negro/Cian (Dualidad de Sét-su) [cite: 2025-09-06]
+    ctx.lineWidth = 6;
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.2)';
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.4)';
-    ctx.lineWidth = 8; // Más presencia
-    darkHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
+    darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
     ctx.stroke();
 
-    // 3. CABEZAS GUÍAS
+    // 3. CABEZAS GUÍAS (Identidad de Sét-su) [cite: 2025-09-06]
     ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 15;
     
-    // Guía Blanca (Luz)
-    ctx.shadowBlur = 20; ctx.shadowColor = "#fff";
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 7, 0, 6.28); ctx.fill();
+    // Luz
+    ctx.shadowColor = "#fff"; ctx.fillStyle = "#fff";
+    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
 
-    // Guía Negra (Lobo de ojos rojos/Sét-su) [cite: 2025-09-06]
-    ctx.shadowBlur = 12; ctx.shadowColor = "#00d4ff";
-    ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 7, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
+    // Oscuridad
+    ctx.shadowColor = "#00d4ff"; ctx.fillStyle = "#000";
+    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
 
     ctx.shadowBlur = 0; 
 }
