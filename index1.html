@@ -428,10 +428,9 @@ window.addEventListener('click', function(e) {
       draw();
     }
 
-// Variables de rastro (mismo sistema que la intro para optimizar)
 let time = 0;
-let lightHistory = []; // Para el haz de luz blanco
-let darkHistory = [];  // Para el haz de luz negro
+let lightHistory = []; 
+let darkHistory = [];  
 
 function getLemniscata(t, scale) {
     const d = Math.pow(Math.sin(t), 2) + 1;
@@ -449,69 +448,73 @@ function draw() {
     analyser.getByteFrequencyData(dataArray);
     const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
     
-    // Limpieza rápida y eficiente
+    // Limpiamos el canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
+    // Escala base que reacciona al pulso de la música
     const scale = (Math.min(canvas.width, canvas.height) * 0.35) + (avg * 0.4);
     
-    // Velocidad controlada
     time += 0.015 + (avg * 0.0005); 
 
-    // 1. EL CUERPO DEL INFINITO (Partículas Azules - Cantidad Optimizada)
+    // 1. PARTÍCULAS AZULES: Efecto Flotante y más Grandes
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 100; i++) { // Bajamos a 100 para fluidez total
+    for (let i = 0; i < 100; i++) {
         const t = (i / 100) * Math.PI * 2;
         const pos = getLemniscata(t, scale);
         
-        // Turbulencia sutil pero visible
-        const shake = (avg > 35) ? (Math.random() - 0.5) * (avg * 0.2) : 0;
+        // EFECTO FLOTANTE: Cada partícula tiene su propio "balanceo" espacial
+        // Usamos el índice 'i' para que cada una flote diferente
+        const floatX = Math.sin(time * 2 + i) * 8; 
+        const floatY = Math.cos(time * 2 + i) * 8;
         
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.7)'; 
+        // TURBULENCIA: Se vuelven "rebeldes" con el volumen fuerte
+        const shake = (avg > 30) ? (Math.random() - 0.5) * (avg * 0.3) : 0;
+        
+        ctx.fillStyle = 'rgba(0, 212, 255, 0.8)'; // Cian vibrante
         ctx.beginPath();
-        ctx.arc(centerX + pos.x + shake, centerY + pos.y + shake, 1.8, 0, 6.28);
+        
+        // TAMAÑO: Subido a 2.8 para que sea muy visible pero elegante
+        ctx.arc(centerX + pos.x + floatX + shake, centerY + pos.y + floatY + shake, 2.8, 0, 6.28);
         ctx.fill();
+
+        // Glow dinámico
+        if (avg > 40) {
+            ctx.shadowBlur = 12;
+            ctx.shadowColor = '#00d4ff';
+        }
     }
 
-    // 2. SISTEMA DE HACES DE LUZ (ESTELAS)
+    // 2. SISTEMA DE HACES DE LUZ (Estelas de la Intro)
     const pL = getLemniscata(time, scale);
     const pD = getLemniscata(time + Math.PI, scale);
     
-    // Guardamos la posición actual en el historial
     lightHistory.push({x: centerX + pL.x, y: centerY + pL.y});
     darkHistory.push({x: centerX + pD.x, y: centerY + pD.y});
     
-    // Limitamos el historial a 25 frames para optimizar memoria (como en la intro)
     if (lightHistory.length > 25) { lightHistory.shift(); darkHistory.shift(); }
 
-    // Dibujar el haz de luz Blanco
+    // Dibujar el haz Blanco (Luz)
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+    ctx.lineWidth = 3;
     lightHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
     ctx.stroke();
 
-    // Dibujar el haz de luz Negro/Cian
-    ctx.beginPath();
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
-    ctx.lineWidth = 6;
-    darkHistory.forEach((h, i) => { i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y); });
-    ctx.stroke();
-
-    // 3. CABEZAS GUÍAS (Blanca y Negra)
+    // 3. CABEZAS GUÍAS (Blanca y Negra) [cite: 2025-09-06]
     ctx.globalCompositeOperation = 'source-over';
     
-    // Guía Blanca
-    ctx.shadowBlur = 15; ctx.shadowColor = "#fff";
+    // Guía Blanca con brillo fuerte
+    ctx.shadowBlur = 20; ctx.shadowColor = "#fff";
     ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
+    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6.5, 0, 6.28); ctx.fill();
 
-    // Guía Negra (Dualidad de Sét-su) [cite: 2025-09-06]
+    // Guía Negra con contorno (Sét-su) [cite: 2025-09-06]
     ctx.shadowBlur = 10; ctx.shadowColor = "#00d4ff";
     ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6.5, 0, 6.28); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke();
 
     ctx.shadowBlur = 0; 
 }
