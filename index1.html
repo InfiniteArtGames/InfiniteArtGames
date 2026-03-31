@@ -499,15 +499,24 @@ function draw() {
     // 3. CABEZAS GUÍAS (Blanca y Negra - Identidad de Sét-su) [cite: 2025-09-06]
     ctx.globalCompositeOperation = 'source-over';
     
-    // Luz Blanca
-    ctx.fillStyle = "#fff";
-    ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
+// 1. Haz de luz Blanco (Partícula de Luz)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)'; // Blanco semitransparente
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    lightHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
+    ctx.stroke();
 
-    // Oscuridad (Lobo Negro)
-    ctx.fillStyle = "#000";
-    ctx.beginPath(); ctx.arc(centerX + pD.x, centerY + pD.y, 6, 0, 6.28); ctx.fill();
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
-}
+    // 2. Haz de luz Cian (Partícula Negra/Setsu) [cite: 2025-09-06]
+    // Usamos un color cian eléctrico para que el rastro de la "oscuridad" sea visible
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.4)'; 
+    ctx.lineWidth = 6; // Un poco más grueso para que resalte
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
+    ctx.stroke();
 
     function selectTrack(index) { 
       stopAudio(); 
