@@ -100,13 +100,23 @@
     #activeGameFrame { width: 100%; height: 100%; border: none; }
 
     /* ESTILOS DE PLAYLIST Y RESALTADO */
-    .playlist-container { margin: 20px 0; text-align: left; }
-    .playlist-item {
-      padding: 12px; margin: 8px 0; background: rgba(255,255,255,0.05);
-      border-radius: 10px; cursor: pointer; transition: 0.3s; border-left: 3px solid transparent;
-    }
-    .playlist-item:hover { background: rgba(160, 32, 240, 0.2); border-left-color: var(--accent); }
-    .playlist-item.active { background: rgba(160, 32, 240, 0.4) !important; border-left: 4px solid var(--accent) !important; color: var(--accent); }
+.playlist-item {
+  font-size: 0.75em !important;   /* Esto hace la letra pequeña */
+  padding: 6px 10px;             /* Compacta el espacio */
+  margin: 4px 0;                /* Reduce la separación entre nombres */
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  transition: 0.3s;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+/* Efecto al pasar el mouse (opcional para estilo Sét-su) */
+.playlist-item:hover {
+  background: rgba(160, 32, 240, 0.2);
+  color: var(--accent);
+}
 
     /* SECCIÓN VIDEOS */
     .video-container {
