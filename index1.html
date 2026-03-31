@@ -799,12 +799,16 @@ function iniciarMiniCarruseles() {
   });
 }
 
-// 2. FUNCIÓN DE ZOOM CORREGIDA
 function abrirZoom(elemento) {
-  const imagenActiva = elemento.querySelector('.mini-slides img.active');
-  if (imagenActiva) {
-    document.getElementById("miVisor").style.display = "flex";
-    document.getElementById("imgExpandida").src = imagenActiva.src;
+  // Buscamos la imagen que tiene la clase 'active' dentro del cuadro donde hiciste clic
+  const imagenVisible = elemento.querySelector('.mini-slides img.active');
+  const visor = document.getElementById("miVisor");
+  const imgExpandida = document.getElementById("imgExpandida");
+
+  if (imagenVisible) {
+    imgExpandida.src = imagenVisible.src; // Captura la foto exacta (ej. Shana o el Lobo)
+    visor.style.display = "flex"; // Muestra el visor centrado
+    document.body.style.overflow = "hidden"; // Bloquea el fondo para que no se mueva
   }
 }
 
