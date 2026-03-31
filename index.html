@@ -52,7 +52,8 @@ window.addEventListener('resize', () => { resize(); init(); });
 resize();
 
 let time = 0;
-const duration = 8500; 
+// EXTENSIÓN DE TIEMPO: De 8500 a 11500 (+3 segundos totales)
+const duration = 10500; 
 let infParticles = [], tracers = [], expParticles = [], ambientParticles = [], embers = []; 
 let sword = { y: -1000, v: 0, active: false, landed: false, shockwaves: [], shake: 0 };
 
@@ -83,9 +84,7 @@ function init() {
     }
 
     tracers = [];
-    // Sét-su (Luz)
     tracers.push({ t: 0, speed: 0.07, dir: 1, history: [], color: '#fff', glow: '#fff', type: 'light' });
-    // Setsu (Sombra/Lobo)
     tracers.push({ t: Math.PI, speed: 0.07, dir: -1, history: [], color: '#000', glow: '#ffffff', type: 'dark' });
 }
 
@@ -129,7 +128,8 @@ function draw() {
     const progress = time / duration;
     const scaleInf = isMobile ? Math.min(w, h) * 0.35 : Math.min(w, h) * 0.38;
 
-    if (progress < 0.42) {
+    // FASE 1: Símbolo del Infinito (Ajustada para durar más proporción del tiempo)
+    if (progress < 0.55) { 
         ctx.globalCompositeOperation = 'source-over';
         ambientParticles.forEach(ap => {
             const dx = ap.x - centerX, dy = ap.y - centerY;
@@ -152,10 +152,10 @@ function draw() {
                 const dist = Math.hypot(p.curX - trPos.x, p.curY - trPos.y);
                 if (dist < 85) {
                     const power = (85 - dist) * 0.25;
-                    if (tr.type === 'dark') { // Setsu
+                    if (tr.type === 'dark') { 
                         p.vx += (p.curX - trPos.x) * (power * 0.05);
                         p.vy += (p.curY - trPos.y) * (power * 0.05);
-                    } else { // Sét-su
+                    } else { 
                         p.vx += (targetPos.x - p.curX) * (power * 0.08);
                         p.vy += (targetPos.y - p.curY) * (power * 0.08);
                     }
@@ -211,14 +211,16 @@ function draw() {
             ctx.restore();
         });
     } 
-    else if (progress < 0.5) {
-        const s = 1 - (progress - 0.42) * 12.5;
+    // FASE 2: Transición (Contraer)
+    else if (progress < 0.62) {
+        const s = 1 - (progress - 0.55) * 14.2;
         ctx.fillStyle = '#fff';
         infParticles.forEach(p => {
             const pos = getLemniscata(p.t, scaleInf * s);
             ctx.beginPath(); ctx.arc(centerX + pos.x, centerY + pos.y, 3, 0, 6.28); ctx.fill();
         });
     } 
+    // FASE 3: Espada e Impacto
     else {
         if (expParticles.length === 0) {
             infParticles = []; tracers = [];
@@ -246,11 +248,10 @@ function draw() {
                     sword.y = groundY; sword.landed = true; 
                     sword.shake = 60;
                     
-                    // --- GENERAR TRIPLE ONDA DE CHOQUE ---
                     sword.shockwaves = [
                         { r: 1, speed: 45, alpha: 1, width: 5 },
-                        { r: -100, speed: 38, alpha: 1, width: 3 }, // Retardo negativo para inicio desfasado
-                        { r: -200, speed: 30, alpha: 1, width: 2 }  // Tercer pulso
+                        { r: -100, speed: 38, alpha: 1, width: 3 }, 
+                        { r: -200, speed: 30, alpha: 1, width: 2 } 
                     ];
 
                     logoContainer.style.visibility = 'visible';
@@ -286,7 +287,6 @@ function draw() {
                     ctx.beginPath(); ctx.arc(curX, eb.y, curR, 0, 6.28); ctx.fill();
                 });
 
-                // --- DIBUJAR MÚLTIPLES ONDAS ---
                 sword.shockwaves.forEach((sw, idx) => {
                     if (sw.alpha > 0) {
                         sw.r += sw.speed;
@@ -313,7 +313,8 @@ function draw() {
 
 init();
 draw();
-setTimeout(() => window.location.replace("index1.html"), 12000);
+// AJUSTE REDIRECCIÓN: De 12000 a 15000 para compensar el tiempo extra
+setTimeout(() => window.location.replace("index1.html"), 15000);
 </script>
 </body>
 </html>
