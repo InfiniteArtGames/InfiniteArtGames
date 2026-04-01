@@ -60,9 +60,10 @@
   <h1 id="menu-title">⚽ INFINITE BALL</h1>
   <p class="tagline">Infinite Art Games - David Rodríguez</p>
   <div class="instructions-box">
-    • 🐺 <b>MODO PENALTIS:</b> 6 disparos por equipo. Solo arquero y tirador.<br>
-    • <b>MATCH:</b> Juego completo 6vs6.<br>
-    • Carga energía para usar el poder de Setsu.
+    • 🐺 <b>TIRO DEL LOBO:</b> Carga energía y desata el poder de Setsu.<br>
+    • Los atacantes liberan el área contraria (15px) para el saque del portero.<br>
+    • Saque de banda automático si sales de los límites.<br>
+    • Transición automática al segundo tiempo tras el descanso.
   </div>
   <div id="stadium-select">
     <button class="std-btn std-active" onclick="setStadium('#0a3', this)">Clásico</button>
@@ -70,8 +71,7 @@
     <button class="std-btn" onclick="setStadium('#222', this)">Urbano</button>
     <button class="std-btn" onclick="setStadium('#500', this)">Setsu Fuego</button>
   </div>
-  <button class="btn" id="main-btn" onclick="iniciarJuego('match')">PARTIDO COMPLETO</button>
-  <button class="btn btn-alt" style="background: #c00; color:#fff;" onclick="iniciarJuego('penalties')">MODO PENALTIS</button>
+  <button class="btn" id="main-btn" onclick="iniciarJuego()">PLAY</button>
   <button class="btn btn-alt" onclick="toggleOptions(true)">OPCIONES</button>
 </div>
 
@@ -102,9 +102,6 @@ const RADIO_POSTE = 6;
 let config = { controlMode: 'classic' }; 
 let width, height, scoreRed = 0, scoreBlue = 0, goalFlash = 0, throwInFlash = 0, halftimeFlash = 0;
 let gameRunning = false, timeLeft = 120, timerInterval, periodoActual = 1, colorEstadio = '#0a3';
-let gameMode = 'match'; // 'match' o 'penalties'
-let penaltisData = { turno: 'red', ronda: 1 };
-
 let pelota = { x:0, y:0, radio: RADIO_PELOTA, vx:0, vy:0, owner:null, lastTouchTeam: null };
 let equipoRojo = [], equipoAzul = [], porteroRojo, porteroAzul, jugadorActivo;
 let lastTapTime = 0, touchPos = { x: 0, y: 0 }, energia = 0, superTiroEfecto = 0, gkHoldTimer = 0, magnetCooldown = 0;
@@ -115,6 +112,7 @@ let postes = [];
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playBeep(f, d) { if (audioCtx.state === 'suspended') return; const o = audioCtx.createOscillator(), g = audioCtx.createGain(); o.type = 'square'; o.frequency.setValueAtTime(f, audioCtx.currentTime); g.gain.setValueAtTime(0.04, audioCtx.currentTime); g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d); o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d); }
 
+function toggleFullscreen() { if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); } else { document.exitFullscreen(); } }
 function toggleOptions(s) { document.getElementById('options-menu').style.display = s ? 'flex' : 'none'; document.getElementById('menu').style.display = s ? 'none' : 'flex'; }
 function setControl(m) { config.controlMode = m; document.getElementById('ctrl-classic').className = m === 'classic' ? 'btn std-active' : 'btn btn-alt'; document.getElementById('ctrl-pro').className = m === 'pro' ? 'btn std-active' : 'btn btn-alt'; }
 function setStadium(c, b) { colorEstadio = c; document.querySelectorAll('.std-btn').forEach(x => x.classList.remove('std-active')); b.classList.add('std-active'); }
@@ -127,57 +125,26 @@ function resize() {
 window.addEventListener('resize', resize);
 
 function resetPositions(completo = false) {
-  superTiroEfecto = 0; pelota.vx = pelota.vy = 0; pelota.owner = null; magnetCooldown = 0;
-  
-  if (gameMode === 'match') {
-    pelota.x = width/2; pelota.y = height/2;
-    const roles = ["def", "def", "def", "mid", "mid", "del"];
-    const coordsY = [height*0.32, height*0.50, height*0.68, height*0.40, height*0.60, height*0.50];
-    equipoRojo = roles.map((r, i) => ({ x: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i], homeX: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i], rol: r, team: "red", tRand: Math.random()*100 }));
-    equipoAzul = roles.map((r, i) => ({ x: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i], homeX: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i], rol: r, team: "blue", tRand: Math.random()*100 }));
-    porteroRojo = {x: 70, y: height/2, rol: "gk", team: "red", homeX: 70}; porteroAzul = {x: width-70, y: height/2, rol: "gk", team: "blue", homeX: width-70};
-    if (completo) { equipoRojo.forEach(j=>j.activo=false); jugadorActivo = equipoRojo[5]; jugadorActivo.activo = true; touchPos = {x: jugadorActivo.x, y: jugadorActivo.y}; }
-  } else {
-    // Modo Penaltis: Solo dos jugadores
-    equipoRojo = []; equipoAzul = [];
-    porteroRojo = {x: 70, y: height/2, rol: "gk", team: "red", homeX: 70}; 
-    porteroAzul = {x: width-70, y: height/2, rol: "gk", team: "blue", homeX: width-70};
-    
-    if (penaltisData.turno === 'red') {
-      jugadorActivo = { x: width * 0.4, y: height/2, team: 'red', activo: true, rol: 'del' };
-      equipoRojo = [jugadorActivo];
-      pelota.x = jugadorActivo.x + 25; pelota.y = jugadorActivo.y;
-    } else {
-      jugadorActivo = { x: width * 0.6, y: height/2, team: 'blue', activo: true, rol: 'del' };
-      equipoAzul = [jugadorActivo];
-      pelota.x = jugadorActivo.x - 25; pelota.y = jugadorActivo.y;
-    }
-    pelota.owner = jugadorActivo;
-  }
+  pelota.x = width/2; pelota.y = height/2; pelota.vx = pelota.vy = 0; pelota.owner = null; magnetCooldown = 0; superTiroEfecto = 0;
+  const roles = ["def", "def", "def", "mid", "mid", "del"];
+  const coordsY = [height*0.32, height*0.50, height*0.68, height*0.40, height*0.60, height*0.50];
+  equipoRojo = roles.map((r, i) => ({ x: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i], homeX: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i], rol: r, team: "red", tRand: Math.random()*100 }));
+  equipoAzul = roles.map((r, i) => ({ x: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i], homeX: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i], rol: r, team: "blue", tRand: Math.random()*100 }));
+  porteroRojo = {x: 70, y: height/2, rol: "gk", team: "red", homeX: 70}; porteroAzul = {x: width-70, y: height/2, rol: "gk", team: "blue", homeX: width-70};
+  if (completo) { equipoRojo.forEach(j=>j.activo=false); jugadorActivo = equipoRojo[5]; jugadorActivo.activo = true; touchPos = {x: jugadorActivo.x, y: jugadorActivo.y}; }
 }
 
-function iniciarJuego(modo) { 
+function iniciarJuego() { 
     if (audioCtx.state === 'suspended') audioCtx.resume(); 
-    gameMode = modo;
     document.getElementById('menu').style.display = 'none'; 
     document.getElementById('analog-stick').style.display = config.controlMode === 'pro' ? 'block' : 'none'; 
     document.getElementById('btn-shoot').style.display = config.controlMode === 'pro' ? 'block' : 'none'; 
-    
-    scoreRed = scoreBlue = 0; 
-    energia = 0; actualizarBarra();
-    
-    if (modo === 'match') {
-      timeLeft = 120; periodoActual = 1;
-      document.getElementById('period-label').innerText = "1er TIEMPO";
-      if(timerInterval) clearInterval(timerInterval); 
-      timerInterval = setInterval(handleTimer, 1000);
-    } else {
-      penaltisData = { turno: 'red', ronda: 1 };
-      document.getElementById('period-label').innerText = "PENALTIS: 1 / 6";
-      if(timerInterval) clearInterval(timerInterval);
-    }
-    
-    gameRunning = true; resize(); loop(); 
+    if(periodoActual === 1) { scoreRed = scoreBlue = 0; } 
+    timeLeft = 120; energia = 0; actualizarBarra(); 
+    gameRunning = true; resize(); 
+    if(timerInterval) clearInterval(timerInterval); 
+    timerInterval = setInterval(handleTimer, 1000); 
+    loop(); 
 }
 
 function handleTimer() { 
@@ -187,23 +154,30 @@ function handleTimer() {
         document.getElementById('timer').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
     } else { 
         if(periodoActual === 1) {
-            gameRunning = false; halftimeFlash = 180; superTiroEfecto = 0;
-            periodoActual = 2; timeLeft = 120; 
+            gameRunning = false;
+            halftimeFlash = 180; 
+            superTiroEfecto = 0; // RESET DE SEGURIDAD PARA EL TIRO DEL LOBO
+            periodoActual = 2;
+            timeLeft = 120; 
             document.getElementById('period-label').innerText = "2do TIEMPO";
             resetPositions(true);
             setTimeout(() => { gameRunning = true; }, 3000);
         } else {
-            finalizarPartido();
+            let msg = scoreRed > scoreBlue ? "¡GANÓ EL EQUIPO ROJO!" : scoreBlue > scoreRed ? "¡GANÓ EL EQUIPO AZUL!" : "¡EMPATE!";
+            finalizarPartido(msg);
         }
     } 
 }
 
-function finalizarPartido() { 
-    gameRunning = false; clearInterval(timerInterval);
-    let msg = scoreRed > scoreBlue ? "¡GANÓ EL EQUIPO ROJO!" : scoreBlue > scoreRed ? "¡GANÓ EL EQUIPO AZUL!" : "¡EMPATE!";
+function finalizarPartido(m) { 
+    gameRunning = false; clearInterval(timerInterval); periodoActual = 1; 
+    superTiroEfecto = 0; // RESET DE SEGURIDAD PARA EL TIRO DEL LOBO
     document.getElementById('menu').style.display = 'flex'; 
-    document.getElementById('menu-title').innerText = msg;
+    document.getElementById('menu-title').innerText = m;
     document.getElementById('main-btn').innerText = "PLAY AGAIN";
+    document.getElementById('period-label').innerText = "1er TIEMPO"; 
+    document.getElementById('analog-stick').style.display = 'none'; 
+    document.getElementById('btn-shoot').style.display = 'none'; 
     resetPositions(true); 
 }
 
@@ -211,57 +185,44 @@ function actualizarBarra() { document.getElementById('energy-bar-fill').style.wi
 
 function handleThrowIn() {
     if (!gameRunning) return;
-    if (gameMode === 'penalties') { siguienteTurnoPenalti(); return; }
-    gameRunning = false; throwInFlash = 60; superTiroEfecto = 0;
+    gameRunning = false; throwInFlash = 60; 
+    superTiroEfecto = 0; // RESET DE SEGURIDAD PARA EL TIRO DEL LOBO
     playBeep(250, 0.3);
     const teamTaking = pelota.lastTouchTeam === "red" ? equipoAzul : equipoRojo;
     const taker = teamTaking.reduce((p, c) => Math.hypot(c.x-pelota.x, c.y-pelota.y) < Math.hypot(p.x-pelota.x, p.y-pelota.y) ? c : p);
-    setTimeout(() => { pelota.owner = taker; pelota.vx = 0; pelota.vy = 0; gameRunning = true; }, 1000);
-}
-
-function siguienteTurnoPenalti() {
-    gameRunning = false;
-    setTimeout(() => {
-      if (penaltisData.turno === 'red') {
-        penaltisData.turno = 'blue';
-      } else {
-        penaltisData.turno = 'red';
-        penaltisData.ronda++;
-      }
-      
-      if (penaltisData.ronda > 6) {
-        finalizarPartido();
-      } else {
-        document.getElementById('period-label').innerText = `PENALTIS: ${penaltisData.ronda} / 6`;
-        resetPositions();
-        gameRunning = true;
-      }
-    }, 1500);
+    let pushX = pelota.x < width/2 ? 10 : -10; let pushY = pelota.y < height/2 ? 20 : -20;
+    if (taker.team === "red") { equipoRojo.forEach(j => j.activo = false); taker.activo = true; jugadorActivo = taker; }
+    setTimeout(() => { pelota.owner = taker; pelota.x = taker.x + pushX; pelota.y = taker.y + pushY; pelota.vx = 0; pelota.vy = 0; gameRunning = true; }, 1000);
 }
 
 function collisionPinball(ball, obj, radioObj = RADIO_JUGADOR) {
   const dx = ball.x - obj.x, dy = ball.y - obj.y, dist = Math.hypot(dx, dy);
   if (obj.rol === "gk" && dist < 55 && magnetCooldown <= 0) { 
       ball.owner = obj; ball.vx = 0; ball.vy = 0; ball.lastTouchTeam = obj.team; 
-      superTiroEfecto = 0; 
-      if (gameMode === 'penalties') siguienteTurnoPenalti();
+      superTiroEfecto = 0; // RESET DE SEGURIDAD SI EL PORTERO LA ATRAPA
       return; 
   }
+  if (ball.owner && ball.owner.rol === "gk") return;
   if (dist < (radioObj + ball.radio)) {
     ball.lastTouchTeam = obj.team;
-    if (obj.activo || (obj.team === "blue" && !ball.owner)) { if (!ball.owner) { ball.owner = obj; return; } }
-    if (!ball.owner) { const nx = dx/dist, ny = dy/dist; ball.x = obj.x + nx*(ball.radio+radioObj+1); ball.y = obj.y + ny*(ball.radio+radioObj+1); ball.vx = (ball.vx-2*(ball.vx*nx+ball.vy*ny)*nx)*0.8; ball.vy = (ball.vy-2*(ball.vx*nx+ball.vy*ny)*ny)*0.8; }
+    if (obj.activo || obj.team === "blue" || (obj.team === "red" && !ball.owner)) { if (!ball.owner) { ball.owner = obj; return; } }
+    if (!ball.owner) { const nx = dx/dist, ny = dy/dist; ball.x = obj.x + nx*(ball.radio+radioObj+1); ball.y = obj.y + ny*(ball.radio+radioObj+1); const dot = ball.vx*nx + ball.vy*ny; ball.vx = (ball.vx-2*dot*nx)*0.8; ball.vy = (ball.vy-2*dot*ny)*0.8; }
   }
 }
 
 function dispararPelota(targetPoint = null) {
     if (pelota.owner === jugadorActivo) {
         let vx, vy, potencia = 35;
-        let tX = (targetPoint ? targetPoint.x : (jugadorActivo.team === 'red' ? width : 0));
-        let tY = (targetPoint ? targetPoint.y : height/2);
-        let d = Math.hypot(tX - jugadorActivo.x, tY - jugadorActivo.y);
-        vx = ((tX-jugadorActivo.x)/d)*potencia; vy = ((tY-jugadorActivo.y)/d)*potencia;
-        pelota.vx = vx; pelota.vy = vy; pelota.owner = null; energia = Math.min(100, energia + 15); actualizarBarra(); playBeep(300, 0.1);
+        if (config.controlMode === 'pro') {
+            if (joystick.active && (joystick.dir.x !== 0 || joystick.dir.y !== 0)) { vx = joystick.dir.x * potencia; vy = joystick.dir.y * potencia; }
+            else { let aX = (jugadorActivo.team === 'red' ? width : 0); let d = Math.hypot(aX-jugadorActivo.x, height/2-jugadorActivo.y); vx = ((aX-jugadorActivo.x)/d)*potencia; vy = ((height/2-jugadorActivo.y)/d)*potencia; }
+        } else {
+            let tX = (targetPoint ? targetPoint.x : (jugadorActivo.team === 'red' ? width : 0));
+            let tY = (targetPoint ? targetPoint.y : height/2);
+            let d = Math.hypot(tX - jugadorActivo.x, tY - jugadorActivo.y);
+            vx = ((tX-jugadorActivo.x)/d)*potencia; vy = ((tY-jugadorActivo.y)/d)*potencia;
+        }
+        pelota.vx = vx; pelota.vy = vy; pelota.owner = null; energia = Math.min(100, energia + 5); actualizarBarra(); playBeep(300, 0.1);
     }
 }
 
@@ -275,100 +236,122 @@ function activarSuperTiro() {
   }
 }
 
-const shootBtn = document.getElementById('btn-shoot');
+const stick = document.getElementById('analog-stick'), head = document.getElementById('stick-head'), shootBtn = document.getElementById('btn-shoot');
 shootBtn.addEventListener('touchstart', e => { e.preventDefault(); dispararPelota(); });
 canvas.addEventListener('touchstart', e => {
   if (!gameRunning) return;
   const t = e.touches[0], now = Date.now();
   let tp = null; equipoRojo.forEach(j => { if (Math.hypot(j.x-t.clientX, j.y-t.clientY) < 50) tp = j; });
-  if (tp && gameMode === 'match') { jugadorActivo.activo = false; tp.activo = true; jugadorActivo = tp; touchPos = {x: t.clientX, y: t.clientY}; }
+  if (tp) { jugadorActivo.activo = false; tp.activo = true; jugadorActivo = tp; touchPos = {x: t.clientX, y: t.clientY}; playBeep(800, 0.05); }
   else if (config.controlMode === 'classic') { if (pelota.owner === jugadorActivo && now - lastTapTime < 280) dispararPelota({x: t.clientX, y: t.clientY}); else touchPos = {x: t.clientX, y: t.clientY}; }
   lastTapTime = now;
 });
 canvas.addEventListener('touchmove', e => { if (gameRunning && config.controlMode === 'classic') touchPos = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
+stick.addEventListener('touchstart', e => { joystick.active = true; });
+stick.addEventListener('touchmove', e => { e.preventDefault(); const t = e.touches[0], b = stick.getBoundingClientRect(); const cX = b.left+b.width/2, cY = b.top+b.height/2; let dx = t.clientX-cX, dy = t.clientY-cY, d = Math.hypot(dx, dy), max = 40; if (d > max) { dx = (dx/d)*max; dy = (dy/d)*max; } head.style.transform = `translate(${dx}px, ${dy}px)`; joystick.dir = { x: dx/max, y: dy/max }; });
+stick.addEventListener('touchend', () => { head.style.transform = `translate(0, 0)`; joystick.dir = { x: 0, y: 0 }; joystick.active = false; });
 
 function actualizarIA() {
+  if (magnetCooldown > 0) magnetCooldown--;
   const todos = [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul];
+  const ownerGK = pelota.owner && pelota.owner.rol === "gk";
+  const AREA_1_BORDE = MARGEN_CAMPO + ANCHO_AREA; const AREA_2_BORDE = width - MARGEN_CAMPO - ANCHO_AREA;
+
   todos.forEach(j => {
-    if (j.activo && j.team === (gameMode === 'penalties' ? penaltisData.turno : 'red')) return;
+    if (j.activo && j.team === "red") return;
     if (j.rol === "gk") {
       j.x = j.homeX; j.y += (Math.max(height*0.28, Math.min(height*0.72, pelota.y)) - j.y) * 0.35;
       if (pelota.owner === j && ++gkHoldTimer > 80) {
-        if (gameMode === 'penalties') { siguienteTurnoPenalti(); return; }
-        pelota.vx = (j.team === "red" ? 22 : -22); pelota.owner = null; gkHoldTimer = 0; magnetCooldown = 60;
+        let miEquipo = (j.team === "red" ? equipoRojo : equipoAzul);
+        let target = miEquipo.reduce((p, c) => Math.hypot(c.x-j.x, c.y-j.y) < Math.hypot(p.x-j.x, p.y-j.y) ? c : p);
+        let d = Math.hypot(target.x-j.x, target.y-j.y); pelota.vx = ((target.x-j.x)/d)*22; pelota.vy = ((target.y-j.y)/d)*22;
+        pelota.owner = null; gkHoldTimer = 0; magnetCooldown = 60;
       }
       return;
     }
-    // IA básica para Match
-    if (gameMode === 'match' && j.team === 'blue') {
-      if (Math.hypot(pelota.x-j.x, pelota.y-j.y) < 300) { j.x += (pelota.x-j.x)*0.05; j.y += (pelota.y-j.y)*0.05; }
+    if (ownerGK && pelota.owner.team !== j.team) {
+        const MARGEN_ACECHO = 15;
+        if (pelota.owner.team === "red" && j.team === "blue" && j.x < AREA_1_BORDE + MARGEN_ACECHO) { j.x += 3.5; return; } 
+        else if (pelota.owner.team === "blue" && j.team === "red" && j.x > AREA_2_BORDE - MARGEN_ACECHO) { j.x -= 3.5; return; }
+    }
+    j.x = Math.max(MARGEN_CAMPO, Math.min(width-MARGEN_CAMPO, j.x)); j.y = Math.max(MARGEN_CAMPO, Math.min(height-MARGEN_CAMPO, j.y));
+    j.tRand += 0.02; let nX = Math.sin(j.tRand * 0.6) * 25, nY = Math.cos(j.tRand * 0.4) * 35;
+
+    if (pelota.owner === j) {
+      let aX = j.team === "blue" ? 0 : width;
+      let miEquipo = (j.team === "red" ? equipoRojo : equipoAzul);
+      let compaCercano = miEquipo.filter(c => c !== j).reduce((p, c) => Math.hypot(c.x-j.x, c.y-j.y) < Math.hypot(p.x-j.x, p.y-j.y) ? c : p);
+      if (Math.hypot(aX-j.x, height/2-j.y) > 400 && Math.random() < 0.015) {
+          let d = Math.hypot(compaCercano.x-j.x, compaCercano.y-j.y); pelota.vx = ((compaCercano.x-j.x)/d)*25; pelota.vy = ((compaCercano.y-j.y)/d)*25; pelota.owner = null; magnetCooldown = 30;
+      } else if (Math.hypot(aX-j.x, height/2-j.y) < 300) {
+        let d = Math.hypot(aX-j.x, height/2-j.y); pelota.vx = ((aX-j.x)/d)*32; pelota.vy = ((height/2-j.y)/d)*32; pelota.owner = null;
+      } else { j.x += (j.team==="blue"?-3.5:3.5); j.y += Math.sin(Date.now()*0.005)*2; }
+    } else {
+      const sortedRojo = [...equipoRojo].sort((a,b) => Math.hypot(a.x-pelota.x, a.y-pelota.y) - Math.hypot(b.x-pelota.x, b.y-pelota.y));
+      const sortedAzul = [...equipoAzul].sort((a,b) => Math.hypot(a.x-pelota.x, a.y-pelota.y) - Math.hypot(b.x-pelota.x, b.y-pelota.y));
+      const isPressing = (j.team === "red" ? sortedRojo.slice(0,3) : sortedAzul.slice(0,3)).includes(j);
+      if (pelota.owner && pelota.owner.team === j.team) {
+          let targetX = j.homeX; const ballInOppField = (j.team === "red" ? pelota.x > width/2 : pelota.x < width/2);
+          if (j.rol === "del") targetX = (j.team === "red" ? width*0.82 : width*0.18);
+          if (j.rol === "mid") targetX = (j.team === "red" ? width*0.60 : width*0.40);
+          if (j.rol === "def" && ballInOppField) { let push = (j.team === "red" ? 120 : -120); targetX = (j.team === 'red') ? Math.min(width/2-35, j.homeX+push) : Math.max(width/2+35, j.homeX+push); }
+          j.x += (targetX + nX - j.x) * 0.05; j.y += (j.homeY + nY - j.y) * 0.05;
+      } else {
+          if (isPressing && Math.hypot(pelota.x-j.x, pelota.y-j.y) < 450 && !ownerGK) { j.x += (pelota.x-j.x)*0.08; j.y += (pelota.y-j.y)*0.08; if (Math.hypot(pelota.x-j.x, pelota.y-j.y) < 22 && !pelota.owner && magnetCooldown <= 0) pelota.owner = j; }
+          else { let defLine = (j.team === "red" ? Math.min(width*0.45, j.homeX+50) : Math.max(width*0.55, j.homeX-50)); j.x += (defLine + nX - j.x) * 0.045; j.y += (j.homeY + nY - j.y) * 0.045; }
+      }
     }
   });
 }
 
 function loop() {
   if (!gameRunning) {
-      if (halftimeFlash > 0) { ctx.fillStyle = '#fff'; ctx.font = 'bold 40px Arial'; ctx.textAlign = 'center'; ctx.fillText('DESCANSO', width/2, height/2); halftimeFlash--; requestAnimationFrame(loop); return; }
-      if (throwInFlash > 0) { ctx.fillStyle = '#fff'; ctx.font = 'bold 40px Arial'; ctx.textAlign = 'center'; ctx.fillText('FUERA', width/2, height/2); throwInFlash--; requestAnimationFrame(loop); return; }
-      requestAnimationFrame(loop); return;
+      if (halftimeFlash > 0) { ctx.fillStyle = '#fff'; ctx.font = 'bold 50px Arial'; ctx.textAlign = 'center'; ctx.fillText('DESCANSO', width/2, height/2 - 20); ctx.font = 'bold 25px Arial'; ctx.fillText('PREPARANDO 2do TIEMPO...', width/2, height/2 + 40); halftimeFlash--; requestAnimationFrame(loop); return; }
+      if (throwInFlash > 0) { ctx.fillStyle = '#fff'; ctx.font = 'bold 50px Arial'; ctx.textAlign = 'center'; ctx.fillText('SAQUE DE BANDA', width/2, height/2); throwInFlash--; requestAnimationFrame(loop); return; }
+      return;
   }
 
-  // --- Lógica de Dibujo ---
   ctx.fillStyle = colorEstadio; ctx.fillRect(0,0,width,height);
   if (superTiroEfecto > 0) { ctx.fillStyle = 'rgba(0,0,0,0.85)'; ctx.fillRect(0,0,width,height); }
-  
-  // Limites del campo
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-  if (gameMode === 'match') {
-    ctx.strokeRect(MARGEN_CAMPO, MARGEN_CAMPO, width-MARGEN_CAMPO*2, height-MARGEN_CAMPO*2);
-    ctx.beginPath(); ctx.moveTo(width/2, MARGEN_CAMPO); ctx.lineTo(width/2, height-MARGEN_CAMPO); ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,0.6)'; ctx.lineWidth = 3;
+  ctx.strokeRect(MARGEN_CAMPO, MARGEN_CAMPO, width-MARGEN_CAMPO*2, height-MARGEN_CAMPO*2);
+  ctx.beginPath(); ctx.moveTo(width/2, MARGEN_CAMPO); ctx.lineTo(width/2, height-MARGEN_CAMPO); ctx.stroke();
+  ctx.beginPath(); ctx.arc(width/2, height/2, 80, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeRect(MARGEN_CAMPO, height*0.25, ANCHO_AREA, height*0.50); ctx.strokeRect(width-MARGEN_CAMPO-ANCHO_AREA, height*0.25, ANCHO_AREA, height*0.50);
+  ctx.fillStyle = '#fff'; postes.forEach(p => { ctx.beginPath(); ctx.arc(p.x, p.y, RADIO_POSTE, 0, Math.PI*2); ctx.fill(); });
+
+  if (config.controlMode === 'pro') {
+      jugadorActivo.x += joystick.dir.x * 7.5; jugadorActivo.y += joystick.dir.y * 7.5;
   } else {
-    // Media cancha en Penaltis
-    if (penaltisData.turno === 'red') {
-      ctx.strokeRect(MARGEN_CAMPO, MARGEN_CAMPO, width/2, height-MARGEN_CAMPO*2);
-    } else {
-      ctx.strokeRect(width/2, MARGEN_CAMPO, width/2-MARGEN_CAMPO, height-MARGEN_CAMPO*2);
-    }
+      let dX = touchPos.x-jugadorActivo.x, dY = touchPos.y-jugadorActivo.y, d = Math.hypot(dX, dY);
+      if (d > 5) { jugadorActivo.x += (dX/d)*Math.min(d*0.2, 11.5); jugadorActivo.y += (dY/d)*Math.min(d*0.2, 11.5); }
   }
 
-  // Movimiento Jugador
-  let dX = touchPos.x-jugadorActivo.x, dY = touchPos.y-jugadorActivo.y, d = Math.hypot(dX, dY);
-  if (d > 5) { jugadorActivo.x += (dX/d)*Math.min(d*0.2, 11); jugadorActivo.y += (dY/d)*Math.min(d*0.2, 11); }
-
-  // Pelota
   if (pelota.owner) { 
-    pelota.x = pelota.owner.x + (pelota.owner.team === "blue" ? -OFFSET_POSESION : OFFSET_POSESION); pelota.y = pelota.owner.y; 
+      pelota.x = pelota.owner.x + (pelota.owner.team === "blue" ? -OFFSET_POSESION : OFFSET_POSESION); pelota.y = pelota.owner.y; 
+      if (pelota.y < MARGEN_CAMPO || pelota.y > height-MARGEN_CAMPO) if (pelota.x > MARGEN_CAMPO && pelota.x < width-MARGEN_CAMPO) handleThrowIn();
   } else {
     pelota.x += pelota.vx; pelota.y += pelota.vy; pelota.vx *= 0.965; pelota.vy *= 0.965;
-    if (pelota.x < 0 || pelota.x > width) {
-        if (pelota.y > height*0.28 && pelota.y < height*0.72) {
-            if (pelota.x < width/2) scoreBlue++; else scoreRed++;
-            goalFlash = 60; playBeep(600, 0.3);
-            if (gameMode === 'penalties') siguienteTurnoPenalti(); else resetPositions();
-        } else {
-            handleThrowIn();
-        }
-    }
+    if (superTiroEfecto > 0) { for(let i=0; i<4; i++) particulas.push({ x: pelota.x, y: pelota.y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 1.0, color: Math.random()>0.5?'#f90':'#f20' }); }
+    postes.forEach(p => { let d = Math.hypot(pelota.x-p.x, pelota.y-p.y); if (d < RADIO_POSTE+RADIO_PELOTA) { let nx = (pelota.x-p.x)/d, ny = (pelota.y-p.y)/d; pelota.x = p.x + nx*(RADIO_POSTE+RADIO_PELOTA+1); pelota.y = p.y + ny*(RADIO_POSTE+RADIO_PELOTA+1); let dot = pelota.vx*nx+pelota.vy*ny; pelota.vx = (pelota.vx-2*dot*nx)*0.7; pelota.vy = (pelota.vy-2*dot*ny)*0.7; playBeep(150, 0.1); } });
+    if (pelota.y < MARGEN_CAMPO || pelota.y > height-MARGEN_CAMPO) { if (pelota.x > MARGEN_CAMPO && pelota.x < width-MARGEN_CAMPO) { pelota.y = Math.max(MARGEN_CAMPO, Math.min(height-MARGEN_CAMPO, pelota.y)); handleThrowIn(); } else { pelota.vy *= -0.8; pelota.y = Math.max(MARGEN_CAMPO, Math.min(height-MARGEN_CAMPO, pelota.y)); } }
+    if (pelota.x < 0 || pelota.x > width) if (!(pelota.y > height*0.28 && pelota.y < height*0.72)) resetPositions();
     [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul].forEach(o => collisionPinball(pelota, o));
   }
-
   actualizarIA();
-
-  // Render Jugadores
+  particulas.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life -= 0.02; if(p.life <= 0) particulas.splice(i, 1); ctx.fillStyle = p.color; ctx.globalAlpha = p.life; ctx.beginPath(); ctx.arc(p.x, p.y, 4*p.life, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1; });
   [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul].forEach(j => {
-    ctx.fillStyle = j.rol === "gk" ? '#ff0' : (j.team === "red" ? '#c00' : '#00f');
-    ctx.beginPath(); ctx.arc(j.x, j.y, RADIO_JUGADOR, 0, Math.PI*2); ctx.fill();
-    if (j.activo) { ctx.strokeStyle = '#0f0'; ctx.lineWidth = 3; ctx.stroke(); }
+    if (superTiroEfecto > 0 && j === jugadorActivo) { ctx.fillStyle = '#000'; ctx.shadowBlur = 30; ctx.shadowColor = '#f00'; }
+    else { ctx.fillStyle = j.rol === "gk" ? '#ff0' : (j.team === "red" ? '#c00' : '#00f'); }
+    if (j.activo) { if (superTiroEfecto <= 0) { ctx.shadowBlur = 20; ctx.shadowColor = '#0f0'; } ctx.beginPath(); ctx.arc(j.x, j.y, RADIO_JUGADOR, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke(); ctx.shadowBlur = 0; }
+    else { ctx.beginPath(); ctx.arc(j.x, j.y, RADIO_JUGADOR, 0, Math.PI*2); ctx.fill(); }
   });
-
-  ctx.fillStyle = '#eee'; ctx.beginPath(); ctx.arc(pelota.x, pelota.y, pelota.radio, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = superTiroEfecto > 0 ? '#ff0' : '#eee'; ctx.beginPath(); ctx.arc(pelota.x, pelota.y, pelota.radio, 0, Math.PI*2); ctx.fill();
   if (superTiroEfecto > 0) superTiroEfecto--;
-
-  // HUD
-  ctx.fillStyle = '#fff'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center';
-  ctx.fillText(`${scoreRed} - ${scoreBlue}`, width/2, 60);
-  if (goalFlash-- > 0) { ctx.font = 'bold 80px Arial'; ctx.fillStyle = '#f00'; ctx.fillText('¡GOL!', width/2, height/2); }
-
+  if (pelota.x < MARGEN_CAMPO && pelota.y > height*0.28 && pelota.y < height*0.72) { scoreBlue++; resetPositions(); goalFlash = 60; playBeep(600, 0.3); }
+  if (pelota.x > width-MARGEN_CAMPO && pelota.y > height*0.28 && pelota.y < height*0.72) { scoreRed++; resetPositions(); goalFlash = 60; playBeep(600, 0.3); }
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 30px Arial'; ctx.textAlign = 'center'; ctx.fillText(scoreRed + " - " + scoreBlue, width/2, 85);
+  if (goalFlash-- > 0) { ctx.font = 'bold 90px Arial'; ctx.fillStyle = '#f00'; ctx.fillText('¡GOL!', width/2, height/2); }
   requestAnimationFrame(loop);
 }
 resize();
