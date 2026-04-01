@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <title>Infinite Ball - Wolf Shot Fixed</title>
+  <title>Infinite Ball - Wolf Shot Stable</title>
   <style>
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     body { margin:0; padding:0; background:#000; overflow:hidden; font-family: 'Segoe UI', Arial, sans-serif; touch-action:none; width: 100vw; height: 100vh; }
@@ -33,12 +33,12 @@
     #ui-container { position: absolute; bottom: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
     #energy-bar-bg { width: 180px; height: 8px; background: rgba(0,0,0,0.6); border: 1.5px solid #fff; border-radius: 10px; overflow: hidden; }
     #energy-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #00f, #0ff); transition: width 0.3s; }
-    #btn-super { pointer-events: auto; display: none; background: #000; color: #f00; font-weight: bold; padding: 8px 18px; border-radius: 8px; border: 2px solid #f00; margin-bottom: 5px; animation: pulse 1s infinite; cursor: pointer; font-size: 0.9rem; }
+    #btn-super { pointer-events: auto; display: none; background: #000; color: #f00; font-weight: bold; padding: 8px 18px; border-radius: 8px; border: 2px solid #f00; margin-bottom: 5px; animation: wolfPulse 1s infinite; cursor: pointer; font-size: 0.9rem; }
     
     #analog-stick { position: absolute; bottom: 30px; left: 40px; width: 110px; height: 110px; background: rgba(255,255,255,0.08); border: 2px solid rgba(255,255,255,0.2); border-radius: 50%; display: none; pointer-events: auto; }
-    #stick-head { position: absolute; top: 30px; left: 30px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; }
+    #stick-head { position: absolute; top: 30px; left: 30px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border: 2px solid rgba(255,255,255,0.6); border-radius: 50%; }
     #btn-shoot { position: absolute; bottom: 40px; right: 40px; width: 85px; height: 85px; background: rgba(255,0,0,0.3); border: 4px solid rgba(255,0,0,0.6); border-radius: 50%; display: none; pointer-events: auto; color: white; font-weight: bold; font-size: 1.1rem; }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    @keyframes wolfPulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
   </style>
 </head>
 <body>
@@ -60,10 +60,10 @@
   <h1 id="menu-title">⚽ INFINITE BALL</h1>
   <p class="tagline">Infinite Art Games - David Rodríguez</p>
   <div class="instructions-box">
-    • 🐺 <b>TIRO DEL LOBO:</b> Carga energía y desata el poder de Setsu.<br>
-    • Atacantes liberan el área contraria (15px) para el saque del portero.<br>
-    • Salir por la banda con el balón pita Saque Lateral.<br>
-    • Transición automática al segundo tiempo tras el descanso.
+    • 🐺 <b>TIRO DEL LOBO:</b> Carga energía y desata el instinto de Setsu.<br>
+    • Los atacantes liberan el área contraria para el saque del portero.<br>
+    • Saque lateral automático si sales por la banda.<br>
+    • Transición automática al 2do tiempo tras el descanso.
   </div>
   <div id="stadium-select">
     <button class="std-btn std-active" onclick="setStadium('#0a3', this)">Clásico</button>
@@ -77,7 +77,7 @@
 
 <div id="options-menu">
     <h2 style="color: #0f0;">CONFIGURACIÓN</h2>
-    <div style="display:flex; gap:10px; margin-bottom: 20px;">
+    <div style="display:flex; gap:15px; margin-bottom: 20px;">
         <button id="ctrl-classic" class="btn std-active" onclick="setControl('classic')">TOUCH</button>
         <button id="ctrl-pro" class="btn btn-alt" onclick="setControl('pro')">PRO (JOYSTICK)</button>
     </div>
@@ -147,7 +147,7 @@ function iniciarJuego() {
     loop(); 
 }
 
-// CORRECCIÓN BLINDADA DE TIEMPOS
+// IMPLEMENTACIÓN DE LA SOLUCIÓN TÉCNICA
 function handleTimer() { 
     if(timeLeft > 0) {
         timeLeft--; 
@@ -155,13 +155,18 @@ function handleTimer() {
         document.getElementById('timer').innerText = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
     } else { 
         if(periodoActual === 1) {
+            // TRANSICIÓN AL SEGUNDO TIEMPO
             gameRunning = false;
             halftimeFlash = 180; 
             periodoActual = 2;
+            timeLeft = 120; // Reinicio inmediato del valor
             document.getElementById('period-label').innerText = "2do TIEMPO";
             resetPositions(true);
-            setTimeout(() => { timeLeft = 120; gameRunning = true; }, 3000);
+            setTimeout(() => { 
+                gameRunning = true; 
+            }, 3000);
         } else {
+            // FINALIZACIÓN TOTAL
             let msg = scoreRed > scoreBlue ? "¡GANÓ EL EQUIPO ROJO!" : scoreBlue > scoreRed ? "¡GANÓ EL EQUIPO AZUL!" : "¡EMPATE!";
             finalizarPartido(msg);
         }
@@ -181,14 +186,12 @@ function finalizarPartido(m) {
 
 function actualizarBarra() { document.getElementById('energy-bar-fill').style.width = energia + "%"; document.getElementById('btn-super').style.display = energia >= 100 ? "block" : "none"; }
 
-// CORRECCIÓN LOOP SAQUE DE BANDA
 function handleThrowIn() {
     if (!gameRunning) return;
     gameRunning = false; throwInFlash = 60; playBeep(250, 0.3);
     const teamTaking = pelota.lastTouchTeam === "red" ? equipoAzul : equipoRojo;
     const taker = teamTaking.reduce((p, c) => Math.hypot(c.x-pelota.x, c.y-pelota.y) < Math.hypot(p.x-pelota.x, p.y-pelota.y) ? c : p);
     
-    // Empujar la pelota hacia adentro para evitar loop
     let pushX = pelota.x < width/2 ? 10 : -10;
     let pushY = pelota.y < height/2 ? 20 : -20;
     
