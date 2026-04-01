@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Infinite Ball - Física Real</title>
+  <style>
+    body { margin:0; padding:0; background:#222; overflow:hidden; font-family: Arial, sans-serif; touch-action:none; }
+    canvas { display:block; width:100%; height:100vh; }
+    #menu {
+      position: absolute; top:0; left:0; width:100%; height:100%;
+      background: rgba(0,20,10,0.95); color:white; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; z-index:100;
+    }
+    .btn {
+      background:#0f0; color:#000; font-size:1.6rem; font-weight:bold;
+      padding:15px 40px; border:none; border-radius:50px; margin:10px;
+      box-shadow:0 6px 0 #0a0; cursor:pointer;
+    }
+    #stadium-select { margin: 15px; display: flex; gap: 10px; }
+    .std-btn { padding: 10px; border-radius: 10px; border: 2px solid #fff; cursor: pointer; background: #444; color: #fff; }
+    .std-active { border-color: #0f0; background: #1a1; }
+    
+    #ui-container { position: absolute; bottom: 20px; width: 100%; display: flex; flex-direction: column; align-items: center; pointer-events: none; }
+    #energy-bar-bg { width: 250px; height: 12px; background: rgba(0,0,0,0.5); border: 2px solid #fff; border-radius: 10px; overflow: hidden; }
+    #energy-bar-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #00f, #0ff); transition: width 0.3s; }
+    #btn-super { 
+      pointer-events: auto; display: none; background: #000; color: #f00; font-weight: bold; 
+      padding: 12px 25px; border-radius: 10px; border: 3px solid #f00; margin-bottom: 8px;
+      animation: pulse 1s infinite; cursor: pointer;
+    }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    #hud { position: absolute; top: 15px; width: 100%; display: flex; flex-direction: column; align-items: center; color: white; text-shadow: 2px 2px #000; z-index: 50; }
+    #timer { font-size: 2.2rem; font-weight: bold; }
+    #period { font-size: 1rem; color: #0f0; }
+  </style>
+</head>
+<body>
+
+<div id="hud">
+  <div id="timer">02:00</div>
+  <div id="period">1er TIEMPO</div>
+</div>
+
+<div id="ui-container">
+  <button id="btn-super" onclick="activarSuperTiro()">⚡ FLASH SHOT</button>
+  <div id="energy-bar-bg"><div id="energy-bar-fill"></div></div>
+</div>
+
+<div id="menu">
+  <h1 id="menu-title">⚽ INFINITE BALL</h1>
+  <div id="stadium-select">
+    <button class="std-btn std-active" onclick="setStadium('#0a3', this)">Clásico</button>
+    <button class="std-btn" onclick="setStadium('#042', this)">Nocturno</button>
+    <button class="std-btn" onclick="setStadium('#555', this)">Urbano</button>
+    <button class="std-btn" onclick="setStadium('#611', this)">Setsu Fuego</button>
+  </div>
+  <button class="btn" onclick="iniciarJuego()">PLAY</button>
+  <p>Infinite Art Games - David Rodríguez</p>
+</div>
+
+<canvas id="c"></canvas>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+
+let width, height, scoreRed = 0, scoreBlue = 0, goalFlash = 0;
+let gameRunning = false, timeLeft = 120, timerInterval;
+let periodoActual = 1;
+let colorEstadio = '#0a3';
+
+let pelota = { x:0, y:0, radio:22, vx:0, vy:0, owner:null };
+let equipoRojo = [], equipoAzul = [], porteroRojo, porteroAzul, jugadorActivo;
+let lastTapTime = 0, touchPos = { x: 0, y: 0 };
+let energia = 0, superTiroEfecto = 0, gkHoldTimer = 0, magnetCooldown = 0; 
+let particulas = [];
+
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function playBeep(freq, duration) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+function setStadium(color, btn) {
+  colorEstadio = color;
+  document.querySelectorAll('.std-btn').forEach(b => b.classList.remove('std-active'));
+  btn.classList.add('std-active');
+}
+
+function resize() {
+  width = canvas.width = window.innerWidth;
+  height = canvas.height = window.innerHeight;
+  resetPositions(true);
+}
+window.addEventListener('resize', resize);
+
+function resetPositions(completo = false) {
+  pelota.x = width/2; pelota.y = height/2;
+  pelota.vx = pelota.vy = 0; pelota.owner = null;
+  magnetCooldown = 0; particulas = [];
+  const roles = ["def", "def", "def", "mid", "mid", "del"];
+  const coordsY = [height*0.32, height*0.50, height*0.68, height*0.40, height*0.60, height*0.50];
+  equipoRojo = roles.map((r, i) => ({
+    x: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i],
+    homeX: (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i],
+    rol: r, activo: false, team: "red", estado: "home"
+  }));
+  equipoAzul = roles.map((r, i) => ({
+    x: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), y: coordsY[i],
+    homeX: width - (i<3?width*0.18 : i<5?width*0.32 : width*0.42), homeY: coordsY[i],
+    rol: r, activo: false, team: "blue", estado: "home"
+  }));
+  porteroRojo = {x: 95, y: height/2, rol: "gk", team: "red", homeX: 95};
+  porteroAzul = {x: width-95, y: height/2, rol: "gk", team: "blue", homeX: width-95};
+  if (completo) { jugadorActivo = equipoRojo[5]; jugadorActivo.activo = true; touchPos = { x: jugadorActivo.x, y: jugadorActivo.y }; }
+}
+
+function iniciarJuego() {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  playBeep(440, 0.4);
+  document.getElementById('menu').style.display = 'none';
+  if(periodoActual === 1) { scoreRed = 0; scoreBlue = 0; }
+  timeLeft = 120; energia = 0;
+  actualizarBarra();
+  gameRunning = true; resize();
+  if(timerInterval) clearInterval(timerInterval);
+  timerInterval = setInterval(handleTimer, 1000);
+  loop();
+}
+
+function handleTimer() {
+  if(timeLeft > 0) { timeLeft--; } else {
+    if(periodoActual === 1) finalizarTanda("DESCANSO", 2);
+    else finalizarTanda(scoreRed > scoreBlue ? "¡GANÓ ROJO!" : "¡GANÓ AZUL!", 1);
+  }
+}
+
+function finalizarTanda(mensaje, sigPeriodo) {
+  gameRunning = false;
+  clearInterval(timerInterval);
+  periodoActual = sigPeriodo;
+  document.getElementById('menu').style.display = 'flex';
+  document.getElementById('menu-title').innerText = mensaje;
+  document.getElementById('period').innerText = periodoActual === 1 ? "1er TIEMPO" : "2do TIEMPO";
+  resetPositions(true);
+}
+
+function actualizarBarra() {
+  document.getElementById('energy-bar-fill').style.width = energia + "%";
+  document.getElementById('btn-super').style.display = energia >= 100 ? "block" : "none";
+}
+
+function activarSuperTiro() {
+  if (pelota.owner === jugadorActivo && energia >= 100) {
+    superTiroEfecto = 120;
+    const arcoX = width;
+    const dx = arcoX - jugadorActivo.x, dy = height/2 - jugadorActivo.y, d = Math.hypot(dx, dy);
+    pelota.vx = (dx/d)*60; pelota.vy = (dy/d)*60; pelota.owner = null;
+    energia = 0; actualizarBarra(); playBeep(100, 1);
+  }
+}
+
+function collisionPinball(ball, obj, radioObj = 29) {
+  const dx = ball.x - obj.x, dy = ball.y - obj.y, dist = Math.hypot(dx, dy);
+  
+  // REGLA DE CHOQUE FRONTAL: Si el portador choca con un rival
+  if (ball.owner && ball.owner.team !== obj.team && dist < (radioObj + 20)) {
+      ball.owner = null;
+      ball.vx = (dx / dist) * 10;
+      ball.vy = (dy / dist) * 10;
+      playBeep(200, 0.1);
+      return;
+  }
+
+  if (ball.owner && ball.owner.rol === "gk" && ball.owner !== obj) return;
+  
+  let radioAbs = (obj.rol === "gk" && magnetCooldown <= 0) ? 70 : radioObj + ball.radio;
+  if (dist < radioAbs) {
+    if (obj.rol === "gk" && Math.random() > 0.75 && !ball.owner) { magnetCooldown = 30; playBeep(200, 0.1); }
+    else if (obj.rol === "gk" || obj.activo || obj.team === "blue" || (obj.team === "red" && !ball.owner)) {
+      if (!ball.owner) {
+        ball.owner = obj; gkHoldTimer = 0; 
+        if (obj.rol === "gk") { energia = Math.min(100, energia + 15); actualizarBarra(); playBeep(300, 0.1); }
+        return;
+      }
+    }
+    if (!ball.owner) {
+        const nx = dx / dist, ny = dy / dist;
+        ball.x = obj.x + nx * (ball.radio + radioObj + 5); 
+        ball.y = obj.y + ny * (ball.radio + radioObj + 5);
+        const dot = ball.vx * nx + ball.vy * ny;
+        ball.vx = (ball.vx - 2*dot*nx) * 1.38; ball.vy = (ball.vy - 2*dot*ny) * 1.38;
+    }
+  }
+}
+
+canvas.addEventListener('touchstart', e => {
+  if (!gameRunning) return;
+  const t = e.touches[0]; const now = Date.now();
+  if (pelota.owner === jugadorActivo && now - lastTapTime < 280) {
+    const dx = t.clientX - jugadorActivo.x, dy = t.clientY - jugadorActivo.y, d = Math.hypot(dx, dy);
+    pelota.vx = (dx/d)*28; pelota.vy = (dy/d)*28; pelota.owner = null;
+  } else {
+    equipoRojo.forEach(j => { if (Math.hypot(j.x - t.clientX, j.y - t.clientY) < 60) {
+      jugadorActivo.activo = false; j.activo = true; jugadorActivo = j; touchPos = {x: t.clientX, y: t.clientY};
+    }});
+  }
+  lastTapTime = now;
+});
+
+canvas.addEventListener('touchmove', e => { if (gameRunning) touchPos = { x: e.touches[0].clientX, y: e.touches[0].clientY }; });
+
+function actualizarIA() {
+  if (magnetCooldown > 0) magnetCooldown--; 
+  const todos = [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul];
+  todos.forEach(j => {
+    if (j.activo && j.team === "red") return;
+    if (j.rol === "gk") {
+      j.x = j.homeX; const ty = Math.max(height*0.3, Math.min(height*0.7, pelota.y));
+      j.y += (ty - j.y) * 0.35; 
+      if (pelota.owner === j) {
+        gkHoldTimer++;
+        if (gkHoldTimer > 110) { 
+           const target = (j.team === "red") ? equipoRojo[3] : equipoAzul[3];
+           const dx = target.x - j.x, dy = target.y - j.y, d = Math.hypot(dx, dy);
+           pelota.vx = (dx/d)*18; pelota.vy = (dy/d)*18; pelota.owner = null;
+           gkHoldTimer = 0; magnetCooldown = 90; 
+        }
+      }
+      return; 
+    }
+    if (pelota.owner === j) {
+      if (j.rol === "def") {
+          const equipo = (j.team === "red") ? equipoRojo : equipoAzul;
+          const target = equipo[5]; const dx = target.x - j.x, dy = target.y - j.y, d = Math.hypot(dx, dy);
+          gkHoldTimer++;
+          if (gkHoldTimer > 40) { pelota.vx = (dx/d)*16; pelota.vy = (dy/d)*16; pelota.owner = null; gkHoldTimer = 0; magnetCooldown = 60; }
+      } else {
+          j.x += (j.team === "blue" ? -3.5 : 3.5);
+          const arcoX = (j.team === "blue" ? 0 : width);
+          if (Math.hypot(arcoX - j.x, height/2 - j.y) < 400) {
+            const dx = arcoX - j.x, dy = height/2 - j.y, d = Math.hypot(dx, dy);
+            pelota.vx = (dx/d)*28; pelota.vy = (dy/d)*28; pelota.owner = null;
+          }
+      }
+    } else {
+      const distBall = Math.hypot(pelota.x - j.x, pelota.y - j.y);
+      const equipoTienePelota = pelota.owner && pelota.owner.team === j.team;
+      if (equipoTienePelota) {
+        if (j.rol === "def") { let tx = j.homeX + (j.team === "red" ? width*0.15 : -width*0.15); j.x += (tx - j.x) * 0.04; j.y += (j.homeY - j.y) * 0.04; }
+        else { const distP = Math.hypot(pelota.owner.x-j.x, pelota.owner.y-j.y); if(distP<160) {j.x-=(pelota.owner.x-j.x)*0.03;j.y-=(pelota.owner.y-j.y)*0.03;} else if(distP>280) {j.x+=(pelota.owner.x-j.x)*0.03;j.y+=(pelota.owner.y-j.y)*0.03;} }
+      } else {
+        const lx = (j.rol==="def") ? (j.team==="blue"?width/2 : 10) : 10;
+        const lmx = (j.rol==="def") ? (j.team==="blue"?width-10 : width/2) : width-10;
+        if (distBall < 400 && (!pelota.owner || pelota.owner.rol !== "gk")) {
+            j.x = Math.max(lx, Math.min(lmx, j.x + (pelota.x-j.x)*0.07)); j.y += (pelota.y-j.y)*0.07;
+            if (distBall < 35 && !pelota.owner && magnetCooldown <= 0) pelota.owner = j;
+        } else { let tx = j.homeX; if (j.rol === "del") tx = (j.team === "red" ? width*0.75 : width*0.25); j.x += (tx - j.x) * 0.04; j.y += (j.homeY - j.y) * 0.04; }
+      }
+    }
+    // ROBO NORMAL
+    if (pelota.owner && pelota.owner.team !== j.team && pelota.owner.rol !== "gk" && Math.hypot(j.x - pelota.owner.x, j.y - pelota.owner.y) < 52) {
+      pelota.owner = null; pelota.vx = (j.team === "red" ? 8 : -8);
+    }
+  });
+}
+
+function loop() {
+  if (!gameRunning) return;
+  ctx.fillStyle = colorEstadio;
+  ctx.fillRect(0,0,width,height);
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 6;
+  ctx.strokeRect(10, 10, width - 20, height - 20);
+  ctx.beginPath(); ctx.moveTo(width/2, 10); ctx.lineTo(width/2, height - 10); ctx.stroke();
+  ctx.beginPath(); ctx.arc(width/2, height/2, 110, 0, Math.PI*2); ctx.stroke();
+  ctx.strokeRect(10, height*0.25, 120, height*0.50); ctx.strokeRect(width - 130, height*0.25, 120, height*0.50); 
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(0, height*0.28, 60, height*0.44); ctx.fillRect(width-60, height*0.28, 60, height*0.44);
+  ctx.fillStyle = '#0f0'; ctx.fillRect(0, height*0.28, 5, height*0.44); ctx.fillRect(width-5, height*0.28, 5, height*0.44);
+
+  if (superTiroEfecto > 0 && !pelota.owner) particulas.push({ x: pelota.x, y: pelota.y, r: 8, life: 1 });
+  particulas.forEach((p, i) => { ctx.fillStyle = `rgba(255, 255, 255, ${p.life})`; ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI*2); ctx.fill(); p.life -= 0.05; if (p.life <= 0) particulas.splice(i, 1); });
+
+  const dX = touchPos.x - jugadorActivo.x, dY = touchPos.y - jugadorActivo.y, dist = Math.hypot(dX, dY);
+  if (dist > 5) { jugadorActivo.x += (dX/dist)*Math.min(dist*0.2, 10); jugadorActivo.y += (dY/dist)*Math.min(dist*0.2, 10); }
+
+  if (pelota.owner) { pelota.x = pelota.owner.x + (pelota.owner.team === "blue" ? -42 : 42); pelota.y = pelota.owner.y; }
+  else {
+    pelota.x += pelota.vx; pelota.y += pelota.vy; pelota.vx *= 0.96; pelota.vy *= 0.96;
+    if (pelota.y < 30 || pelota.y > height-30) { pelota.vy *= -0.85; pelota.y = Math.max(30, Math.min(height-30, pelota.y)); }
+    if (pelota.x < 0 || pelota.x > width) if (!(pelota.y > height*0.28 && pelota.y < height*0.72)) resetPositions();
+    [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul].forEach(o => collisionPinball(pelota, o));
+  }
+  actualizarIA();
+
+  [...equipoRojo, ...equipoAzul, porteroRojo, porteroAzul].forEach(j => {
+    if (j.activo && superTiroEfecto > 0) { ctx.fillStyle = '#000'; ctx.shadowBlur = 35; ctx.shadowColor = '#f00'; }
+    else { ctx.fillStyle = (j.rol === "gk") ? '#ff0' : (j.team === "red" ? '#c00' : '#00f'); ctx.shadowBlur = 0; }
+    ctx.beginPath(); ctx.arc(j.x, j.y, 29, 0, Math.PI*2); ctx.fill();
+    if (j.activo) { ctx.strokeStyle = '#0f0'; ctx.lineWidth = 8; ctx.stroke(); }
+  });
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = superTiroEfecto > 0 ? '#fff' : '#eee';
+  ctx.beginPath(); ctx.arc(pelota.x, pelota.y, pelota.radio, 0, Math.PI*2); ctx.fill();
+
+  if (superTiroEfecto > 0) { ctx.fillStyle = 'rgba(0,0,0,0.8)'; ctx.fillRect(0,0,width,height); superTiroEfecto--; }
+
+  if (pelota.x < 10 && pelota.y > height*0.28 && pelota.y < height*0.72) { scoreBlue++; playBeep(600, 0.3); resetPositions(); goalFlash = 60; }
+  if (pelota.x > width-10 && pelota.y > height*0.28 && pelota.y < height*0.72) { scoreRed++; playBeep(600, 0.3); resetPositions(); goalFlash = 60; }
+
+  const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+  document.getElementById('timer').innerText = (m < 10 ? '0' : '') + m + ":" + (s < 10 ? '0' : '') + s;
+  ctx.fillStyle = '#fff'; ctx.font = 'bold 50px Arial'; ctx.textAlign = 'center';
+  ctx.fillText(scoreRed + " - " + scoreBlue, width/2, 80);
+  if (goalFlash-- > 0) { ctx.font = 'bold 100px Arial'; ctx.fillText('¡GOL!', width/2, height/2); }
+
+  requestAnimationFrame(loop);
+}
+resize();
+</script>
+</body>
+</html>
