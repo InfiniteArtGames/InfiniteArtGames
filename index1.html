@@ -25,63 +25,50 @@
 
 /* --- BLOQUE DEL TÍTULO (ADAPTABLE) --- */
 h1.main-title {
-    margin: 0 !important;
-    /* Usamos 'vh' para que el espacio crezca según el alto de la pantalla */
-    padding: 12vh 20px 6vh 20px; 
-    
-    /* Altura mínima flexible: asegura presencia en PC y ligereza en móvil */
-    min-height: 25vh; 
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
-    box-sizing: border-box;
-    z-index: 10;
-    
-    /* Estética Sét-su: Negro semi-transparente [cite: 2025-09-06] */
-    background-color: rgba(0, 0, 0, 0.80) !important; 
-    backdrop-filter: blur(7px); 
-    border-bottom: 2px solid rgba(160, 32, 240, 0.7);
-    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
+    margin: 0 !important;
+    /* Usamos 'vh' para que el espacio crezca según el alto de la pantalla */
+    padding: 12vh 20px 6vh 20px; 
+    
+    /* Altura mínima flexible: asegura presencia en PC y ligereza en móvil */
+    min-height: 25vh; 
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+    box-sizing: border-box;
+    z-index: 10;
+    
+    /* Estética Sét-su: Negro semi-transparente [cite: 2025-09-06] */
+    background-color: rgba(0, 0, 0, 0.80) !important; 
+    backdrop-filter: blur(6px); 
+    border-bottom: 2px solid rgba(160, 32, 240, 0.7);
+    box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
 }
 
 /* --- TEXTO (CONTROL DE TAMAÑO REAL) --- */
 .text-glow {
-    display: block;
-    /* Reducimos el máximo a 3.5em para que no sature monitores grandes */
-    /* El mínimo de 1.4em asegura que quepa en cualquier móvil */
-    font-size: clamp(1.4em, 6vw, 3.5em); 
-    
-    font-weight: 900;
-    /* Espaciado de letras reducido para evitar desbordamientos en móvil */
-    letter-spacing: 4px; 
-    text-transform: uppercase;
-    text-align: center;
-    padding: 0 8%;
-    
-    /* Estética Infinite Art Games [cite: 2025-07-23] */
-    background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
-    background-size: 200% auto;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
-}
-
-/* --- AJUSTE FINO PARA MÓVILES --- */
-@media (max-width: 480px) {
-    h1.main-title {
-        /* Reducimos el padding vertical solo en celulares */
-        padding: 8vh 15px 4vh 15px; 
-        min-height: 150px; /* Evita que se vea exageradamente alto en vertical */
-    }
-    .text-glow {
-        letter-spacing: 1px; /* Letras más juntas para que "Infinite" no se corte */
-        font-size: 1.5em;    /* Tamaño de seguridad para móvil */
-    }
+    display: block;
+    /* Reducimos el máximo a 3.5em para que no sature monitores grandes */
+    /* El mínimo de 1.4em asegura que quepa en cualquier móvil */
+    font-size: clamp(1.4em, 6vw, 3.5em); 
+    
+    font-weight: 900;
+    /* Espaciado de letras reducido para evitar desbordamientos en móvil */
+    letter-spacing: 4px; 
+    text-transform: uppercase;
+    text-align: center;
+    padding: 0 8%;
+    
+    /* Estética Infinite Art Games [cite: 2025-07-23] */
+    background: linear-gradient(to right, #fff, var(--accent), var(--primary), #fff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 4s linear infinite, titleGlow 3s infinite alternate;
 }
     
 /* 3. ANIMACIONES (SE MANTIENEN IGUAL) */
