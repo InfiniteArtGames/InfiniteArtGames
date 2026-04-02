@@ -71,6 +71,7 @@
         // Implementación del sonido de disparo según tu ruta
         const shootSound = new Audio("Juegos/SFX/escopeta1.mp3");
         shootSound.volume = 0.6;
+        shootSound.preload = "auto";
 
         const world = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -286,28 +287,39 @@
             requestAnimationFrame(loop);
         }
 
-        document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
-            if(player.ammo > 0 && !isFiring && player.alive) {
-                player.ammo--; 
-                document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
-                isFiring = true;
+document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault(); // Evita el zoom y comportamientos extraños en móvil
 
-                // --- Reproducción del sonido ---
-                shootSound.currentTime = 0; // Reinicia para permitir disparos seguidos
-                shootSound.play();
+    if(player.ammo > 0 && !isFiring && player.alive) {
+        player.ammo--; 
+        document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
+        isFiring = true;
 
-                enemies.forEach((e, idx) => {
-                    if(!e.alive) return;
-                    let ang = Math.atan2(e.y - player.y, e.x - player.x) - player.dir;
-                    while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
-                    if(Math.abs(ang) < 0.3 && Math.sqrt(Math.pow(e.x-player.x,2)+Math.pow(e.y-player.y,2)) < 8.5) { 
-                        e.alive = false; player.score += 150; 
-                        document.getElementById('score-ui').innerText = "SCORE: " + player.score;
-                        setTimeout(() => respawnEnemy(idx), 3000);
-                    }
-                });
-                setTimeout(() => isFiring = false, 180);
+        // --- SISTEMA DE AUDIO ROBUSTO ---
+        if (shootSound) {
+            shootSound.pause();         // Detiene cualquier reproducción en curso
+            shootSound.currentTime = 0; // Regresa al milisegundo cero instantáneamente
+            
+            // Usamos una ejecución segura para evitar bloqueos de consola
+            let playPromise = shootSound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(error => console.log("Error de audio:", error));
             }
+        }
+        // --------------------------------
+
+        enemies.forEach((e, idx) => {
+            if(!e.alive) return;
+            let ang = Math.atan2(e.y - player.y, e.x - player.x) - player.dir;
+            while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
+            if(Math.abs(ang) < 0.3 && Math.sqrt(Math.pow(e.x-player.x,2)+Math.pow(e.y-player.y,2)) < 8.5) { 
+                e.alive = false; 
+                player.score += 150; 
+                document.getElementById('score-ui').innerText = "SCORE: " + player.score;
+                setTimeout(() => respawnEnemy(idx), 3000);
+            }
+        });
+        
             e.preventDefault();
         });
         wallTex.onload = () => loop();
