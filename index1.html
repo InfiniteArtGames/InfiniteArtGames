@@ -463,40 +463,15 @@
     </footer>
   </div>
 
-<div id="visitCounter" style="color:var(--accent); margin-bottom:10px; letter-spacing:2px; font-size:0.5em;">
+<div style="color:var(--accent); margin-bottom:10px; letter-spacing:2px; font-size:0.5em;">
   ACCESOS AL PORTAL: 
-  <span id="count" onclick="menuSecreto()" style="cursor:help; border-bottom: 1px dashed var(--accent);">0</span>
+  <a href="https://www.freecounterstat.com" title="free counter for websites">
+    <img src="https://counter1.optistats.ovh/private/freecounterstat.php?c=ez6lj8gala9ugdetbwmsw3duwbzx9grz" border="0" title="free counter for websites" alt="ACCESOS AL PORTAL">
+  </a>
 </div>
 
   <script>
 
-    // Función para leer cookies
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-
-  // Cargar visitas guardadas
-  let visitas = localStorage.getItem('visitasPortal') || 0;
-  visitas = Number(visitas);
-
-  // ¿Ya visitó hoy?
-  const yaVisitadoHoy = getCookie('visitadoHoy');
-
-  if (!yaVisitadoHoy) {
-    visitas += 1;  // suma solo si es nuevo
-    localStorage.setItem('visitasPortal', visitas);
-
-    // Cookie de 24 horas
-    const fecha = new Date();
-    fecha.setTime(fecha.getTime() + 24 * 60 * 60 * 1000);
-    document.cookie = `visitadoHoy=1; expires=${fecha.toUTCString()}; path=/; SameSite=Lax`;
-  }
-
-  // Mostrar el número
-  document.getElementById('count').textContent = visitas;
-    
     /* NAVEGACIÓN Y PESTAÑAS RECUPERADAS */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
