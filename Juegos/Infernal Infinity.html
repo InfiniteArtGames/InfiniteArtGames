@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>INFINITE FURY - V2 Enhanced</title>
+    <title>INFINITE FURY - SFX Edition</title>
     <style>
         body { margin: 0; overflow: hidden; background: #000; font-family: 'Courier New', monospace; touch-action: none; color: #fff; }
         #game-layout { display: grid; grid-template-columns: 7fr 3fr; width: 100vw; height: 100vh; gap: 5px; padding: 5px; box-sizing: border-box; }
@@ -63,8 +63,14 @@
         const healthFill = document.getElementById('health-fill'), damageTint = document.getElementById('damage-tint');
 
         const wallTex = new Image(); wallTex.src = "Texturas/pared1.png";
+        
+        // --- SONIDOS ---
         const gameMusic = new Audio("Musicagame/Last_Life_Remaining.mp3");
         gameMusic.loop = true; gameMusic.volume = 0.4;
+
+        // Implementación del sonido de disparo según tu ruta
+        const shootSound = new Audio("Juegos/SFX/escopeta1.mp3");
+        shootSound.volume = 0.6;
 
         const world = [
             [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -78,7 +84,6 @@
         ];
 
         let player = { x: 2, y: 2, dir: 1.5, ammo: 25, armor: 0, health: 100, score: 0, alive: true, lastHit: 0 };
-        // CAMBIO DE NOMBRE: Ahora se usa la propiedad 'enemigos'
         let enemies = [
             {x: 13, y: 1.5, alive: true, speed: 0.022, type: 'enemigos'}, 
             {x: 13, y: 6.5, alive: true, speed: 0.018, type: 'enemigos'},
@@ -93,7 +98,10 @@
 
         let moveX = 0, moveY = 0, isFiring = false, zBuffer = [];
 
-        base.addEventListener('touchstart', (e) => { if(gameMusic.paused) gameMusic.play(); handleJoy(e); });
+        base.addEventListener('touchstart', (e) => { 
+            if(gameMusic.paused) gameMusic.play(); 
+            handleJoy(e); 
+        });
         base.addEventListener('touchmove', (e) => handleJoy(e));
         base.addEventListener('touchend', () => { moveX = 0; moveY = 0; stick.style.transform = `translate(0,0)`; });
 
@@ -129,7 +137,6 @@
 
         function drawItem(ctx, x, y, size, type) {
             ctx.save(); ctx.translate(x, y);
-            // Animación de levitación
             let bob = Math.sin(Date.now()/300) * (size/10);
             ctx.translate(0, bob);
             ctx.shadowBlur = 15;
@@ -225,18 +232,16 @@
 
             const w = c3d.width, h = c3d.height; zBuffer = new Array(w).fill(20);
             
-            // CIELO INFERNAL
             let skyGrad = ctx3d.createLinearGradient(0, 0, 0, h/2);
             skyGrad.addColorStop(0, "#200"); skyGrad.addColorStop(1, "#050000");
             ctx3d.fillStyle = skyGrad; ctx3d.fillRect(0,0,w,h/2); 
 
-            // SUELO CON PERSPECTIVA
             let floorGrad = ctx3d.createLinearGradient(0, h/2, 0, h);
             floorGrad.addColorStop(0, "#150000"); floorGrad.addColorStop(1, "#000");
             ctx3d.fillStyle = floorGrad; ctx3d.fillRect(0,h/2,w,h/2);
 
             for(let i=0; i<w; i+=2) {
-                let rayAng = (player.dir-0.4)+(i/w)*0.8, d=0, hit=false, side=0;
+                let rayAng = (player.dir-0.4)+(i/w)*0.8, d=0, hit=false;
                 while(!hit && d<14) {
                     d += 0.05; 
                     let tx = player.x + Math.cos(rayAng)*d, ty = player.y + Math.sin(rayAng)*d;
@@ -244,10 +249,7 @@
                         hit = true; zBuffer[i] = d; zBuffer[i+1] = d;
                         let wallH = h / d; 
                         let texX = Math.floor(((tx%1) + (ty%1)) * wallTex.width) % wallTex.width;
-                        
                         ctx3d.drawImage(wallTex, texX, 0, 1, wallTex.height, i, h/2 - wallH/2, 2, wallH);
-                        
-                        // ILUMINACIÓN DINÁMICA: Sombreado de profundidad y cara
                         let shade = Math.min(1, d/10);
                         ctx3d.fillStyle = `rgba(0,0,0,${shade})`;
                         ctx3d.fillRect(i, h/2 - wallH/2, 2, wallH);
@@ -255,7 +257,6 @@
                 }
             }
 
-            // DIBUJADO DE SPRITES (Enemigos e Items)
             let sprites = [...enemies.filter(e => e.alive), ...items.filter(it => it.active)];
             sprites.sort((a,b) => (Math.pow(player.x-b.x,2)+Math.pow(player.y-b.y,2)) - (Math.pow(player.x-a.x,2)+Math.pow(player.y-a.y,2)));
             
@@ -267,7 +268,6 @@
                 let screenX = (0.5 * (ang / 0.4) + 0.5) * w;
                 
                 if(Math.abs(ang) < 0.6 && dist < zBuffer[Math.floor(screenX)] + 0.2) {
-                    // CAMBIO DE NOMBRE: Verificamos 'enemigos'
                     if(s.type === 'enemigos') drawVisualEnemy(ctx3d, screenX, h/2 + (h/dist)*0.1, h/dist);
                     else drawItem(ctx3d, screenX, h/2 + (h/dist)*0.1, h/dist, s.type);
                 }
@@ -275,13 +275,10 @@
 
             drawPerspectiveWeapon(ctx3d, w, h, isFiring);
             
-            // MINIMAPA MEJORADO
             ctxMap.fillStyle = "#020202"; ctxMap.fillRect(0,0,cmap.width,cmap.height);
             let sc = Math.min(cmap.width / 15, cmap.height / 8);
             for(let y=0;y<world.length;y++) for(let x=0;x<world[y].length;x++) { 
-                if(world[y][x]) { 
-                    ctxMap.fillStyle="#333"; ctxMap.fillRect(x*sc, y*sc, sc-1, sc-1); 
-                } 
+                if(world[y][x]) { ctxMap.fillStyle="#333"; ctxMap.fillRect(x*sc, y*sc, sc-1, sc-1); } 
             }
             ctxMap.fillStyle="#0f0"; ctxMap.beginPath(); ctxMap.arc(player.x*sc, player.y*sc, 4, 0, Math.PI*2); ctxMap.fill();
             enemies.forEach(e => { if(e.alive) { ctxMap.fillStyle="#f00"; ctxMap.beginPath(); ctxMap.arc(e.x*sc, e.y*sc, 3, 0, Math.PI*2); ctxMap.fill(); } });
@@ -291,13 +288,21 @@
 
         document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
             if(player.ammo > 0 && !isFiring && player.alive) {
-                player.ammo--; document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; isFiring = true;
+                player.ammo--; 
+                document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
+                isFiring = true;
+
+                // --- Reproducción del sonido ---
+                shootSound.currentTime = 0; // Reinicia para permitir disparos seguidos
+                shootSound.play();
+
                 enemies.forEach((e, idx) => {
                     if(!e.alive) return;
                     let ang = Math.atan2(e.y - player.y, e.x - player.x) - player.dir;
                     while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
                     if(Math.abs(ang) < 0.3 && Math.sqrt(Math.pow(e.x-player.x,2)+Math.pow(e.y-player.y,2)) < 8.5) { 
-                        e.alive = false; player.score += 150; document.getElementById('score-ui').innerText = "SCORE: " + player.score;
+                        e.alive = false; player.score += 150; 
+                        document.getElementById('score-ui').innerText = "SCORE: " + player.score;
                         setTimeout(() => respawnEnemy(idx), 3000);
                     }
                 });
