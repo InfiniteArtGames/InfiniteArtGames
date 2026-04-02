@@ -468,12 +468,6 @@
   <span id="count" onclick="menuSecreto()" style="cursor:help; border-bottom: 1px dashed var(--accent);">0</span>
 </div>
 
-
-  let visitas = localStorage.getItem('visitasPortal') || 0;
-  visitas = Number(visitas) + 1;
-  localStorage.setItem('visitasPortal', visitas);
-  document.getElementById('count').textContent = visitas;
-
   <script>
 
     let visitas = localStorage.getItem('visitasPortal') || 0;
