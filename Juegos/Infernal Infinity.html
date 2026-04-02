@@ -290,23 +290,24 @@
             requestAnimationFrame(loop);
         }
 
-// --- EVENTO DE DISPARO (FIRE) CORREGIDO ---
+// --- EVENTO DE DISPARO (FIRE) CON RETRASO DE MEDIO SEGUNDO ---
 document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
     e.preventDefault();
 
+    // isFiring controla que no se pueda disparar si ya hay un disparo en proceso
     if(player.ammo > 0 && !isFiring && player.alive) {
         player.ammo--; 
         document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
-        isFiring = true;
+        isFiring = true; // Bloqueamos el disparo
 
-        // --- SOLUCIÓN DE AUDIO: CLONACIÓN PARA EVITAR BLOQUEO ---
+        // Reproducción del sonido (clonado para evitar cortes)
         if (shootSound) {
-            const shotClone = shootSound.cloneNode(); // Crea una copia para este disparo
+            const shotClone = shootSound.cloneNode();
             shotClone.volume = 0.6;
             shotClone.play().catch(err => console.log("Audio bloqueado:", err));
         }
 
-        // Lógica de detección de impacto (tu raycasting actual está muy bien)
+        // --- Lógica de detección de impacto ---
         enemies.forEach((en, idx) => {
             if(!en.alive) return;
             
@@ -332,7 +333,8 @@ document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
             }
         });
         
-        setTimeout(() => isFiring = false, 180);
+
+        setTimeout(() => isFiring = false, 500); 
     }
 });
 
