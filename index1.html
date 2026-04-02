@@ -683,6 +683,12 @@ function draw() {
     function togglePlay() {
       initAudio();
       const track = playlist[currentTrack];
+      // Esto asegura que el color cambie SIEMPRE, incluso al cambiar de pista directamente
+  if (track.name.includes("Lobo") || track.name.includes("Wolf")) {
+    particleColor = 'rgba(255, 0, 0, 0.9)'; // Modo Setsu Activado [cite: 2025-09-06]
+  } else {
+    particleColor = 'rgba(0, 212, 255, 0.9)'; // Modo Infinite Art Games [cite: 2025-07-23]
+  }
       if (!isPlaying) {
         isPlaying = true; isPaused = false;
         document.getElementById('playBtn').innerText = "⏸ PAUSE";
