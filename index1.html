@@ -539,17 +539,13 @@ const notes = {
   E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00,
   B5: 987.77, C6: 1046.50, D6: 1174.66
 };
-    const playlist = [
-      { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
-{ 
-    type: 'api', 
-    name: "Melodía de Sét-su", 
-    data: [
-      {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
-      {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
-      {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
-    ] 
-  },
+const playlist = [
+  { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
+  
+  { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" },
+  
+  { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
+  
   { 
     type: 'api', 
     name: "Eco del Infinito", 
@@ -559,10 +555,17 @@ const notes = {
       {f: notes.F5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.D5, d: 0.8}
     ] 
   },
-      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }];
-
   
+  { 
+    type: 'api', 
+    name: "Melodía de Sèt-su", 
+    data: [
+      {f: notes.A4, d: 0.3}, {f: notes.C5, d: 0.3}, {f: notes.E5, d: 0.6}, 
+      {f: notes.G5, d: 0.3}, {f: notes.F5, d: 0.3}, {f: notes.E5, d: 0.6},
+      {f: notes.D5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.F5, d: 0.2}, {f: notes.A5, d: 0.8}
+    ] 
+  }
+];
 
     function initAudio() {
       if (audioCtx) return;
