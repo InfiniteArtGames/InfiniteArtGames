@@ -9,8 +9,8 @@
             --neon-green: #0f0; 
             --neon-magenta: #f0f; 
             --neon-cyan: #0ff;
-            --wall-bg: #011a01; /* Fondo sólido para paredes normales */
-            --wall-bg-glitch: #1a011a; /* Fondo sólido para paredes glitch */
+            --wall-bg: #011a01; 
+            --wall-bg-glitch: #1a011a; 
             --bg-dark: #000; 
         }
         body {
@@ -77,8 +77,6 @@
     </div>
 
 <script>
-    /** * BYTE BITER - Sólido - Infinite Art Games 
-     */
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const gameWrapper = document.getElementById('gameWrapper');
@@ -140,9 +138,9 @@
         player.x = 15; player.y = 9; player.dx = player.dy = 0;
         player.nextDx = player.nextDy = 0;
         ghosts = [
-            { x: 1, y: 1, color: '#ff3333', mode: 'stalker', lastX: 1, lastY: 1 },
-            { x: 30, y: 1, color: '#33ffff', mode: 'random', lastX: 30, lastY: 1 },
-            { x: 30, y: 16, color: '#ffaa00', mode: 'random', lastX: 30, lastY: 16 }
+            { x: 1, y: 1, color: '#ff3333', mode: 'stalker', lastX: 1, lastY: 1, dx: 0, dy: 0 },
+            { x: 30, y: 1, color: '#33ffff', mode: 'random', lastX: 30, lastY: 1, dx: 0, dy: 0 },
+            { x: 30, y: 16, color: '#ffaa00', mode: 'random', lastX: 30, lastY: 16, dx: 0, dy: 0 }
         ];
     }
 
@@ -166,9 +164,16 @@
         };
     }
 
+    function can(x, y, isPlayer = true) {
+        if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false;
+        if (state.isGlitchActive && isPlayer) return true;
+        return mazeLayout[y][x] === 0;
+    }
+
     function update() {
         if(state.isGameOver) return;
 
+        // Movimiento Jugador
         if (player.nextDx || player.nextDy) {
             if (can(player.x + player.nextDx, player.y + player.nextDy)) {
                 player.dx = player.nextDx; player.dy = player.nextDy;
@@ -181,17 +186,15 @@
             player.dx = player.dy = 0;
         }
 
-        // Partículas si es Super
         if (state.isSuper && Math.random() > 0.2) {
             particles.push(createParticle(player.x, player.y, varColor('--neon-cyan')));
         }
-        // Actualizar partículas
+
         particles.forEach((p, i) => {
             p.x += p.vx; p.y += p.vy; p.life--;
             if(p.life <= 0) particles.splice(i, 1);
         });
 
-        // Colisión Pellets
         for(let i = pellets.length - 1; i >= 0; i--) {
             let p = pellets[i];
             if(p.x === player.x && p.y === player.y) {
@@ -202,40 +205,57 @@
             }
         }
 
-        // Colisión Power Ups
         powerUps.forEach((p, i) => {
             if(p.x === player.x && p.y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
-                // Explosión de chispas al cogerlo
                 for(let j=0; j<15; j++) particles.push(createParticle(player.x, player.y, '#fff'));
                 setTimeout(() => state.isSuper = false, 6000);
             }
         });
 
-        // IA Enemigos
+        // IA ENEMIGOS CORREGIDA
         ghosts.forEach(g => {
-            const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => can(g.x + d.x, g.y + d.y, false));
+            const possibleMoves = [
+                {x: 1, y: 0}, {x: -1, y: 0}, {x: 0, y: 1}, {x: 0, y: -1}
+            ].filter(d => can(g.x + d.x, g.y + d.y, false));
 
-            if (dirs.length > 0) {
+            if (possibleMoves.length > 0) {
+                // Evitar volver atrás a menos que sea un callejón sin salida
+                let filteredMoves = possibleMoves.filter(d => !(g.x + d.x === g.lastX && g.y + d.y === g.lastY));
+                if (filteredMoves.length === 0) filteredMoves = possibleMoves;
+
                 let move;
-                const choices = dirs.filter(d => !(g.x + d.x === g.lastX && g.y + d.y === g.lastY));
-                const finalDirs = choices.length > 0 ? choices : dirs;
+                const isScared = state.isSuper || state.isGlitchActive;
 
-                if(g.mode === 'stalker' && !state.isSuper && Math.random() > 0.3) {
-                    move = finalDirs.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
-                } else { 
-                    move = finalDirs[Math.floor(Math.random()*finalDirs.length)]; 
+                if (g.mode === 'stalker' && !isScared) {
+                    // Perseguir al jugador (distancia Manhattan)
+                    move = filteredMoves.sort((a,b) => 
+                        (Math.abs(g.x + a.x - player.x) + Math.abs(g.y + a.y - player.y)) - 
+                        (Math.abs(g.x + b.x - player.x) + Math.abs(g.y + b.y - player.y))
+                    )[0];
+                } else if (isScared) {
+                    // Huir del jugador
+                    move = filteredMoves.sort((a,b) => 
+                        (Math.abs(g.x + b.x - player.x) + Math.abs(g.y + b.y - player.y)) - 
+                        (Math.abs(g.x + a.x - player.x) + Math.abs(g.y + a.y - player.y))
+                    )[0];
+                } else {
+                    // Movimiento aleatorio estable
+                    move = filteredMoves[Math.floor(Math.random() * filteredMoves.length)];
                 }
 
-                if(move) { 
+                if (move) {
                     g.lastX = g.x; g.lastY = g.y;
-                    g.x += move.x; g.y += move.y; 
+                    g.x += move.x; g.y += move.y;
                 }
             }
 
+            // Colisión Fantasma -> Player
             if(g.x === player.x && g.y === player.y) {
                 if(state.isSuper || state.isGlitchActive) { 
-                    g.x = 1; g.y = 1; state.score += 200; updateUI(); 
+                    const startPos = [{x:1,y:1},{x:30,y:1},{x:30,y:16}][ghosts.indexOf(g)];
+                    g.x = startPos.x; g.y = startPos.y; 
+                    state.score += 200; updateUI(); 
                     for(let j=0; j<10; j++) particles.push(createParticle(g.x, g.y, g.color));
                 } else { 
                     state.lives--; 
@@ -255,12 +275,6 @@
         state.currentZoom += (targetZoom - state.currentZoom) * 0.05;
     }
 
-    function can(x, y, isPlayer = true) {
-        if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false;
-        if (state.isGlitchActive && isPlayer) return true;
-        return mazeLayout[y][x] === 0;
-    }
-
     function draw() {
         ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.save();
@@ -270,17 +284,13 @@
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-pX, -pY);
 
-        // Renderizado del Laberinto (PAREDES SÓLIDAS)
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
                 if(mazeLayout[r][c]) {
-                    // Fondo Sólido del bloque
                     ctx.fillStyle = state.isGlitchActive ? varColor('--wall-bg-glitch') : varColor('--wall-bg');
                     ctx.beginPath();
                     ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 2);
                     ctx.fill();
-                    
-                    // Borde Neón Brillante
                     ctx.strokeStyle = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
@@ -288,15 +298,12 @@
             }
         }
 
-        // Partículas
         particles.forEach(p => {
-            ctx.fillStyle = p.color;
-            ctx.globalAlpha = p.life / 25;
+            ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 25;
             ctx.fillRect(p.x, p.y, 2, 2);
         });
         ctx.globalAlpha = 1;
 
-        // Pellets
         pellets.forEach(p => {
             ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff';
             ctx.shadowBlur = p.isGlitch ? 10 : 0;
@@ -306,12 +313,10 @@
         });
         ctx.shadowBlur = 0;
 
-        // PowerUps (Rayos)
         powerUps.forEach(p => { 
             ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11);
         });
 
-        // Player (BYTE BITER)
         ctx.fillStyle = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
         ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
         ctx.beginPath();
@@ -319,7 +324,6 @@
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Enemigos
         ghosts.forEach(g => {
             const isScared = (state.isSuper || state.isGlitchActive);
             ctx.fillStyle = isScared ? '#777' : g.color;
@@ -328,15 +332,11 @@
             ctx.beginPath();
             ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4);
             ctx.fill();
-            
-            // Ojos / Cara
             ctx.shadowBlur = 0;
             if (isScared) {
-                // Cara triste >_<
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial";
                 ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9);
             } else {
-                // Ojos normales
                 ctx.fillStyle = '#fff';
                 ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2);
                 ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
@@ -350,14 +350,10 @@
 
     let lt = 0;
     function loop(t) { 
-        if(t - lt > 110) { 
-            update(); draw(); lt = t; 
-        } 
+        if(t - lt > 110) { update(); draw(); lt = t; } 
         requestAnimationFrame(loop); 
     }
 
-    // Controles
-    let ts = null;
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') { player.nextDx = 0; player.nextDy = -1; }
         if(e.key === 'ArrowDown') { player.nextDx = 0; player.nextDy = 1; }
@@ -366,6 +362,7 @@
         if(e.key === ' ' && state.glitchCharge >= 100) triggerGlitch();
     });
 
+    let ts = null;
     canvas.addEventListener('touchstart', e => {
         ts = {x: e.touches[0].clientX, y: e.touches[0].clientY};
         if(ts.y > window.innerHeight * 0.7 && state.glitchCharge >= 100) triggerGlitch();
