@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Sólido - Infinite Art Games</title>
+    <title>BYTE BITER - Perfect Edition - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; 
@@ -31,40 +31,37 @@
         }
         #gameCanvas { display: block; }
         
-        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 5; }
-        #ui-top-left { top: 15px; left: 15px; }
-        #ui-top-right { top: 15px; right: 15px; text-align: right; }
+        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 50; background: rgba(0,0,0,0.3); padding: 5px; border-radius: 4px; }
+        #ui-top-left { top: 10px; left: 10px; }
+        #ui-top-right { top: 10px; right: 10px; text-align: right; }
         
-        .score-val { color: var(--neon-green); font-size: 1.2em; text-shadow: 0 0 5px var(--neon-green); }
-        .lives-display { color: #f22; font-size: 1.4em; text-shadow: 0 0 8px #f00; }
+        .score-val { color: var(--neon-green); font-size: 1.1em; text-shadow: 0 0 5px var(--neon-green); }
+        .lives-display { color: #f22; font-size: 1.3em; text-shadow: 0 0 8px #f00; }
         .glitch-text { color: var(--neon-magenta); font-size: 0.7em; letter-spacing: 1px; }
-        .glitch-container { width: 100px; height: 4px; border: 1px solid #333; background: #111; margin-top: 4px; border-radius: 2px; }
-        .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.3s; box-shadow: 0 0 8px var(--neon-magenta); }
+        .glitch-container { width: 90px; height: 5px; border: 1px solid #333; background: #111; margin-top: 4px; border-radius: 2px; }
+        .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.3s; }
         .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff; }
         
         @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: none; border: 1px solid #444; color: #666; padding: 4px 8px; font-size: 9px; cursor: pointer; z-index: 20; border-radius: 3px; }
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: none; border: 1px solid #444; color: #666; padding: 4px 8px; font-size: 9px; cursor: pointer; z-index: 60; border-radius: 3px; }
 
         #overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.85); display: none; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(4px);
         }
-        #overlay h2 { font-size: 2.5rem; color: #fff; text-shadow: 0 0 15px var(--neon-magenta); margin-bottom: 10px; }
+        #overlay h2 { font-size: 2.2rem; color: #fff; text-shadow: 0 0 15px var(--neon-magenta); margin-bottom: 10px; }
         #restartBtn { 
             padding: 12px 30px; background: transparent; border: 2px solid var(--neon-green); 
-            color: var(--neon-green); font-family: inherit; font-size: 1rem; cursor: pointer;
-            transition: 0.2s;
+            color: var(--neon-green); font-family: inherit; font-size: 1rem; cursor: pointer; transition: 0.2s;
         }
-        #restartBtn:hover { background: var(--neon-green); color: #000; }
     </style>
 </head>
 <body>
     <div id="gameWrapper">
         <canvas id="gameCanvas"></canvas>
         <div class="ui-element" id="ui-top-left">
-            <span style="font-size: 0.8em; opacity: 0.7;">DATA_STRM:</span> <span class="score-val" id="score">0</span><br>
+            <span style="font-size: 0.8em; opacity: 0.7;">DATA:</span> <span class="score-val" id="score">0</span><br>
             <span class="lives-display" id="lives">♥♥♥</span>
         </div>
         <div class="ui-element" id="ui-top-right">
@@ -128,30 +125,27 @@
         document.getElementById('overlay').style.display = 'none';
         pellets = []; powerUps = []; particles = [];
         
+        let validSpots = [];
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
                 if(mazeLayout[r][c] === 0) {
                     let isGlitchPoint = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30));
                     pellets.push({x:c, y:r, isGlitch: isGlitchPoint});
+                    if (!isGlitchPoint && !(r === 9 && c === 15)) validSpots.push({x:c, y:r});
                 }
             }
         }
-
-        // POSICIONAMIENTO SEGURO DE POWER UPS
-        const potentialSpots = [
-            {x: 15, y: 1}, {x: 15, y: 16}, {x: 1, y: 9}, {x: 30, y: 9}
-        ];
-        powerUps = potentialSpots
-            .filter(spot => can(spot.x, spot.y, false)) // Solo si es pasillo
-            .slice(0, 2) // Tomar los 2 primeros válidos
-            .map(spot => ({...spot, type: 'bolt'}));
-
+        for(let i=0; i<5; i++) {
+            if(validSpots.length > 0) {
+                let idx = Math.floor(Math.random() * validSpots.length);
+                powerUps.push({...validSpots.splice(idx, 1)[0], type: 'bolt'});
+            }
+        }
         state.pelletsLeft = pellets.length; resetEntities(); updateUI();
     }
 
     function resetEntities() {
-        player.x = 15; player.y = 9; player.dx = player.dy = 0;
-        player.nextDx = player.nextDy = 0;
+        player.x = 15; player.y = 9; player.dx = player.dy = 0; player.nextDx = player.nextDy = 0;
         ghosts = [
             { x: 1, y: 1, color: '#ff3333', mode: 'stalker', lastX: 1, lastY: 1 },
             { x: 30, y: 1, color: '#33ffff', mode: 'random', lastX: 30, lastY: 1 },
@@ -168,55 +162,50 @@
         state.glitchCharge >= 100 ? bar.classList.add('glitch-ready') : bar.classList.remove('glitch-ready');
     }
 
-    function createParticle(x, y, color) {
-        return {
-            x: x * GRID_SIZE + GRID_SIZE/2,
-            y: y * GRID_SIZE + GRID_SIZE/2,
-            vx: (Math.random() - 0.5) * 4,
-            vy: (Math.random() - 0.5) * 4,
-            life: 15 + Math.random() * 10,
-            color: color
+    function createParticle(x, y, color, isSuper = false) {
+        const speedMultiplier = isSuper ? 2.5 : 1.0;
+        return { 
+            x: x * GRID_SIZE + GRID_SIZE/2, 
+            y: y * GRID_SIZE + GRID_SIZE/2, 
+            vx: (Math.random() - 0.5) * 4 * speedMultiplier, 
+            vy: (Math.random() - 0.5) * 4 * speedMultiplier, 
+            life: (15 + Math.random() * 10) * (isSuper ? 1.5 : 1.0), 
+            color: color,
+            size: isSuper ? Math.random() * 3 + 1 : Math.random() * 2 + 1
         };
     }
 
     function update() {
         if(state.isGameOver) return;
-
         if (player.nextDx || player.nextDy) {
             if (can(player.x + player.nextDx, player.y + player.nextDy)) {
-                player.dx = player.nextDx; player.dy = player.nextDy;
-                player.nextDx = player.nextDy = 0;
+                player.dx = player.nextDx; player.dy = player.nextDy; player.nextDx = player.nextDy = 0;
             }
         }
-        if (can(player.x + player.dx, player.y + player.dy)) { 
-            player.x += player.dx; player.y += player.dy; 
-        } else {
-            player.dx = player.dy = 0;
-        }
+        if (can(player.x + player.dx, player.y + player.dy)) { player.x += player.dx; player.y += player.dy; }
+        else { player.dx = player.dy = 0; }
 
-        if (state.isSuper && Math.random() > 0.2) {
-            particles.push(createParticle(player.x, player.y, varColor('--neon-cyan')));
+        if (state.isSuper) {
+            for(let j=0; j<4; j++) particles.push(createParticle(player.x, player.y, varColor('--neon-cyan'), true));
+        } else if (Math.random() > 0.6) {
+            particles.push(createParticle(player.x, player.y, '#ffff00'));
         }
-        particles.forEach((p, i) => {
-            p.x += p.vx; p.y += p.vy; p.life--;
-            if(p.life <= 0) particles.splice(i, 1);
-        });
+        
+        particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) particles.splice(i, 1); });
 
         for(let i = pellets.length - 1; i >= 0; i--) {
             let p = pellets[i];
             if(p.x === player.x && p.y === player.y) {
-                pellets.splice(i, 1);
-                state.score += 10;
+                pellets.splice(i, 1); state.score += 10;
                 if(p.isGlitch) state.glitchCharge = Math.min(100, state.glitchCharge + 25);
                 state.pelletsLeft--; updateUI();
             }
         }
 
         for(let i = powerUps.length - 1; i >= 0; i--) {
-            let p = powerUps[i];
-            if(p.x === player.x && p.y === player.y) {
+            if(powerUps[i].x === player.x && powerUps[i].y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
-                for(let j=0; j<15; j++) particles.push(createParticle(player.x, player.y, '#fff'));
+                for(let j=0; j<40; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
                 setTimeout(() => state.isSuper = false, 6000);
             }
         }
@@ -227,25 +216,14 @@
                 let move;
                 const choices = dirs.filter(d => !(g.x + d.x === g.lastX && g.y + d.y === g.lastY));
                 const finalDirs = choices.length > 0 ? choices : dirs;
-                if(g.mode === 'stalker' && !state.isSuper && Math.random() > 0.3) {
+                if(g.mode === 'stalker' && !state.isSuper) {
                     move = finalDirs.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
-                } else { 
-                    move = finalDirs[Math.floor(Math.random()*finalDirs.length)]; 
-                }
+                } else { move = finalDirs[Math.floor(Math.random()*finalDirs.length)]; }
                 if(move) { g.lastX = g.x; g.lastY = g.y; g.x += move.x; g.y += move.y; }
             }
-
             if(g.x === player.x && g.y === player.y) {
-                if(state.isSuper || state.isGlitchActive) { 
-                    const startPos = [{x:1,y:1},{x:30,y:1},{x:30,y:16}][ghosts.indexOf(g)] || {x:1,y:1};
-                    g.x = startPos.x; g.y = startPos.y; state.score += 200; updateUI(); 
-                    for(let j=0; j<10; j++) particles.push(createParticle(g.x, g.y, g.color));
-                } else { 
-                    state.lives--; 
-                    if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } 
-                    else { resetEntities(); }
-                    updateUI(); 
-                }
+                if(state.isSuper || state.isGlitchActive) { g.x = 1; g.y = 1; state.score += 200; updateUI(); }
+                else { state.lives--; if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } else { resetEntities(); } updateUI(); }
             }
         });
 
@@ -255,69 +233,98 @@
     }
 
     function draw() {
-        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = state.isSuper ? (Math.random()>0.85 ? '#022' : '#000') : '#000'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
         ctx.save();
         const pX = player.x * GRID_SIZE + GRID_SIZE/2, pY = player.y * GRID_SIZE + GRID_SIZE/2;
         ctx.translate(canvas.width/2, canvas.height/2);
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-pX, -pY);
 
+        ctx.globalAlpha = state.isSuper ? 0.2 : 1.0;
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
                 if(mazeLayout[r][c]) {
                     ctx.fillStyle = state.isGlitchActive ? varColor('--wall-bg-glitch') : varColor('--wall-bg');
                     ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 2); ctx.fill();
                     ctx.strokeStyle = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
-                    ctx.lineWidth = 1.5; ctx.stroke();
+                    ctx.lineWidth = 1.0; ctx.stroke();
                 }
             }
         }
-
-        particles.forEach(p => { ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 25; ctx.fillRect(p.x, p.y, 2, 2); });
+        ctx.globalAlpha = 1.0;
+        
+        particles.forEach(p => { 
+            ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 30; ctx.fillRect(p.x, p.y, p.size, p.size); 
+        });
         ctx.globalAlpha = 1;
 
         pellets.forEach(p => {
             ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff';
-            ctx.shadowBlur = p.isGlitch ? 10 : 0; ctx.shadowColor = ctx.fillStyle;
-            const s = p.isGlitch ? 5 : 2;
-            ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s);
+            const s = p.isGlitch ? 5 : 2; ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s);
         });
-        ctx.shadowBlur = 0;
 
+        // POWER UPS (RAYOS) TAMAÑO ORIGINAL
         powerUps.forEach(p => { 
-            ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11);
+            const pulse = Math.sin(Date.now() / 120) * 3;
+            ctx.font = "10px Arial"; 
+            ctx.fillStyle = "#fff"; 
+            ctx.shadowBlur = 10 + pulse; ctx.shadowColor = "#0ff";
+            ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); 
+            ctx.shadowBlur = 0;
         });
 
-        ctx.fillStyle = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
-        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-        ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2); ctx.fill();
+        // PLAYER CUADRADO CON CARITA BONITA
+        const pColor = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
+        ctx.fillStyle = pColor;
+        ctx.shadowBlur = state.isSuper ? 25 : 10; ctx.shadowColor = pColor;
+        
+        ctx.beginPath(); 
+        ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2); // Cuadrado con puntas redondeadas
+        ctx.fill();
         ctx.shadowBlur = 0;
 
+        // Carita del Player (Ojos negros y sonrisa)
+        ctx.fillStyle = "#000";
+        if (state.isGlitchActive || state.isSuper) {
+            // Ojos redondos sorprendidos
+            ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 2);
+            ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 2);
+            // Boca o
+            ctx.fillRect(player.x*GRID_SIZE+6, player.y*GRID_SIZE+9, 3, 2);
+        } else {
+            // Ojos normales ovalados
+            ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3);
+            ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3);
+            // Sonrisa pequeña
+            ctx.beginPath(); ctx.lineWidth = 1.2; ctx.strokeStyle = "#000";
+            ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0.2*Math.PI, 0.8*Math.PI); ctx.stroke();
+        }
+
+        // ENEMIGOS
         ghosts.forEach(g => {
             const isScared = (state.isSuper || state.isGlitchActive);
-            ctx.fillStyle = isScared ? '#777' : g.color;
-            ctx.shadowBlur = isScared ? 0 : 10; ctx.shadowColor = g.color;
+            ctx.fillStyle = isScared ? '#555' : g.color;
             ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
-            ctx.shadowBlur = 0;
             if (isScared) {
                 ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial";
                 ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9);
             } else {
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2);
-                ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
+                ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
+                ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1);
             }
         });
         ctx.restore();
     }
 
     function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
-
     let lt = 0;
-    function loop(t) { 
-        if(t - lt > 110) { update(); draw(); lt = t; } 
-        requestAnimationFrame(loop); 
-    }
+    function loop(t) { if(t - lt > 110) { update(); draw(); lt = t; } requestAnimationFrame(loop); }
+
+    let touchStartX = 0, touchStartY = 0;
+    canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; if(touchStartY > window.innerHeight * 0.7 && state.glitchCharge >= 100) triggerGlitch(); }, {passive: false});
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!touchStartX || !touchStartY) return; let dx = e.touches[0].clientX - touchStartX; let dy = e.touches[0].clientY - touchStartY; if(Math.abs(dx) > 15 || Math.abs(dy) > 15) { if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; } else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; } touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; } }, {passive: false});
 
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') { player.nextDx = 0; player.nextDy = -1; }
@@ -327,29 +334,9 @@
         if(e.key === ' ' && state.glitchCharge >= 100) triggerGlitch();
     });
 
-    let ts = null;
-    canvas.addEventListener('touchstart', e => {
-        ts = {x: e.touches[0].clientX, y: e.touches[0].clientY};
-        if(ts.y > window.innerHeight * 0.7 && state.glitchCharge >= 100) triggerGlitch();
-    }, {passive: false});
-
-    canvas.addEventListener('touchend', e => {
-        if(!ts) return;
-        const dx = e.changedTouches[0].clientX - ts.x, dy = e.changedTouches[0].clientY - ts.y;
-        if(Math.abs(dx) > 20 || Math.abs(dy) > 20) {
-            if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; }
-            else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; }
-        }
-    });
-
-    function triggerGlitch() {
-        state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); 
-        setTimeout(() => state.isGlitchActive = false, 5000);
-    }
-
+    function triggerGlitch() { state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); setTimeout(() => state.isGlitchActive = false, 5000); }
     document.getElementById('fsBtn').onclick = () => gameWrapper.requestFullscreen();
     document.getElementById('restartBtn').onclick = () => initLevel(true);
-    
     initLevel(true); requestAnimationFrame(loop);
 </script>
 </body>
