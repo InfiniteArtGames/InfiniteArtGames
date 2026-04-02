@@ -2,361 +2,323 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bing-Bang∞ Neón | Infinite Art Games</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Bing-Bang∞ Neón | SÉT-SU vs TÚ</title>
     <style>
         :root {
             --primary: #a020f0;
             --accent: #00d4ff;
             --neon-ball: #39ff14;
-            --bg: #050010;
+            --bg: #020005;
         }
 
         body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background-color: var(--bg);
             color: #fff;
-            font-family: 'Segoe UI', Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            /* Fondo de Portal Cósmico Sutil */
-            background-image: 
-                radial-gradient(circle at 50% 50%, rgba(160, 32, 240, 0.1) 0%, rgba(5, 0, 16, 1) 80%),
-                url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgNDAwIDQwMCI+PHBhdGggZD0iTTAgMGg0MDB2NDAwSDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTAgMGg0MDB2NDAwSDB6IiBmaWxsLXJ1bGU9ImV2ZW5vZGQiLz48ZyBmaWxsPSIjRkZGIiBmaWxsLW9wYWNpdHk9Ii4wMyI+PHBhdGggZD0iTTEwIDEwaDJ2Mmg0MDB2NDAwSDB6TTEwIDEwaDJ2Mkgwdi0yejI5OCAzMDBoMnYySDI5OHYtMnoiLz48L2c+PC9zdmc+');
+            font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden;
+            background-image: radial-gradient(circle at 50% 50%, rgba(70, 0, 130, 0.25) 0%, rgba(2, 0, 5, 1) 90%);
         }
 
-        #pongScore {
-            font-size: 3em;
-            font-weight: bold;
-            color: var(--accent);
-            text-shadow: 0 0 15px var(--accent);
-            margin-bottom: 20px;
-            letter-spacing: 5px;
+        #scoreContainer {
+            display: flex; gap: 50px; margin-bottom: 15px; align-items: center;
         }
+
+        .score-block { display: flex; flex-direction: column; text-align: center; }
+        .score-number { font-size: 3.5em; font-weight: bold; line-height: 1; }
+        #name-setsu { color: var(--primary); text-shadow: 0 0 15px var(--primary); }
+        #name-you { color: var(--accent); text-shadow: 0 0 15px var(--accent); }
 
         #pongContainer {
             position: relative;
-            width: 800px;
-            height: 500px;
-            max-width: 95vw;
-            max-height: 70vh;
-            border: 4px solid var(--primary);
-            border-radius: 20px;
-            box-shadow: 0 0 50px rgba(160, 32, 240, 0.4);
+            width: 800px; height: 500px;
+            max-width: 95vw; max-height: 70vh;
+            border: 2px solid rgba(160, 32, 240, 0.6);
+            border-radius: 15px;
+            box-shadow: 0 0 60px rgba(160, 32, 240, 0.4);
             background: #000;
-            cursor: none;
-            overflow: hidden;
+            overflow: hidden; touch-action: none;
         }
 
-        canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-            border-radius: 16px;
-        }
+        canvas { width: 100%; height: 100%; display: block; }
 
-        /* Pantalla de Inicio / Ganador */
         .overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             z-index: 10;
-            border-radius: 16px;
-        }
-
-        h2 {
-            color: var(--accent);
-            text-transform: uppercase;
-            letter-spacing: 5px;
-            margin-bottom: 30px;
-            text-shadow: 0 0 10px var(--accent);
         }
 
         .btn-play {
-            background: transparent;
-            color: var(--neon-ball);
+            background: transparent; color: var(--neon-ball);
             border: 2px solid var(--neon-ball);
-            padding: 15px 40px;
-            font-size: 1.2em;
-            font-weight: bold;
-            text-transform: uppercase;
-            cursor: pointer;
-            border-radius: 50px;
-            transition: 0.3s;
-            box-shadow: 0 0 15px var(--neon-ball);
+            padding: 15px 50px; font-size: 1.3em; font-weight: bold;
+            cursor: pointer; border-radius: 50px;
+            box-shadow: 0 0 20px var(--neon-ball);
+            transition: 0.3s; text-transform: uppercase;
         }
 
-        .btn-play:hover {
-            background: var(--neon-ball);
-            color: #000;
-            box-shadow: 0 0 30px var(--neon-ball);
-        }
+        .btn-play:hover { background: var(--neon-ball); color: #000; box-shadow: 0 0 40px var(--neon-ball); }
 
-        #winnerAnnounce {
-            color: var(--primary);
-            font-size: 2em;
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px var(--primary);
-        }
-
-        /* Botón de Fullscreen Minimalista */
         #fullscreenBtn {
-            position: absolute;
-            bottom: 15px;
-            right: 15px;
-            background: rgba(160, 32, 240, 0.2);
-            color: rgba(255, 255, 255, 0.5);
-            border: 1px solid rgba(160, 32, 240, 0.3);
-            border-radius: 8px;
-            padding: 8px;
-            cursor: pointer;
-            z-index: 20;
-            font-size: 14px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: 0.3s;
-        }
-
-        #fullscreenBtn:hover {
-            background: rgba(160, 32, 240, 0.5);
-            color: rgba(255, 255, 255, 1);
-            border-color: rgba(160, 32, 240, 0.6);
+            position: absolute; bottom: 20px; right: 20px;
+            background: rgba(160, 32, 240, 0.3);
+            color: white; border: 1px solid var(--primary);
+            padding: 10px 15px; cursor: pointer; border-radius: 8px;
+            font-size: 12px; z-index: 20;
         }
     </style>
 </head>
 <body>
 
-    <div id="pongScore">SÉT-SU 0 - 0 Tu</div>
+    <div id="scoreContainer">
+        <div class="score-block">
+            <span style="font-size: 0.7em; letter-spacing: 2px;">SÉT-SU</span>
+            <span class="score-number" id="score-setsu">0</span>
+        </div>
+        <div style="font-size: 2em; opacity: 0.3; font-weight: bold;">∞</div>
+        <div class="score-block">
+            <span style="font-size: 0.7em; letter-spacing: 2px;">TÚ</span>
+            <span class="score-number" id="score-you">0</span>
+        </div>
+    </div>
 
     <div id="pongContainer">
         <div id="menuOverlay" class="overlay">
-            <h2>Bing-Bang∞ Neón</h2>
-            <div id="winnerAnnounce"></div>
-            <button class="btn-play" onclick="startGame()">Comenzar Desafío</button>
+            <h1 style="letter-spacing:18px; text-shadow: 0 0 25px var(--primary); font-size: 3.5em; margin: 0;">BING-BANG</h1>
+            <p style="color: var(--accent); letter-spacing: 5px; margin-bottom: 30px;">SINGULARIDAD ARCADE</p>
+            <div id="winnerAnnounce" style="margin-bottom:25px; font-weight:bold; font-size: 1.2em;"></div>
+            <button class="btn-play" onclick="startGame()">INICIAR CICLO</button>
         </div>
-        
         <canvas id="pongCanvas" width="800" height="500"></canvas>
-        <button id="fullscreenBtn" onclick="toggleFullScreen()">∞ FS</button>
+        <button id="fullscreenBtn" onclick="toggleFullScreen()">PANTALLA COMPLETA</button>
     </div>
 
     <script>
         const canvas = document.getElementById('pongCanvas');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('pongContainer');
-        const scoreBoard = document.getElementById('pongScore');
+        const scoreSetsu = document.getElementById('score-setsu');
+        const scoreYou = document.getElementById('score-you');
         const menuOverlay = document.getElementById('menuOverlay');
         const winnerAnnounce = document.getElementById('winnerAnnounce');
 
-        // Variables de Juego Originales
-        let bX, bY, bSX, bSY;
+        let bX, bY, bSX, bSY, lastBX, lastBY;
         let pY = 210, aY = 210; 
-        let pS = 0, aS = 0; 
+        let sS = 0, yS = 0; 
         let gameRunning = false;
-        let baseSpeed = 6;
+        let baseSpeed = 8;
         let lastTimestamp = 0;
+        let singularityState = 'idle'; // idle, active, blackhole
+        let singularityTimer = 0;
+        let ballColor = '#39ff14';
 
-        // SISTEMA DE PARTÍCULAS [cite: 2025-07-23]
+        const stars = [];
         const particles = [];
-        const maxParticles = 30;
+
+        for(let i = 0; i < 120; i++) stars.push({
+            x: Math.random() * 800, y: Math.random() * 500, 
+            s: Math.random() * 2, o: Math.random()
+        });
 
         class Particle {
-            constructor(x, y, vx, vy, color) {
+            constructor(x, y, color) {
                 this.x = x; this.y = y;
-                this.vx = vx; this.vy = vy;
-                this.life = 1; this.decay = Math.random() * 0.05 + 0.02;
+                this.vx = (Math.random() - 0.5) * 3;
+                this.vy = (Math.random() - 0.5) * 3;
+                this.life = 1; this.decay = 0.03;
                 this.size = Math.random() * 4 + 1;
                 this.color = color;
             }
-            update() {
-                this.x += this.vx; this.y += this.vy;
-                this.life -= this.decay;
-                this.size *= 0.96; // Shrink
-            }
+            update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; }
             draw() {
-                ctx.globalAlpha = this.life;
-                ctx.fillStyle = this.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.globalAlpha = 1; // Reset
-            }
-        }
-
-        function createTrail(x, y) {
-            if(particles.length < maxParticles) {
-                particles.push(new Particle(
-                    x, y,
-                    (Math.random() - 0.5) * 1, // vx
-                    (Math.random() - 0.5) * 1, // vy
-                    '#39ff14' // Neon Ball Green
-                ));
+                ctx.save(); ctx.globalAlpha = this.life;
+                ctx.fillStyle = this.color; ctx.shadowBlur = 12; ctx.shadowColor = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill(); ctx.restore();
             }
         }
 
         function resetBall() {
-            bX = canvas.width / 2;
-            bY = canvas.height / 2;
-            bSX = (Math.random() > 0.5 ? 1 : -1) * baseSpeed;
-            bSY = (Math.random() > 0.5 ? 1 : -1) * (baseSpeed * 0.6);
-            particles.length = 0; // Clear trail
+            bX = 400; bY = 250; lastBX = bX; lastBY = bY;
+            let dir = Math.random() > 0.5 ? 1 : -1;
+            bSX = dir * baseSpeed;
+            bSY = (Math.random() - 0.5) * baseSpeed;
+            singularityState = 'idle';
+            ballColor = '#39ff14';
+            particles.length = 0;
         }
 
         function startGame() {
-            pS = 0; aS = 0;
-            updateScore();
-            winnerAnnounce.innerText = "";
+            sS = 0; yS = 0; scoreSetsu.innerText = "0"; scoreYou.innerText = "0";
             menuOverlay.style.display = "none";
-            resetBall();
-            gameRunning = true;
+            resetBall(); gameRunning = true;
             lastTimestamp = performance.now();
+            requestAnimationFrame(gameLoop);
         }
 
-        function endGame(winner) {
-            gameRunning = false;
-            menuOverlay.style.display = "flex";
-            winnerAnnounce.innerText = winner;
-            document.querySelector('.btn-play').innerText = "Reintentar";
-        }
-
-        function updateScore() {
-            scoreBoard.innerText = `SÉT-SU ${aS} - ${pS} IA`;
-        }
-
-        // FULLSCREEN LOGIC [cite: 2025-07-23]
         function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                container.requestFullscreen().catch(err => {
-                    console.log(`Error attempting to enable full-screen mode: ${err.message}`);
-                });
-            } else {
-                document.exitFullscreen();
-            }
+            if (!document.fullscreenElement) container.requestFullscreen().catch(e => console.log(e));
+            else document.exitFullscreen();
         }
 
-        function update(timestamp) {
-            if (!gameRunning) { drawMenu(); return; }
+        function checkCollision() {
+            if (bY <= 12) { bY = 12; bSY *= -1.02; }
+            if (bY >= 488) { bY = 488; bSY *= -1.02; }
 
-            // Delta time (smooth movement)
-            const dt = (timestamp - lastTimestamp) / 16.67; 
-            lastTimestamp = timestamp;
-
-            // Movimiento Pelota
-            bX += bSX * dt;
-            bY += bSY * dt;
-
-            // Rastro de Partículas
-            createTrail(bX, bY);
-            particles.forEach((p, i) => {
-                p.update();
-                if(p.life <= 0) particles.splice(i, 1);
-            });
-
-            // Colisión Paredes
-            if (bY < 10 || bY > canvas.height - 10) bSY *= -1;
-
-            // Colisión Paleta Sét-su (Izquierda)
-            if (bX < 30 && bY > aY && bY < aY + 80) {
-                bSX = Math.abs(bSX);
-                let deltaY = bY - (aY + 40);
-                bSY = deltaY * 0.2;
-                bSX *= 1.02; // Acelera un poco
-            }
-
-            // Colisión Paleta IA (Derecha)
-            if (bX > canvas.width - 30 && bY > pY && bY < pY + 80) {
-                bSX = -Math.abs(bSX);
-                let deltaY = bY - (pY + 40);
-                bSY = deltaY * 0.2;
-                bSX *= 1.02; // Acelera un poco
-            }
-
-            // SINGULARIDAD CENTRAL ∞ 
-            if (Math.abs(bX - 400) < 40 && Math.abs(bY - 250) < 40) {
-                if (Math.random() < 0.05) { 
-                    bSX *= 1.15; bSY *= 1.15; 
-                    if(Math.abs(bSX) > 15) bSX = (bSX > 0 ? 15 : -15); // Cap speed
+            // Lógica de colisión por túnel para SÉT-SU (IA)
+            if (lastBX > 25 && bX <= 25) {
+                let t = (25 - lastBX) / (bX - lastBX);
+                let interceptY = lastBY + t * (bY - lastBY);
+                if (interceptY > aY && interceptY < aY + 80) {
+                    bX = 26; bSX = Math.abs(bSX) * 1.05;
+                    bSY += (interceptY - (aY + 40)) * 0.3;
+                    createImpact(bX, interceptY, varColor('--primary'));
+                    return;
                 }
             }
 
-            // Puntuación
-            if (bX < 0) { 
-                pS++; updateScore(); resetBall(); 
-                if (pS >= 10) endGame("LA IA HA GANADO");
+            // Lógica para TÚ (Player)
+            if (lastBX < 775 && bX >= 775) {
+                let t = (775 - lastBX) / (bX - lastBX);
+                let interceptY = lastBY + t * (bY - lastBY);
+                if (interceptY > pY && interceptY < pY + 80) {
+                    bX = 774; bSX = -Math.abs(bSX) * 1.05;
+                    bSY += (interceptY - (pY + 40)) * 0.3;
+                    createImpact(bX, interceptY, varColor('--accent'));
+                    return;
+                }
             }
-            if (bX > canvas.width) { 
-                aS++; updateScore(); resetBall(); 
-                if (aS >= 10) endGame("SÉT-SU ES INVENCIBLE");
-            }
-
-            // IA dinámica
-            let targetY = bY - 40;
-            if (aY < targetY) aY += 4.5 * dt; else aY -= 4.5 * dt;
-            
-            // Límites
-            if (aY < 0) aY = 0; if (aY > 420) aY = 420;
-
-            draw();
         }
 
-        function drawMenu() {
-            // Draw something when paused?
+        function createImpact(x, y, color) {
+            for(let i=0; i<10; i++) particles.push(new Particle(x, y, color));
+        }
+
+        function movePaddle(clientY) {
+            let rect = canvas.getBoundingClientRect();
+            let pos = (clientY - rect.top) * (500 / rect.height);
+            pY = Math.max(0, Math.min(420, pos - 40));
+        }
+
+        canvas.addEventListener('mousemove', e => movePaddle(e.clientY));
+        canvas.addEventListener('touchmove', e => { e.preventDefault(); movePaddle(e.touches[0].clientY); }, {passive: false});
+
+        function gameLoop(timestamp) {
+            if (!gameRunning) return;
+            let dt = Math.min((timestamp - lastTimestamp) / 16.67, 1.5);
+            lastTimestamp = timestamp;
+
+            lastBX = bX; lastBY = bY;
+            bX += bSX * dt; bY += bSY * dt;
+
+            // Partículas de rastro
+            if(Math.random() > 0.4) particles.push(new Particle(bX, bY, ballColor));
+
+            checkCollision();
+
+            // Ciclo de la Singularidad
+            singularityTimer += dt;
+            if (singularityTimer > 350) {
+                let r = Math.random();
+                if (r < 0.18) { singularityState = 'blackhole'; ballColor = '#ffffff'; }
+                else if (r < 0.45) { singularityState = 'active'; ballColor = varColor('--accent'); }
+                else { singularityState = 'idle'; ballColor = varColor('--neon-ball'); }
+                singularityTimer = 0;
+            }
+
+            let dCenter = Math.hypot(bX - 400, bY - 250);
+            if (dCenter < 70) {
+                if (singularityState === 'blackhole') {
+                    // Atracción de Agujero Negro
+                    bSX *= 0.94; bSY *= 0.94;
+                    let angle = Math.atan2(250 - bY, 400 - bX);
+                    bX += Math.cos(angle) * 3 * dt;
+                    bY += Math.sin(angle) * 3 * dt;
+                    
+                    if(dCenter < 10) { 
+                        let launchAngle = Math.random() * Math.PI * 2;
+                        bSX = Math.cos(launchAngle) * 18;
+                        bSY = Math.sin(launchAngle) * 18;
+                        singularityState = 'idle';
+                        createImpact(400, 250, '#fff');
+                    }
+                } else if (singularityState === 'active') {
+                    bSX *= 1.03; // Aceleración cuántica
+                }
+            }
+
+            if (bX < 0) { yS++; scoreYou.innerText = yS; resetBall(); if(yS>=10) endGame("¡HAS DOMINADO EL INFINITO!"); }
+            if (bX > 800) { sS++; scoreSetsu.innerText = sS; resetBall(); if(sS>=10) endGame("SÉT-SU ES INALCANZABLE"); }
+
+            // IA SÉT-SU (Poderosa)
+            aY += (bY - (aY + 40)) * 0.14 * dt;
+            aY = Math.max(0, Math.min(420, aY));
+
+            for(let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                if(particles[i].life <= 0) particles.splice(i, 1);
+            }
+
+            draw();
+            requestAnimationFrame(gameLoop);
         }
 
         function draw() {
-            // Limpiar fondo
-            ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 800, 500);
+            
+            // Estrellas
+            ctx.fillStyle = '#fff';
+            stars.forEach(s => { ctx.globalAlpha = s.o; ctx.fillRect(s.x, s.y, s.s, s.s); });
+            ctx.globalAlpha = 1;
 
-            // Símbolo Infinito Central (∞)
-            ctx.strokeStyle = 'rgba(160, 32, 240, 0.2)';
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.ellipse(370, 250, 40, 25, 0, 0, Math.PI * 2); ctx.stroke();
-            ctx.beginPath();
-            ctx.ellipse(430, 250, 40, 25, 0, 0, Math.PI * 2); ctx.stroke();
+            // --- AGUJERO NEGRO Y SÍMBOLO ∞ ---
+            ctx.save(); ctx.translate(400, 250);
+            let sColor = singularityState === 'active' ? varColor('--accent') : (singularityState === 'blackhole' ? '#ff2222' : 'rgba(160,32,240,0.5)');
+            
+            // Efecto Visual Agujero Negro (NÚCLEO)
+            if (singularityState === 'blackhole') {
+                // Horizonte de Eventos
+                ctx.shadowBlur = 40; ctx.shadowColor = '#f00';
+                ctx.fillStyle = '#000'; ctx.beginPath();
+                ctx.arc(0, 0, 22 + Math.sin(Date.now()/150)*4, 0, Math.PI*2); ctx.fill();
+                
+                // Distorsión Roja
+                ctx.strokeStyle = '#f00'; ctx.lineWidth = 2; ctx.stroke();
+            }
 
-            // Dibujar Partículas
+            // Dibujo de Lemniscata ∞
+            ctx.strokeStyle = sColor; ctx.lineWidth = 4; ctx.shadowBlur = 20; ctx.shadowColor = sColor;
+            ctx.beginPath();
+            for(let i=0; i<Math.PI*2; i+=0.08){
+                let r = 75 + Math.sin(Date.now()/400)*6;
+                let denom = 1 + Math.pow(Math.sin(i), 2);
+                let x = (r * Math.cos(i)) / denom;
+                let y = (r * Math.sin(i) * Math.cos(i)) / denom;
+                if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+            }
+            ctx.stroke(); ctx.restore();
+
             particles.forEach(p => p.draw());
 
-            // Paletas Neón
-            ctx.shadowBlur = 20;
-            ctx.fillStyle = '#00d4ff'; 
-            ctx.shadowColor = '#00d4ff';
-            ctx.fillRect(10, aY, 15, 80); // Sét-su
-            ctx.fillRect(canvas.width - 25, pY, 15, 80); // IA
-
-            // Pelota Neón
-            ctx.shadowColor = '#39ff14';
-            ctx.fillStyle = '#39ff14';
-            ctx.beginPath();
-            ctx.arc(bX, bY, 10, 0, Math.PI * 2);
-            ctx.fill();
+            // Paletas y Pelota
+            ctx.shadowBlur = 25;
+            ctx.fillStyle = varColor('--primary'); ctx.shadowColor = ctx.fillStyle;
+            ctx.fillRect(10, aY, 15, 80); // SÉT-SU
             
-            ctx.shadowBlur = 0; // Reset performance
+            ctx.fillStyle = varColor('--accent'); ctx.shadowColor = ctx.fillStyle;
+            ctx.fillRect(775, pY, 15, 80); // TÚ
+            
+            ctx.fillStyle = ballColor; ctx.shadowColor = ballColor;
+            ctx.beginPath(); ctx.arc(bX, bY, 11, 0, Math.PI*2); ctx.fill();
         }
 
-        // Control Mouse
-        canvas.addEventListener('mousemove', e => {
-            let rect = canvas.getBoundingClientRect();
-            let mouseY = e.clientY - rect.top;
-            pY = mouseY - 40;
-            if (pY < 0) pY = 0;
-            if (pY > 420) pY = 420;
-        });
-
-        requestAnimationFrame(function frame(timestamp) {
-            update(timestamp);
-            requestAnimationFrame(frame);
-        });
+        function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+        function endGame(m) { gameRunning = false; menuOverlay.style.display = "flex"; winnerAnnounce.innerText = m; winnerAnnounce.style.color = (yS>=10?varColor('--accent'):varColor('--primary'));}
     </script>
 </body>
 </html>
