@@ -290,58 +290,51 @@
             requestAnimationFrame(loop);
         }
 
-        // --- EVENTO DE DISPARO (FIRE) ---
-        document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
-            e.preventDefault();
+// --- EVENTO DE DISPARO (FIRE) CORREGIDO ---
+document.getElementById('fire-btn').addEventListener('touchstart', (e) => {
+    e.preventDefault();
 
-            if(player.ammo > 0 && !isFiring && player.alive) {
-                player.ammo--; 
-                document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
-                isFiring = true;
+    if(player.ammo > 0 && !isFiring && player.alive) {
+        player.ammo--; 
+        document.getElementById('ammo-ui').innerText = "AMMO: " + player.ammo; 
+        isFiring = true;
 
-                // --- AUDIO REPARADO ---
-                if (shootSound) {
-                    shootSound.pause();
-                    shootSound.currentTime = 0;
-                    shootSound.play().catch(error => console.log("Error audio:", error));
+        // --- SOLUCIÓN DE AUDIO: CLONACIÓN PARA EVITAR BLOQUEO ---
+        if (shootSound) {
+            const shotClone = shootSound.cloneNode(); // Crea una copia para este disparo
+            shotClone.volume = 0.6;
+            shotClone.play().catch(err => console.log("Audio bloqueado:", err));
+        }
+
+        // Lógica de detección de impacto (tu raycasting actual está muy bien)
+        enemies.forEach((en, idx) => {
+            if(!en.alive) return;
+            
+            let dx = en.x - player.x, dy = en.y - player.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            let ang = Math.atan2(dy, dx) - player.dir;
+            while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
+            
+            if(Math.abs(ang) < 0.3 && dist < 8.5) {
+                let wallHit = false;
+                for(let d = 0; d < dist; d += 0.2) {
+                    let cx = player.x + Math.cos(Math.atan2(dy, dx)) * d;
+                    let cy = player.y + Math.sin(Math.atan2(dy, dx)) * d;
+                    if(world[Math.floor(cy)][Math.floor(cx)] === 1) { wallHit = true; break; }
                 }
 
-                // Lógica de detección de impacto con COLISIÓN DE PAREDES
-                enemies.forEach((en, idx) => {
-                    if(!en.alive) return;
-                    
-                    let dx = en.x - player.x, dy = en.y - player.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    let ang = Math.atan2(dy, dx) - player.dir;
-                    while(ang < -Math.PI) ang += Math.PI*2; while(ang > Math.PI) ang -= Math.PI*2;
-                    
-                    // 1. Verificamos si está en el cono de mira (0.3 rad) y distancia (8.5)
-                    if(Math.abs(ang) < 0.3 && dist < 8.5) {
-                        // 2. NUEVO: Raycasting de bala para detectar paredes
-                        let wallHit = false;
-                        let checkStep = 0.2; // Revisamos cada 0.2 unidades
-                        for(let d = 0; d < dist; d += checkStep) {
-                            let cx = player.x + Math.cos(Math.atan2(dy, dx)) * d;
-                            let cy = player.y + Math.sin(Math.atan2(dy, dx)) * d;
-                            if(world[Math.floor(cy)][Math.floor(cx)] === 1) {
-                                wallHit = true;
-                                break;
-                            }
-                        }
-
-                        // Solo muere si no hay pared en medio
-                        if(!wallHit) {
-                            en.alive = false; 
-                            player.score += 150; 
-                            document.getElementById('score-ui').innerText = "SCORE: " + player.score;
-                            setTimeout(() => respawnEnemy(idx), 3000);
-                        }
-                    }
-                });
-                
-                setTimeout(() => isFiring = false, 180);
+                if(!wallHit) {
+                    en.alive = false; 
+                    player.score += 150; 
+                    document.getElementById('score-ui').innerText = "SCORE: " + player.score;
+                    setTimeout(() => respawnEnemy(idx), 3000);
+                }
             }
         });
+        
+        setTimeout(() => isFiring = false, 180);
+    }
+});
 
         wallTex.onload = () => loop();
     </script>
