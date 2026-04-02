@@ -631,7 +631,7 @@ function draw() {
         const shakeX = (Math.random() - 0.5) * (avg * 0.3);
         const shakeY = (Math.random() - 0.5) * (avg * 0.3);
         
-        ctx.fillStyle = 'rgba(0, 212, 255, 0.9)'; 
+        ctx.fillStyle = particleColor;
         ctx.beginPath();
         ctx.arc(centerX + pos.x + shakeX, centerY + pos.y + shakeY, pSizes[i], 0, 6.28);
         ctx.fill();
