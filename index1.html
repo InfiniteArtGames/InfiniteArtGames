@@ -355,10 +355,11 @@
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
           <div class="playlist-item" onclick="selectTrack(0)">01. InfiniteArtGames (MP3)</div>
-          <div class="playlist-item" onclick="selectTrack(1)">02. Melodía de Sét-su (Sintetizada)</div>
-          <div class="playlist-item" onclick="selectTrack(2)">03. Eco del Infinito (Sintetizada)</div>
-          <div class="playlist-item" onclick="selectTrack(3)">04. Bad Wolf (MP3)</div>
-          <div class="playlist-item" onclick="selectTrack(4)">05. El Lobo Feroz (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(4)">02. El Lobo Feroz (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(3)">03. Bad Wolf (MP3)</div>
+          <div class="playlist-item" onclick="selectTrack(2)">04. Eco del Infinito (Sintetizada)</div>
+          <div class="playlist-item" onclick="selectTrack(1)">05. Melodía de Sét-su (Sintetizada)</div>
+          
         </div>
       </div>
       
@@ -540,6 +541,9 @@ const notes = {
 };
     const playlist = [
       { type: 'mp3', name: "InfiniteArtGames", url: "musica/InfiniteArtGames.mp3" },
+      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }
+      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
+
 { 
     type: 'api', 
     name: "Melodía de Sét-su", 
@@ -557,9 +561,7 @@ const notes = {
       {f: notes.B5, d: 0.4}, {f: notes.G5, d: 0.4}, {f: notes.E5, d: 0.8},
       {f: notes.F5, d: 0.2}, {f: notes.E5, d: 0.2}, {f: notes.D5, d: 0.8}
     ] 
-  },
-      { type: 'mp3', name: "Bad Wolf", url: "musica/badwolf-cover.mp3" },
-      { type: 'mp3', name: "El Lobo Feroz", url: "musica/El lobo feroz.mp3" }];
+  }];
 
   
 
