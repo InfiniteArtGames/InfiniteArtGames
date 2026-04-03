@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - God Mode - Infinite Art Games</title>
+    <title>BYTE BITER - Life Persistence - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; --neon-magenta: #f0f; --neon-cyan: #0ff; --neon-red: #f00;
@@ -59,7 +59,7 @@
             <p>INPUT:</p>
             <button id="ctrlSwipe" class="btn active" onclick="setControl('swipe')">SWIPE</button>
             <button id="ctrlJoy" class="btn" onclick="setControl('joy')">JOYSTICK</button>
-            <p>IA DIFFICULTY:</p>
+            <p>AI DIFFICULTY:</p>
             <button id="iaEasy" class="btn active" onclick="setIA(0.2, 'iaEasy')">EASY</button>
             <button id="iaMed" class="btn" onclick="setIA(0.65, 'iaMed')">MEDIUM</button>
             <button id="iaHard" class="btn" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="setIA(0.98, 'iaHard')">ADVANCED</button>
@@ -117,18 +117,54 @@
         initLevel(true); requestAnimationFrame(loop);
     }
 
-    function can(x, y, isP = true) { if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false; if (state.isGlitchActive && isP) return true; return mazeLayout[y][x] === 0; }
-
-    function initLevel(reset = false) {
-        if(reset) { state.score = 0; state.level = 1; state.lives = 3; state.glitchCharge = 0; }
+    // CORRECCIÓN: RESETEAR POSICIONES SIN BORRAR PUNTOS [cite: 2025-07-23]
+    function respawnEntities() {
+        player.x = 15; player.y = 9; player.dx = player.dy = 0; player.nextDx = player.nextDy = 0;
+        ghosts = [
+            {x:1,y:1,color:'#ff3333',startX:1,startY:1,lastX:1,lastY:1},
+            {x:30,y:1,color:'#33ffff',startX:30,startY:1,lastX:30,lastY:1},
+            {x:30,y:16,color:'#ffaa00',startX:30,startY:16,lastX:30,lastY:16}
+        ];
+        state.isSuper = false; state.isGlitchActive = false;
         clearTimeout(timers.powerUp); clearTimeout(timers.glitch);
-        state.isGameOver = false; state.isGlitchActive = false; state.isSuper = false;
-        pellets = []; powerUps = []; particles = [];
-        let valid = [];
-        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c] === 0) { let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); pellets.push({x:c, y:r, isGlitch: isG}); if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); } } }
-        for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
-        state.pelletsLeft = pellets.length; player.x = 15; player.y = 9; player.dx = player.dy = 0;
-        ghosts = [{x:1,y:1,color:'#ff3333',startX:1,startY:1,lastX:1,lastY:1},{x:30,y:1,color:'#33ffff',startX:30,startY:1,lastX:30,lastY:1},{x:30,y:16,color:'#ffaa00',startX:30,startY:16,lastX:30,lastY:16}];
+    }
+
+    function initLevel(fullReset = false) {
+        if(fullReset) { 
+            state.score = 0; state.level = 1; state.lives = 3; state.glitchCharge = 0; 
+            pellets = []; powerUps = [];
+            let valid = [];
+            for(let r=0; r<GRID_H; r++) { 
+                for(let c=0; c<GRID_W; c++) { 
+                    if(mazeLayout[r][c] === 0) { 
+                        let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); 
+                        pellets.push({x:c, y:r, isGlitch: isG}); 
+                        if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); 
+                    } 
+                } 
+            }
+            for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
+            state.pelletsLeft = pellets.length;
+        } else {
+            // Pasar de nivel manteniendo vidas y puntos nuevos
+            state.glitchCharge = 0;
+            pellets = []; powerUps = [];
+            let valid = [];
+            for(let r=0; r<GRID_H; r++) { 
+                for(let c=0; c<GRID_W; c++) { 
+                    if(mazeLayout[r][c] === 0) { 
+                        let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); 
+                        pellets.push({x:c, y:r, isGlitch: isG}); 
+                        if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); 
+                    } 
+                } 
+            }
+            for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
+            state.pelletsLeft = pellets.length;
+        }
+        respawnEntities();
+        state.isGameOver = false;
+        particles = [];
         updateUI();
     }
 
@@ -136,10 +172,11 @@
 
     function triggerGlitch() { if(state.glitchCharge >= 100) { playTone(880, 'square', 0.5, 0.1); state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); clearTimeout(timers.glitch); timers.glitch = setTimeout(() => state.isGlitchActive = false, 5000); } }
 
+    function can(x, y, isP = true) { if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false; if (state.isGlitchActive && isP) return true; return mazeLayout[y][x] === 0; }
+
     function update() {
         if(state.isGameOver) return;
         
-        // PRIORIDAD 1: COLISIÓN ENEMIGOS [cite: 2025-07-23]
         ghosts.forEach(g => {
             const dist = Math.sqrt(Math.pow(g.x - player.x, 2) + Math.pow(g.y - player.y, 2));
             const collisionThreshold = (state.isSuper || state.isGlitchActive) ? 1.0 : 0.75; 
@@ -149,24 +186,20 @@
                     g.x = g.startX; g.y = g.startY; state.score += 200; updateUI(); playTone(200, 'square', 0.2, 0.3);
                 } else { 
                     state.lives--; playTone(150, 'sawtooth', 0.5, 0.2);
-                    if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } else initLevel(); updateUI();
+                    if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } 
+                    else { respawnEntities(); updateUI(); } // CORREGIDO: Solo reaparece, no reinicia nivel [cite: 2025-07-23]
                 }
             }
         });
 
-        // Movimiento Player
         if (player.nextDx || player.nextDy) { if (can(player.x + player.nextDx, player.y + player.nextDy)) { player.dx = player.nextDx; player.dy = player.nextDy; player.nextDx = player.nextDy = 0; } }
-        const oldX = player.x, oldY = player.y;
         if (can(player.x + player.dx, player.y + player.dy)) { 
             player.x += player.dx; player.y += player.dy; 
             if (state.isSuper) for(let j=0; j<2; j++) particles.push({ x: player.x*GRID_SIZE+7, y: player.y*GRID_SIZE+7, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:25, color:'#0ff', size:2 });
-            else if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.6) particles.push({ x: player.x*GRID_SIZE+7, y: player.y*GRID_SIZE+7, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2, life:10, color:'#ff0', size:1.2 });
         } else player.dx = player.dy = 0;
 
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) particles.splice(i, 1); });
-
-        pellets.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.7) { pellets.splice(i, 1); state.score += 10; playTone(1200, 'sine', 0.1, 0.4); if(p.isGlitch) { state.glitchCharge = Math.min(100, state.glitchCharge + 25); if(state.glitchCharge >= 100) triggerGlitch(); } state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(); } } });
-        
+        pellets.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.7) { pellets.splice(i, 1); state.score += 10; playTone(1200, 'sine', 0.1, 0.4); if(p.isGlitch) { state.glitchCharge = Math.min(100, state.glitchCharge + 25); if(state.glitchCharge >= 100) triggerGlitch(); } state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(false); } } });
         powerUps.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.8) { powerUps.splice(i, 1); state.isSuper = true; playTone(600, 'sawtooth', 0.4, 0.2); clearTimeout(timers.powerUp); timers.powerUp = setTimeout(() => state.isSuper = false, 7000); } });
 
         ghosts.forEach(g => {
@@ -192,14 +225,15 @@
         const neon = state.isGlitchActive ? '#f0f' : (state.level >= 2 ? '#f00' : '#0f0'), fill = state.isGlitchActive ? 'rgba(255,0,255,0.15)' : (state.level >= 2 ? 'rgba(255,0,0,0.15)' : 'rgba(0,255,0,0.15)');
         for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c]) { ctx.save(); ctx.globalAlpha = state.isSuper ? 0.2 : 1.0; ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4); ctx.fill(); ctx.strokeStyle = neon; ctx.lineWidth = 1.2; ctx.shadowBlur = 8; ctx.shadowColor = neon; ctx.stroke(); ctx.restore(); } } }
         particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life/25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
+        
         const pulse = Math.sin(Date.now()/150);
         pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; const s = p.isGlitch ? 4 : 1.5; ctx.fillRect(p.x*GRID_SIZE + (15-s)/2, p.y*GRID_SIZE + (15-s)/2, s, s); });
         powerUps.forEach(p => { ctx.shadowBlur = 15 + pulse*10; ctx.shadowColor = "#0ff"; ctx.font = "12px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+2, p.y*GRID_SIZE+12); });
         
-        // ROSTRO PODEROSO [cite: 2025-07-23]
         const pColor = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
         ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
         ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
+        
         ctx.restore(); ctx.save(); 
         ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-(player.x * GRID_SIZE + 7.5), -(player.y * GRID_SIZE + 7.5));
