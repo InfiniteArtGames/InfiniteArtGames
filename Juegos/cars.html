@@ -29,6 +29,15 @@ const ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth > 900 ? 900 : window.innerWidth;
 canvas.height = window.innerHeight;
 
+// --- FUNCIÓN PANTALLA COMPLETA ---
+function toggleFullScreen() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log(`Error al activar pantalla completa: ${err.message}`);
+        });
+    }
+}
+
 const GOAL_DIST = 50000; 
 let playerProgress = 0, worldSpeed = 0, gameState = "COUNTDOWN", timer = 3;
 let allBullets = [], racers = [], items = [], particles = [], windLines = [];
@@ -62,7 +71,6 @@ function init() {
             items.push({ type: pTypes[j], x: (canvas.width/2 - 250) + (j * 100), progress: dist, active: true });
         }
     });
-    // Inicializar Líneas de Viento
     for(let i=0; i<25; i++) windLines.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, len: 40 + Math.random()*60 });
 }
 init();
@@ -151,7 +159,7 @@ function update() {
         let targetSpeed = (canvas.height - tY) / 20;
         
         if(racers[0].nitro > 0) { targetSpeed += 25; racers[0].nitro--; shake = 3; }
-        if (Math.abs(racers[0].x - (canvas.width/2 + curve)) > 195) targetSpeed *= 0.3; // Césped
+        if (Math.abs(racers[0].x - (canvas.width/2 + curve)) > 195) targetSpeed *= 0.3; 
         if (playerRank > 2) targetSpeed += (leaderP - playerProgress) / 120; 
 
         worldSpeed += (targetSpeed - worldSpeed) * 0.12;
@@ -161,7 +169,6 @@ function update() {
         racers[0].progress = playerProgress;
         racers[0].x += (tX - racers[0].x) * 0.2;
 
-        // Actualizar Viento
         windLines.forEach(l => { 
             l.y += worldSpeed * 2.5 + 15; 
             if(l.y > canvas.height) { l.y = -100; l.x = Math.random() * canvas.width; } 
@@ -193,14 +200,12 @@ function update() {
                     r.stun = 120; createExplosion(r.x, rY, b.color, 22); allBullets.splice(bi, 1); if(r.isPlayer) shake = 20; 
                 } 
             });
-            // Colisiones entre vehículos
             racers.forEach(other => {
                 if(r.id !== other.id && Math.abs(r.x - other.x) < 60 && Math.abs(r.progress - other.progress) < 100) {
                     if(r.x < other.x) { r.x -= 8; other.x += 8; } else { r.x += 8; other.x -= 8; }
                     if(r.isPlayer) { worldSpeed *= 0.8; shake = 10; }
                 }
             });
-            // Items
             items.forEach(p => { 
                 if(p.active && Math.abs(r.x - p.x) < 60 && Math.abs(r.progress - p.progress) < 120) { 
                     if(p.type === 'B') r.ammo += 5; 
@@ -233,18 +238,15 @@ function draw() {
 
     ctx.fillStyle = currentBiome.grass; ctx.fillRect(-2000, 0, 5000, canvas.height);
     
-    // Dibujar Viento (Speed Lines)
     ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 2;
     windLines.forEach(l => { ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + l.len); ctx.stroke(); });
 
-    // Árboles
     for(let i=0; i<15; i++) {
         let treeY = ((playerProgress / 6) + (i * 250)) % (canvas.height + 250) - 100;
         drawTree(canvas.width/2 + curve - 550, canvas.height - treeY);
         drawTree(canvas.width/2 + curve + 550, canvas.height - treeY);
     }
 
-    // Pista y Meta
     for(let i=0; i<45; i++) {
         let y = canvas.height - (i * (canvas.height/40));
         let zD = playerProgress + (i * 80);
@@ -258,20 +260,16 @@ function draw() {
         if(Math.abs(zD) < 300) { ctx.fillStyle='#fff'; ctx.fillRect(canvas.width/2 + zC - 200, y, 400, 10); }
     }
 
-    // Partículas
     particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); });
     ctx.globalAlpha = 1.0;
     
-    // Cajas de Poderes
     items.forEach(p => { if(p.active) { 
         let pY = (canvas.height - 150) - (p.progress - playerProgress); 
         if(pY > -100 && pY < canvas.height+100) { 
             ctx.fillStyle = (p.type === 'B'?'#f1c40f':(p.type === 'T'?'#00f2ff':(p.type === 'N'?'#ff6600':(p.type === 'S'?'#ff00ff':'#3dfc03')))); 
-            ctx.fillRect(p.x - 25, pY - 25, 50, 50); ctx.fillStyle = '#000'; ctx.font="bold 24px Arial"; ctx.fillText(p.type, p.x-8, pY+8); 
-        } 
-    } });
+            ctx.fillRect(p.x - 25, pY - 25, 50, 50); ctx.fillStyle = '#000'; ctx.font="bold 24px Arial"; ctx.fillText(p.type, p.x-7, pY+7); } } 
+    });
 
-    // Balas y Misiles
     allBullets.forEach(b => { 
         let bY = (canvas.height - 150) - (b.progress - playerProgress); 
         ctx.fillStyle = b.color; 
@@ -288,11 +286,15 @@ function draw() {
 
 let tX = canvas.width/2, tY = canvas.height - 150;
 canvas.addEventListener('touchstart', e => {
+    toggleFullScreen(); // Activa pantalla completa al primer toque
     tX = e.touches[0].clientX - canvas.offsetLeft; tY = e.touches[0].clientY - canvas.offsetTop;
     if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0)) fire(racers[0]);
     if(gameState === "FINISHED") location.reload();
 });
 canvas.addEventListener('touchmove', e => { tX = e.touches[0].clientX - canvas.offsetLeft; tY = e.touches[0].clientY - canvas.offsetTop; });
+
+// Soporte para Clic en PC para activar Fullscreen
+canvas.addEventListener('mousedown', toggleFullScreen);
 
 update();
 </script>
