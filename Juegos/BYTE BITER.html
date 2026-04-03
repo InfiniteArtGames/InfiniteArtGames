@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Life Persistence - Infinite Art Games</title>
+    <title>BYTE BITER - Precision FX - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; --neon-magenta: #f0f; --neon-cyan: #0ff; --neon-red: #f00;
@@ -56,7 +56,6 @@
         </div>
         <div id="optionsMenu">
             <h2 style="color:var(--neon-cyan)">SETTINGS</h2>
-            <p>INPUT:</p>
             <button id="ctrlSwipe" class="btn active" onclick="setControl('swipe')">SWIPE</button>
             <button id="ctrlJoy" class="btn" onclick="setControl('joy')">JOYSTICK</button>
             <p>AI DIFFICULTY:</p>
@@ -108,163 +107,135 @@
     function setControl(type) { state.controlType = type; document.getElementById('ctrlSwipe').classList.toggle('active', type === 'swipe'); document.getElementById('ctrlJoy').classList.toggle('active', type === 'joy'); }
     function setIA(val, id) { state.aiAggression = val; ['iaEasy', 'iaMed', 'iaHard'].forEach(b => document.getElementById(b).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-    function startGame() {
-        if (audioCtx.state === 'suspended') audioCtx.resume(); startMusic();
-        toggleMenu('mainMenu', false); canvas.style.display = 'block';
-        document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block');
-        document.getElementById('fsBtn').style.display = 'block';
-        if(state.controlType === 'joy') joystick.style.display = 'block';
-        initLevel(true); requestAnimationFrame(loop);
-    }
+    function startGame() { if (audioCtx.state === 'suspended') audioCtx.resume(); startMusic(); toggleMenu('mainMenu', false); canvas.style.display = 'block'; document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block'); document.getElementById('fsBtn').style.display = 'block'; if(state.controlType === 'joy') joystick.style.display = 'block'; initLevel(true); requestAnimationFrame(loop); }
 
-    // CORRECCIÓN: RESETEAR POSICIONES SIN BORRAR PUNTOS [cite: 2025-07-23]
-    function respawnEntities() {
-        player.x = 15; player.y = 9; player.dx = player.dy = 0; player.nextDx = player.nextDy = 0;
-        ghosts = [
-            {x:1,y:1,color:'#ff3333',startX:1,startY:1,lastX:1,lastY:1},
-            {x:30,y:1,color:'#33ffff',startX:30,startY:1,lastX:30,lastY:1},
-            {x:30,y:16,color:'#ffaa00',startX:30,startY:16,lastX:30,lastY:16}
-        ];
-        state.isSuper = false; state.isGlitchActive = false;
-        clearTimeout(timers.powerUp); clearTimeout(timers.glitch);
-    }
+    function respawnEntities() { player.x = 15; player.y = 9; player.dx = player.dy = 0; ghosts = [{x:1,y:1,color:'#ff3333',startX:1,startY:1,lastX:1,lastY:1},{x:30,y:1,color:'#33ffff',startX:30,startY:1,lastX:30,lastY:1},{x:30,y:16,color:'#ffaa00',startX:30,startY:16,lastX:30,lastY:16}]; state.isSuper = false; state.isGlitchActive = false; clearTimeout(timers.powerUp); clearTimeout(timers.glitch); }
 
     function initLevel(fullReset = false) {
-        if(fullReset) { 
-            state.score = 0; state.level = 1; state.lives = 3; state.glitchCharge = 0; 
-            pellets = []; powerUps = [];
-            let valid = [];
-            for(let r=0; r<GRID_H; r++) { 
-                for(let c=0; c<GRID_W; c++) { 
-                    if(mazeLayout[r][c] === 0) { 
-                        let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); 
-                        pellets.push({x:c, y:r, isGlitch: isG}); 
-                        if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); 
-                    } 
-                } 
-            }
-            for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
-            state.pelletsLeft = pellets.length;
-        } else {
-            // Pasar de nivel manteniendo vidas y puntos nuevos
-            state.glitchCharge = 0;
-            pellets = []; powerUps = [];
-            let valid = [];
-            for(let r=0; r<GRID_H; r++) { 
-                for(let c=0; c<GRID_W; c++) { 
-                    if(mazeLayout[r][c] === 0) { 
-                        let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); 
-                        pellets.push({x:c, y:r, isGlitch: isG}); 
-                        if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); 
-                    } 
-                } 
-            }
-            for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
-            state.pelletsLeft = pellets.length;
-        }
-        respawnEntities();
-        state.isGameOver = false;
-        particles = [];
-        updateUI();
+        if(fullReset) { state.score = 0; state.level = 1; state.lives = 3; state.glitchCharge = 0; }
+        pellets = []; powerUps = [];
+        let valid = [];
+        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c] === 0) { let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); pellets.push({x:c, y:r, isGlitch: isG}); if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); } } }
+        for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
+        state.pelletsLeft = pellets.length; respawnEntities(); state.isGameOver = false; particles = []; updateUI();
     }
 
     function updateUI() { document.getElementById('score').textContent = state.score; document.getElementById('lives').textContent = '♥'.repeat(state.lives); document.getElementById('level').textContent = state.level; document.getElementById('glitchBar').style.width = state.glitchCharge + '%'; state.glitchCharge >= 100 ? document.getElementById('glitchBar').classList.add('glitch-ready') : document.getElementById('glitchBar').classList.remove('glitch-ready'); }
 
-    function triggerGlitch() { if(state.glitchCharge >= 100) { playTone(880, 'square', 0.5, 0.1); state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); clearTimeout(timers.glitch); timers.glitch = setTimeout(() => state.isGlitchActive = false, 5000); } }
+    function createParticle(x, y, color, isSuper = false) {
+        return { x: x * GRID_SIZE + 7.5, y: y * GRID_SIZE + 7.5, vx: (Math.random() - 0.5) * (isSuper ? 6 : 3), vy: (Math.random() - 0.5) * (isSuper ? 6 : 3), life: isSuper ? 35 : 15, color: color, size: isSuper ? Math.random() * 4 + 2 : Math.random() * 2 + 1 };
+    }
+
+    function killPlayer() {
+        state.lives--; playTone(150, 'sawtooth', 0.5, 0.2);
+        if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } 
+        else { respawnEntities(); updateUI(); }
+    }
+
+    function triggerGlitch() { 
+        if(state.glitchCharge >= 100) { 
+            playTone(880, 'square', 0.5, 0.1); state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); 
+            clearTimeout(timers.glitch); 
+            timers.glitch = setTimeout(() => { 
+                state.isGlitchActive = false; 
+                const px = Math.round(player.x), py = Math.round(player.y);
+                if(mazeLayout[py] && mazeLayout[py][px] === 1) {
+                    const up = (py - 1 < 0) || (mazeLayout[py-1][px] === 1);
+                    const down = (py + 1 >= GRID_H) || (mazeLayout[py+1][px] === 1);
+                    const left = (px - 1 < 0) || (mazeLayout[py][px-1] === 1);
+                    const right = (px + 1 >= GRID_W) || (mazeLayout[py][px+1] === 1);
+                    if(up && down && left && right) killPlayer();
+                }
+            }, 5000); 
+        } 
+    }
 
     function can(x, y, isP = true) { if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false; if (state.isGlitchActive && isP) return true; return mazeLayout[y][x] === 0; }
 
     function update() {
         if(state.isGameOver) return;
-        
         ghosts.forEach(g => {
-            const dist = Math.sqrt(Math.pow(g.x - player.x, 2) + Math.pow(g.y - player.y, 2));
-            const collisionThreshold = (state.isSuper || state.isGlitchActive) ? 1.0 : 0.75; 
-
-            if(dist < collisionThreshold) {
+            const dist = Math.sqrt(Math.pow(g.x-player.x,2)+Math.pow(g.y-player.y,2));
+            if(dist < ((state.isSuper || state.isGlitchActive) ? 1.0 : 0.75)) {
                 if(state.isSuper || state.isGlitchActive) { 
-                    g.x = g.startX; g.y = g.startY; state.score += 200; updateUI(); playTone(200, 'square', 0.2, 0.3);
-                } else { 
-                    state.lives--; playTone(150, 'sawtooth', 0.5, 0.2);
-                    if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } 
-                    else { respawnEntities(); updateUI(); } // CORREGIDO: Solo reaparece, no reinicia nivel [cite: 2025-07-23]
-                }
+                    g.x=g.startX; g.y=g.startY; state.score+=200; updateUI(); playTone(200,'square',0.2,0.3);
+                    for(let j=0; j<25; j++) particles.push(createParticle(player.x, player.y, g.color, true));
+                } else killPlayer();
             }
         });
-
-        if (player.nextDx || player.nextDy) { if (can(player.x + player.nextDx, player.y + player.nextDy)) { player.dx = player.nextDx; player.dy = player.nextDy; player.nextDx = player.nextDy = 0; } }
-        if (can(player.x + player.dx, player.y + player.dy)) { 
-            player.x += player.dx; player.y += player.dy; 
-            if (state.isSuper) for(let j=0; j<2; j++) particles.push({ x: player.x*GRID_SIZE+7, y: player.y*GRID_SIZE+7, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:25, color:'#0ff', size:2 });
-        } else player.dx = player.dy = 0;
-
-        particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) particles.splice(i, 1); });
-        pellets.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.7) { pellets.splice(i, 1); state.score += 10; playTone(1200, 'sine', 0.1, 0.4); if(p.isGlitch) { state.glitchCharge = Math.min(100, state.glitchCharge + 25); if(state.glitchCharge >= 100) triggerGlitch(); } state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(false); } } });
-        powerUps.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.8) { powerUps.splice(i, 1); state.isSuper = true; playTone(600, 'sawtooth', 0.4, 0.2); clearTimeout(timers.powerUp); timers.powerUp = setTimeout(() => state.isSuper = false, 7000); } });
-
+        if (player.nextDx || player.nextDy) { if (can(player.x+player.nextDx, player.y+player.nextDy)) { player.dx=player.nextDx; player.dy=player.nextDy; player.nextDx=player.nextDy=0; } }
+        if (can(player.x+player.dx, player.y+player.dy)) { player.x+=player.dx; player.y+=player.dy; if (state.isSuper) for(let j=0; j<4; j++) particles.push(createParticle(player.x, player.y, '#0ff', true)); } else player.dx=player.dy=0;
+        particles.forEach((p,i) => { p.x+=p.vx; p.y+=p.vy; p.life--; if(p.life<=0) particles.splice(i,1); });
+        
+        pellets.forEach((p,i) => { 
+            if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.7) { 
+                pellets.splice(i,1); state.score+=10; playTone(1200, 'sine', 0.1, 0.4); 
+                // EXPLOSIÓN MAGENTA AL COGER ELIXIR GLITCH [cite: 2025-07-23]
+                if(p.isGlitch) { 
+                    state.glitchCharge=Math.min(100,state.glitchCharge+25); 
+                    for(let j=0; j<15; j++) particles.push(createParticle(p.x, p.y, '#f0f', false)); // Partículas de color elixir
+                    if(state.glitchCharge>=100) triggerGlitch(); 
+                } 
+                state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(false); } 
+            } 
+        });
+        
+        powerUps.forEach((p,i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.8) { powerUps.splice(i,1); state.isSuper=true; playTone(600,'sawtooth',0.4,0.2); for(let j=0;j<50;j++) particles.push(createParticle(player.x, player.y, '#0ff', true)); clearTimeout(timers.powerUp); timers.powerUp=setTimeout(()=>state.isSuper=false,7000); } });
         ghosts.forEach(g => {
-            const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => can(g.x + d.x, g.y + d.y, false));
-            if (dirs.length > 0) {
-                let m; const choices = dirs.filter(d => !(g.x+d.x === g.lastX && g.y+d.y === g.lastY));
-                const final = choices.length > 0 ? choices : dirs;
-                const vulnerable = state.isSuper || state.isGlitchActive;
-                if(vulnerable) m = final.sort((a,b) => (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)) - (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)))[0];
-                else if(Math.random() < state.aiAggression) m = final.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
-                else m = final[Math.floor(Math.random()*final.length)];
-                if(m) { g.lastX = g.x; g.lastY = g.y; g.x += m.x; g.y += m.y; }
+            const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d=>can(g.x+d.x, g.y+d.y, false));
+            if(dirs.length > 0) {
+                let m; const ch = dirs.filter(d=>!(g.x+d.x===g.lastX && g.y+d.y===g.lastY));
+                const fn = ch.length > 0 ? ch : dirs;
+                if(state.isSuper || state.isGlitchActive) m = fn.sort((a,b)=>(Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y))-(Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
+                else if(Math.random()<state.aiAggression) m = fn.sort((a,b)=>(Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y))-(Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
+                else m = fn[Math.floor(Math.random()*fn.length)];
+                if(m){ g.lastX=g.x; g.lastY=g.y; g.x+=m.x; g.y+=m.y; }
             }
         });
         state.currentZoom += ((state.isGlitchActive ? 1.0 : 1.35) - state.currentZoom) * 0.05;
     }
 
     function draw() {
-        ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
-        ctx.translate(-(player.x * GRID_SIZE + 7.5), -(player.y * GRID_SIZE + 7.5));
+        ctx.save(); ctx.fillStyle='#000'; ctx.fillRect(0,0,canvas.width,canvas.height);
+        ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor*state.currentZoom, state.scaleFactor*state.currentZoom);
+        ctx.translate(-(player.x*GRID_SIZE+7.5), -(player.y*GRID_SIZE+7.5));
+        const neon = state.isGlitchActive ? '#f0f' : (state.level>=2 ? '#f00' : '#0f0'), fill = state.isGlitchActive ? 'rgba(255,0,255,0.15)' : (state.level>=2 ? 'rgba(255,0,0,0.15)' : 'rgba(0,255,0,0.15)');
+        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++){ if(mazeLayout[r][c]){ ctx.save(); ctx.globalAlpha=state.isSuper?0.2:1.0; ctx.fillStyle=fill; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE,r*GRID_SIZE,GRID_SIZE,GRID_SIZE,4); ctx.fill(); ctx.strokeStyle=neon; ctx.lineWidth=1.2; ctx.stroke(); ctx.restore(); } } }
+        particles.forEach(p=>{ ctx.save(); ctx.fillStyle=p.color; ctx.globalAlpha=p.life/35; ctx.fillRect(p.x,p.y,p.size,p.size); ctx.restore(); });
+        const ps = Math.sin(Date.now()/150);
+        pellets.forEach(p=>{ ctx.fillStyle=p.isGlitch?'#f0f':'#fff'; ctx.shadowBlur=10+ps*5; ctx.shadowColor=ctx.fillStyle; const s=p.isGlitch?4:1.5; ctx.fillRect(p.x*GRID_SIZE+(15-s)/2,p.y*GRID_SIZE+(15-s)/2,s,s); });
+        powerUps.forEach(p=>{ ctx.shadowBlur=15+ps*10; ctx.shadowColor="#0ff"; ctx.font="12px Arial"; ctx.fillText("⚡",p.x*GRID_SIZE+2,p.y*GRID_SIZE+12); });
         
-        const neon = state.isGlitchActive ? '#f0f' : (state.level >= 2 ? '#f00' : '#0f0'), fill = state.isGlitchActive ? 'rgba(255,0,255,0.15)' : (state.level >= 2 ? 'rgba(255,0,0,0.15)' : 'rgba(0,255,0,0.15)');
-        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c]) { ctx.save(); ctx.globalAlpha = state.isSuper ? 0.2 : 1.0; ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4); ctx.fill(); ctx.strokeStyle = neon; ctx.lineWidth = 1.2; ctx.shadowBlur = 8; ctx.shadowColor = neon; ctx.stroke(); ctx.restore(); } } }
-        particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life/25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
-        
-        const pulse = Math.sin(Date.now()/150);
-        pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; const s = p.isGlitch ? 4 : 1.5; ctx.fillRect(p.x*GRID_SIZE + (15-s)/2, p.y*GRID_SIZE + (15-s)/2, s, s); });
-        powerUps.forEach(p => { ctx.shadowBlur = 15 + pulse*10; ctx.shadowColor = "#0ff"; ctx.font = "12px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+2, p.y*GRID_SIZE+12); });
-        
-        const pColor = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
-        ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
-        ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
-        
-        ctx.restore(); ctx.save(); 
-        ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
-        ctx.translate(-(player.x * GRID_SIZE + 7.5), -(player.y * GRID_SIZE + 7.5));
-        
-        if (state.isSuper || state.isGlitchActive) {
-            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2; ctx.beginPath();
-            ctx.moveTo(player.x*GRID_SIZE+3, player.y*GRID_SIZE+4); ctx.lineTo(player.x*GRID_SIZE+5, player.y*GRID_SIZE+6); ctx.lineTo(player.x*GRID_SIZE+3, player.y*GRID_SIZE+8);
-            ctx.moveTo(player.x*GRID_SIZE+12, player.y*GRID_SIZE+4); ctx.lineTo(player.x*GRID_SIZE+10, player.y*GRID_SIZE+6); ctx.lineTo(player.x*GRID_SIZE+12, player.y*GRID_SIZE+8); ctx.stroke();
-            ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 1.5, 0, Math.PI*2); ctx.fill();
+        // POSICIONAMIENTO DE ROSTRO CORREGIDO [cite: 2025-07-23]
+        const pC = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
+        ctx.fillStyle=pC; ctx.shadowBlur=state.isSuper?30:12; ctx.shadowColor=pC; ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2,player.y*GRID_SIZE+2,11,11,2.5); ctx.fill();
+        ctx.save(); 
+        if(state.isSuper||state.isGlitchActive){ 
+            ctx.strokeStyle="#000"; ctx.lineWidth=1.2; ctx.beginPath(); 
+            // Ojos más arriba [cite: 2025-07-23]
+            ctx.moveTo(player.x*15+3.5,player.y*15+3); ctx.lineTo(player.x*15+5.5,player.y*15+5); ctx.lineTo(player.x*15+3.5,player.y*15+7);
+            ctx.moveTo(player.x*15+11.5,player.y*15+3); ctx.lineTo(player.x*15+9.5,player.y*15+5); ctx.lineTo(player.x*15+11.5,player.y*15+7);
+            ctx.stroke(); ctx.fillStyle="#000"; ctx.beginPath(); ctx.arc(player.x*15+7.5,player.y*15+9.5,1.5,0,Math.PI*2); ctx.fill(); // Boca más abajo
         } else {
-            ctx.fillStyle = "#000"; ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3);
-            ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0, Math.PI); ctx.stroke();
-        }
-
-        ghosts.forEach(g => {
-            const sc = (state.isSuper || state.isGlitchActive); ctx.fillStyle = sc ? '#555' : g.color; ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
-            if (sc) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial"; ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9); }
-            else { ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2); ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1); }
-        });
+            ctx.fillStyle="#000"; 
+            ctx.fillRect(player.x*15+4,player.y*15+3.5,2,3); // Ojos más arriba [cite: 2025-07-23]
+            ctx.fillRect(player.x*15+9,player.y*15+3.5,2,3);
+            ctx.beginPath(); ctx.arc(player.x*15+7.5,player.y*15+8.5,2.5,0,Math.PI); ctx.stroke(); // Boca equilibrada
+        } 
         ctx.restore();
-        if (state.level >= 2) { ctx.save(); const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 500, canvas.width/2, canvas.height/2, 1000); grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(1, "rgba(0,0,0,0.98)"); ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore(); }
+
+        ghosts.forEach(g=>{ const sc=(state.isSuper||state.isGlitchActive); ctx.fillStyle=sc?'#555':g.color; ctx.beginPath(); ctx.roundRect(g.x*15+2,g.y*15+2,11,11,4); ctx.fill(); if(sc){ ctx.strokeStyle='#fff'; ctx.lineWidth=1; ctx.font="bold 8px Arial"; ctx.strokeText("> <",g.x*15+2,g.y*15+9); } else { ctx.fillStyle='#fff'; ctx.fillRect(g.x*15+4,g.y*15+4,2,2); ctx.fillRect(g.x*15+9,g.y*15+4,2,2); ctx.fillStyle='#000'; ctx.fillRect(g.x*15+4,g.y*15+5,1,1); ctx.fillRect(g.x*15+9,g.y*15+5,1,1); } });
+        ctx.restore();
+        if(state.level>=2){ ctx.save(); const grad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,500,canvas.width/2,canvas.height/2,1000); grad.addColorStop(0,"rgba(0,0,0,0)"); grad.addColorStop(1,"rgba(0,0,0,0.95)"); ctx.fillStyle=grad; ctx.fillRect(0,0,canvas.width,canvas.height); ctx.restore(); }
     }
 
-    function loop(t) { if(t - lastTime > 110) { update(); draw(); lastTime = t; } requestAnimationFrame(loop); }
-    let ts = null;
-    canvas.addEventListener('touchstart', e => { ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; if(ts.y > window.innerHeight*0.7) triggerGlitch(); }, {passive:false});
-    canvas.addEventListener('touchmove', e => { if(state.controlType === 'swipe' && ts) { let dx = e.touches[0].clientX - ts.x, dy = e.touches[0].clientY - ts.y; if(Math.abs(dx)>15 || Math.abs(dy)>15) { if(Math.abs(dx)>Math.abs(dy)) { player.nextDx = dx>0?1:-1; player.nextDy = 0; } else { player.nextDy = dy>0?1:-1; player.nextDx = 0; } ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; } } }, {passive:false});
-    joystick.addEventListener('touchmove', e => { const r = joystick.getBoundingClientRect(); const jx = e.touches[0].clientX-r.left-40, jy = e.touches[0].clientY-r.top-40; const d = Math.min(Math.sqrt(jx*jx+jy*jy),30), a = Math.atan2(jy,jx); knob.style.transform = `translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px)`; if(d>15) { if(Math.abs(jx)>Math.abs(jy)) { player.nextDx=jx>0?1:-1; player.nextDy=0; } else { player.nextDy=jy>0?1:-1; player.nextDx=0; } } }, {passive:false});
-    joystick.addEventListener('touchend', () => knob.style.transform = 'translate(0,0)');
+    function loop(t) { if(t-lastTime>110){ update(); draw(); lastTime=t; } requestAnimationFrame(loop); }
+    canvas.addEventListener('touchstart', e => { ts={x:e.touches[0].clientX,y:e.touches[0].clientY}; if(ts.y>window.innerHeight*0.7) triggerGlitch(); }, {passive:false});
+    canvas.addEventListener('touchmove', e => { if(state.controlType==='swipe'&&ts){ let dx=e.touches[0].clientX-ts.x,dy=e.touches[0].clientY-ts.y; if(Math.abs(dx)>15||Math.abs(dy)>15){ if(Math.abs(dx)>Math.abs(dy)){ player.nextDx=dx>0?1:-1; player.nextDy=0; } else { player.nextDy=dy>0?1:-1; player.nextDx=0; } ts={x:e.touches[0].clientX,y:e.touches[0].clientY}; } } }, {passive:false});
+    joystick.addEventListener('touchmove', e => { const r=joystick.getBoundingClientRect(); const jx = e.touches[0].clientX-r.left-40,jy = e.touches[0].clientY-r.top-40; const d = Math.min(Math.sqrt(jx*jx+jy*jy),30), a = Math.atan2(jy,jx); knob.style.transform=`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px)`; if(d>15){ if(Math.abs(jx)>Math.abs(jy)){ player.nextDx=jx>0?1:-1; player.nextDy=0; } else { player.nextDy=jy>0?1:-1; player.nextDx=0; } } }, {passive:false});
+    joystick.addEventListener('touchend', () => knob.style.transform='translate(0,0)');
     document.getElementById('fsBtn').onclick = () => { if(!document.fullscreenElement) gameWrapper.requestFullscreen(); else document.exitFullscreen(); };
-    window.addEventListener('keydown', e => { if(e.key.includes('Arrow')) { const d = {Up:[0,-1],Down:[0,1],Left:[-1,0],Right:[1,0]}[e.key.replace('Arrow','')]; player.nextDx=d[0]; player.nextDy=d[1]; } if(e.key === ' ') triggerGlitch(); });
+    window.addEventListener('keydown', e => { if(e.key.includes('Arrow')){ const d = {Up:[0,-1],Down:[0,1],Left:[-1,0],Right:[1,0]}[e.key.replace('Arrow','')]; player.nextDx=d[0]; player.nextDy=d[1]; } if(e.key === ' ') triggerGlitch(); });
 </script>
 </body>
 </html>
