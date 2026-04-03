@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Neon Cell - Infinite Art Games</title>
+    <title>BYTE BITER - Levels - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; 
             --neon-magenta: #f0f; 
             --neon-cyan: #0ff;
-            --wall-bg: rgba(0, 255, 0, 0.15); /* Relleno semitransparente */
+            --wall-bg: rgba(0, 255, 0, 0.15); 
             --wall-bg-glitch: rgba(255, 0, 255, 0.15); 
             --bg-dark: #000; 
         }
@@ -31,7 +31,7 @@
         }
         #gameCanvas { display: block; }
         
-        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 50; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; }
+        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; border: 1px solid #333; }
         #ui-top-left { top: 10px; left: 10px; }
         #ui-top-right { top: 10px; right: 10px; text-align: right; }
         
@@ -39,22 +39,18 @@
         .lives-display { color: #f22; font-size: 1.3em; text-shadow: 0 0 8px #f00; }
         .glitch-text { color: var(--neon-magenta); font-size: 0.7em; letter-spacing: 1px; }
         .glitch-container { width: 90px; height: 5px; border: 1px solid #444; background: #111; margin-top: 4px; border-radius: 2px; }
-        .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.3s; box-shadow: 0 0 10px var(--neon-magenta); }
-        .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff; }
+        .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.1s; box-shadow: 0 0 10px var(--neon-magenta); }
+        .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff !important; }
         
         @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #888; padding: 4px 8px; font-size: 9px; cursor: pointer; z-index: 60; border-radius: 3px; }
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 4px 6px; font-size: 10px; cursor: pointer; z-index: 110; border-radius: 3px; font-weight: bold; }
 
         #overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             background: rgba(0,0,0,0.9); display: none; flex-direction: column; 
-            align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(8px);
+            align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px);
         }
-        #overlay h2 { font-size: 2.2rem; color: #fff; text-shadow: 0 0 20px var(--neon-magenta); margin-bottom: 20px; }
-        #restartBtn { 
-            padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); 
-            color: var(--neon-green); font-family: inherit; font-size: 1.1rem; cursor: pointer; border-radius: 4px;
-        }
+        #restartBtn { padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-family: inherit; font-size: 1.1rem; cursor: pointer; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -69,7 +65,7 @@
             <span class="glitch-text">GLITCH_DRIVE</span>
             <div class="glitch-container"><div class="glitch-bar" id="glitchBar"></div></div>
         </div>
-        <button id="fsBtn">FULLSCREEN</button>
+        <button id="fsBtn">FS</button>
         <div id="overlay"><h2 id="endStatus">SYSTEM_HALT</h2><button id="restartBtn">REBOOT</button></div>
     </div>
 
@@ -82,6 +78,7 @@
     let state = { score: 0, level: 1, lives: 3, pelletsLeft: 0, glitchCharge: 0, isGlitchActive: false, isGameOver: false, scaleFactor: 1, currentZoom: 1.2, isSuper: false };
     let player = { x: 15, y: 9, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
     let ghosts = [], pellets = [], powerUps = [], particles = [];
+    let timers = { powerUp: null, glitch: null };
 
     const mazeLayout = [
         [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
@@ -120,8 +117,9 @@
     }
 
     function initLevel(reset = false) {
-        if(reset) { state.score = 0; state.level = 1; state.lives = 3; }
-        state.isGameOver = false; state.glitchCharge = 0; state.isGlitchActive = false; state.isSuper = false;
+        if(reset) { state.score = 0; state.level = 1; state.lives = 3; state.glitchCharge = 0; }
+        clearTimeout(timers.powerUp); clearTimeout(timers.glitch);
+        state.isGameOver = false; state.isGlitchActive = false; state.isSuper = false;
         document.getElementById('overlay').style.display = 'none';
         pellets = []; powerUps = []; particles = [];
         let validSpots = [];
@@ -161,9 +159,16 @@
         state.glitchCharge >= 100 ? bar.classList.add('glitch-ready') : bar.classList.remove('glitch-ready');
     }
 
-    function createParticle(x, y, color, isSuper = false) {
-        const speed = isSuper ? 2.5 : 1.0;
-        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * 4 * speed, vy: (Math.random() - 0.5) * 4 * speed, life: (15 + Math.random() * 10) * (isSuper ? 1.5 : 1.0), color: color, size: isSuper ? Math.random() * 3 + 1 : Math.random() * 2 + 1 };
+    function createParticle(x, y, color, isBurst = false) {
+        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), vy: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), life: isBurst ? 25 : 10, color: color, size: isBurst ? 2 : 1.5 };
+    }
+
+    function triggerGlitch() { 
+        if(state.glitchCharge >= 100) {
+            state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); 
+            clearTimeout(timers.glitch);
+            timers.glitch = setTimeout(() => { state.isGlitchActive = false; }, 5000); 
+        }
     }
 
     function update() {
@@ -173,20 +178,25 @@
                 player.dx = player.nextDx; player.dy = player.nextDy; player.nextDx = player.nextDy = 0;
             }
         }
-        if (can(player.x + player.dx, player.y + player.dy)) { player.x += player.dx; player.y += player.dy; }
-        else { player.dx = player.dy = 0; }
+        const oldX = player.x, oldY = player.y;
+        if (can(player.x + player.dx, player.y + player.dy)) { 
+            player.x += player.dx; player.y += player.dy; 
+            if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.4) particles.push(createParticle(player.x, player.y, state.isSuper ? '#0ff' : '#ff0'));
+        } else { player.dx = player.dy = 0; }
 
-        if (state.isSuper) {
-            for(let j=0; j<4; j++) particles.push(createParticle(player.x, player.y, varColor('--neon-cyan'), true));
-        }
+        if (state.isSuper) for(let j=0; j<2; j++) particles.push(createParticle(player.x, player.y, varColor('--neon-cyan'), true));
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) particles.splice(i, 1); });
 
         for(let i = pellets.length - 1; i >= 0; i--) {
             let p = pellets[i];
             if(p.x === player.x && p.y === player.y) {
                 pellets.splice(i, 1); state.score += 10;
-                if(p.isGlitch) state.glitchCharge = Math.min(100, state.glitchCharge + 25);
+                if(p.isGlitch) {
+                    state.glitchCharge = Math.min(100, state.glitchCharge + 25);
+                    if(state.glitchCharge >= 100) triggerGlitch();
+                }
                 state.pelletsLeft--; updateUI();
+                if(state.pelletsLeft <= 0) { state.level++; initLevel(); return; }
             }
         }
 
@@ -194,7 +204,8 @@
             if(powerUps[i].x === player.x && powerUps[i].y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
                 for(let j=0; j<40; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
-                setTimeout(() => state.isSuper = false, 6000);
+                clearTimeout(timers.powerUp);
+                timers.powerUp = setTimeout(() => { state.isSuper = false; }, 6000);
             }
         }
 
@@ -206,107 +217,79 @@
                 const finalDirs = choices.length > 0 ? choices : dirs;
                 if(g.mode === 'stalker' && !state.isSuper) {
                     move = finalDirs.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
-                } else { move = finalDirs[Math.floor(Math.random()*finalDirs.length)]; }
+                } else move = finalDirs[Math.floor(Math.random()*finalDirs.length)];
                 if(move) { g.lastX = g.x; g.lastY = g.y; g.x += move.x; g.y += move.y; }
             }
-            // COMBATE CORREGIDO: Comer o ser comido
             if(g.x === player.x && g.y === player.y) {
                 if(state.isSuper || state.isGlitchActive) { 
-                    g.x = g.startX; g.y = g.startY; // Destruir y reiniciar enemigo
-                    state.score += 200; updateUI(); 
-                    for(let j=0; j<20; j++) particles.push(createParticle(player.x, player.y, g.color));
+                    g.x = g.startX; g.y = g.startY; state.score += 200; updateUI(); 
+                    for(let j=0; j<20; j++) particles.push(createParticle(player.x, player.y, g.color, true));
                 } else { 
                     state.lives--; 
                     if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } 
-                    else { resetEntities(); }
+                    else resetEntities();
                     updateUI(); 
                 }
             }
         });
-
-        if(state.pelletsLeft <= 0) { state.level++; initLevel(); }
         const targetZoom = state.isGlitchActive ? 1.0 : 1.35;
         state.currentZoom += (targetZoom - state.currentZoom) * 0.05;
     }
 
     function draw() {
-        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.save();
-        const pX = player.x * GRID_SIZE + GRID_SIZE/2, pY = player.y * GRID_SIZE + GRID_SIZE/2;
+        ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const pCanvasX = player.x * GRID_SIZE + GRID_SIZE/2;
+        const pCanvasY = player.y * GRID_SIZE + GRID_SIZE/2;
         ctx.translate(canvas.width/2, canvas.height/2);
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
-        ctx.translate(-pX, -pY);
+        ctx.translate(-pCanvasX, -pCanvasY);
 
-        // MUROS: UN SOLO CUADRADO SEMITRANSPARENTE CON NEONES
         const neonColor = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
         const fillColor = state.isGlitchActive ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 0, 0.15)";
-
-        ctx.globalAlpha = state.isSuper ? 0.3 : 1.0;
+        
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
                 if(mazeLayout[r][c]) {
-                    ctx.fillStyle = fillColor;
-                    ctx.beginPath();
-                    ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4);
-                    ctx.fill();
-                    ctx.strokeStyle = neonColor;
-                    ctx.lineWidth = 1.2;
-                    ctx.shadowBlur = 8;
-                    ctx.shadowColor = neonColor;
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
+                    ctx.save();
+                    ctx.globalAlpha = state.isSuper ? 0.2 : 1.0; 
+                    ctx.fillStyle = fillColor; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4); ctx.fill();
+                    ctx.strokeStyle = neonColor; ctx.lineWidth = 1.2; ctx.shadowBlur = 8; ctx.shadowColor = neonColor; ctx.stroke();
+                    ctx.restore();
                 }
             }
         }
-        ctx.globalAlpha = 1.0;
-        
-        particles.forEach(p => { ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 30; ctx.fillRect(p.x, p.y, p.size, p.size); });
-        pellets.forEach(p => {
-            ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff';
-            const s = p.isGlitch ? 5 : 2; 
-            ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s);
-        });
+        particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
+        pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff'; const s = p.isGlitch ? 5 : 2; ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s); });
+        powerUps.forEach(p => { const pulse = Math.sin(Date.now() / 120) * 3; ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.shadowBlur = 10 + pulse; ctx.shadowColor = "#0ff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); ctx.shadowBlur = 0; });
 
-        powerUps.forEach(p => { 
-            const pulse = Math.sin(Date.now() / 120) * 3;
-            ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.shadowBlur = 10 + pulse; ctx.shadowColor = "#0ff";
-            ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); ctx.shadowBlur = 0;
-        });
-
-        // PLAYER CUADRADO REDONDEADO CON CARITA
         const pColor = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
-        ctx.fillStyle = pColor;
-        ctx.shadowBlur = state.isSuper ? 25 : 12; ctx.shadowColor = pColor;
-        ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
-        ctx.shadowBlur = 0;
-
+        ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
+        ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill(); ctx.shadowBlur = 0;
         ctx.fillStyle = "#000";
-        if (state.isGlitchActive || state.isSuper) {
-            ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 2);
-            ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 2);
-            ctx.fillRect(player.x*GRID_SIZE+6, player.y*GRID_SIZE+9, 3, 2);
-        } else {
-            ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3);
-            ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3);
-            ctx.beginPath(); ctx.lineWidth = 1.2; ctx.strokeStyle = "#000";
-            ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0.2*Math.PI, 0.8*Math.PI); ctx.stroke();
-        }
-
+        if (state.isGlitchActive || state.isSuper) { ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 2); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 2); ctx.fillRect(player.x*GRID_SIZE+6, player.y*GRID_SIZE+9, 3, 2); }
+        else { ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3); ctx.beginPath(); ctx.lineWidth = 1.2; ctx.strokeStyle = "#000"; ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0.2*Math.PI, 0.8*Math.PI); ctx.stroke(); }
         ghosts.forEach(g => {
             const isScared = (state.isSuper || state.isGlitchActive);
-            ctx.fillStyle = isScared ? '#555' : g.color;
-            ctx.shadowBlur = isScared ? 0 : 10; ctx.shadowColor = g.color;
-            ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
-            ctx.shadowBlur = 0;
-            if (isScared) {
-                ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial";
-                ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9);
-            } else {
-                ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2);
-                ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1);
-            }
+            ctx.fillStyle = isScared ? '#555' : g.color; ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
+            if (isScared) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial"; ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9); }
+            else { ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2); ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1); }
         });
         ctx.restore();
+
+        // LÓGICA DE NIVELES: ILUMINACIÓN [cite: 2025-07-23]
+        if (state.level >= 2) {
+            ctx.save();
+            const centerX = canvas.width/2;
+            const centerY = canvas.height/2;
+            const radius = 1000; // RADIO DE 1000 PÍXELES EXACTOS [cite: 2025-07-23]
+            const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.5, centerX, centerY, radius);
+            gradient.addColorStop(0, "rgba(0,0,0,0)");
+            gradient.addColorStop(1, "rgba(0,0,0,0.95)"); // OSCURIDAD CASI TOTAL [cite: 2025-07-23]
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        }
     }
 
     function varColor(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
@@ -314,11 +297,18 @@
     function loop(t) { if(t - lt > 110) { update(); draw(); lt = t; } requestAnimationFrame(loop); }
 
     let touchStartX = 0, touchStartY = 0;
-    canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; if(touchStartY > window.innerHeight * 0.7 && state.glitchCharge >= 100) triggerGlitch(); }, {passive: false});
+    canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; if(touchStartY > window.innerHeight * 0.7) triggerGlitch(); }, {passive: false});
     canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!touchStartX || !touchStartY) return; let dx = e.touches[0].clientX - touchStartX; let dy = e.touches[0].clientY - touchStartY; if(Math.abs(dx) > 15 || Math.abs(dy) > 15) { if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; } else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; } touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; } }, {passive: false});
 
-    function triggerGlitch() { state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); setTimeout(() => state.isGlitchActive = false, 5000); }
-    document.getElementById('fsBtn').onclick = () => gameWrapper.requestFullscreen();
+    window.addEventListener('keydown', e => {
+        if(e.key === 'ArrowUp') { player.nextDx = 0; player.nextDy = -1; }
+        if(e.key === 'ArrowDown') { player.nextDx = 0; player.nextDy = 1; }
+        if(e.key === 'ArrowLeft') { player.nextDx = -1; player.nextDy = 0; }
+        if(e.key === 'ArrowRight') { player.nextDx = 1; player.nextDy = 0; }
+        if(e.key === ' ') triggerGlitch();
+    });
+
+    document.getElementById('fsBtn').onclick = () => { if (!document.fullscreenElement) gameWrapper.requestFullscreen(); else document.exitFullscreen(); };
     document.getElementById('restartBtn').onclick = () => initLevel(true);
     initLevel(true); requestAnimationFrame(loop);
 </script>
