@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Original Restored - Infinite Art Games</title>
+    <title>BYTE BITER - Pro IA Edition - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; --neon-magenta: #f0f; --neon-cyan: #0ff; --neon-red: #f00;
@@ -18,29 +18,44 @@
         #gameWrapper { 
             position: relative; box-shadow: 0 0 40px rgba(0, 255, 0, 0.2); background: var(--bg-dark); 
             border: 2px solid #222; border-radius: 8px; overflow: hidden; 
+            width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
         }
-        #gameCanvas { display: none; }
+        #gameCanvas { display: none; width: 100%; height: 100%; object-fit: contain; }
+        
         .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; border: 1px solid #333; display: none; }
         #ui-top-left { top: 10px; left: 10px; }
         #ui-top-right { top: 10px; right: 10px; text-align: right; }
-        
+
         #mainMenu, #optionsMenu {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 100%; height: 100%; text-align: center; padding: 20px; box-sizing: border-box;
-            background: radial-gradient(circle, #051a05 0%, #000 70%); position: absolute; top:0; left:0; z-index: 150;
+            width: 100%; height: 100%; text-align: center; padding: 5%; box-sizing: border-box;
+            background: radial-gradient(circle, #051a05 0%, #000 80%);
+            position: absolute; top:0; left:0; z-index: 150; overflow-y: auto;
         }
         #optionsMenu { display: none; background: #000; }
-        h1 { font-size: 3.5rem; color: #fff; text-shadow: 0 0 7px #fff, 0 0 21px var(--neon-green), 0 0 42px var(--neon-green); margin: 0; letter-spacing: 5px; animation: flicker 1.5s infinite alternate; }
+        
+        h1 { font-size: clamp(2rem, 10vw, 4rem); color: #fff; text-shadow: 0 0 7px #fff, 0 0 21px var(--neon-green), 0 0 42px var(--neon-green); margin: 0; letter-spacing: 5px; animation: flicker 1.5s infinite alternate; }
         @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        .btn { width: 220px; padding: 12px; margin: 8px; background: rgba(0, 255, 255, 0.05); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-family: inherit; font-weight: bold; cursor: pointer; transition: 0.3s; border-radius: 4px; }
-        .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
+        
+        .credits { font-size: clamp(0.6rem, 3vw, 0.9rem); color: var(--neon-cyan); letter-spacing: 4px; margin-bottom: 5vh; text-shadow: 0 0 5px var(--neon-cyan); }
+        
+        .btn { 
+            width: 80%; max-width: 280px; padding: 12px; margin: 5px; 
+            background: rgba(0, 255, 255, 0.05); border: 2px solid var(--neon-cyan); 
+            color: var(--neon-cyan); font-family: inherit; font-weight: bold; font-size: clamp(0.8rem, 2.5vw, 1.1rem);
+            cursor: pointer; transition: 0.3s; border-radius: 4px; 
+        }
+        .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
         .btn.active { background: var(--neon-magenta); color: #fff; border-color: #fff; }
-        #joystickContainer { position: absolute; bottom: 20px; left: 20px; width: 100px; height: 100px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: none; z-index: 120; touch-action: none; }
-        #joystickKnob { position: absolute; top: 25px; left: 25px; width: 50px; height: 50px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 15px var(--neon-cyan); }
+
+        #joystickContainer { position: absolute; bottom: 10%; left: 10%; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: none; z-index: 120; touch-action: none; }
+        #joystickKnob { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 15px var(--neon-cyan); }
+        
         .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.1s; }
         .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff !important; }
         @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 4px 6px; font-size: 10px; cursor: pointer; z-index: 110; border-radius: 3px; display: none; font-weight: bold; }
+        
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 6px 10px; font-size: 12px; cursor: pointer; z-index: 110; border-radius: 3px; display: none; font-weight: bold; }
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px); }
     </style>
 </head>
@@ -48,25 +63,27 @@
     <div id="gameWrapper">
         <div id="mainMenu">
             <h1>BYTE BITER</h1>
-            <div style="color:var(--neon-cyan); letter-spacing:4px; margin-bottom:30px;">INFINITE ART GAMES</div>
-            <button class="btn" onclick="startGame()">START</button>
+            <div class="credits">INFINITE ART GAMES</div>
+            <button class="btn" onclick="startGame()">START SYSTEM</button>
             <button class="btn" onclick="toggleMenu('optionsMenu', true)">OPTIONS</button>
         </div>
+
         <div id="optionsMenu">
-            <h2 style="color:var(--neon-cyan)">CONFIG</h2>
-            <p>INPUT:</p>
+            <h2 style="color:var(--neon-cyan)">SETTINGS</h2>
+            <p>INPUT METHOD:</p>
             <button id="ctrlSwipe" class="btn active" onclick="setControl('swipe')">SWIPE</button>
             <button id="ctrlJoy" class="btn" onclick="setControl('joy')">JOYSTICK</button>
-            <p>IA DIFFICULTY:</p>
+            <p>AI CORE DIFFICULTY:</p>
             <button id="iaEasy" class="btn active" onclick="setIA(0.2, 'iaEasy')">EASY</button>
-            <button id="iaMed" class="btn" onclick="setIA(0.5, 'iaMed')">MEDIUM</button>
-            <button id="iaHard" class="btn" onclick="setIA(0.95, 'iaHard')">ADVANCED</button>
-            <button class="btn" onclick="toggleMenu('optionsMenu', false)" style="border-color:var(--neon-green); color:var(--neon-green);">BACK</button>
+            <button id="iaMed" class="btn" onclick="setIA(0.65, 'iaMed')">MEDIUM</button>
+            <button id="iaHard" class="btn" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="setIA(0.98, 'iaHard')">ADVANCED (PRO)</button>
+            <button class="btn" onclick="toggleMenu('optionsMenu', false)" style="border-color:var(--neon-green); color:var(--neon-green); margin-top:20px;">BACK</button>
         </div>
+
         <div id="joystickContainer"><div id="joystickKnob"></div></div>
         <canvas id="gameCanvas"></canvas>
         <div class="ui-element" id="ui-top-left">DATA: <span id="score">0</span><br><span id="lives" style="color:#f22; font-size:1.3em;">♥♥♥</span></div>
-        <div class="ui-element" id="ui-top-right">NODE: <span id="level">1</span><br><div style="width:90px; height:5px; border:1px solid #444; background:#111;"><div class="glitch-bar" id="glitchBar"></div></div></div>
+        <div class="ui-element" id="ui-top-right">NODE: <span id="level">1</span><br><div style="width:70px; height:5px; border:1px solid #444; background:#111; margin-top:4px;"><div class="glitch-bar" id="glitchBar"></div></div></div>
         <button id="fsBtn">FS</button>
         <div id="overlay"><h2>SYSTEM_HALT</h2><button class="btn" onclick="location.reload()">REBOOT</button></div>
     </div>
@@ -83,9 +100,9 @@
     const mazeLayout = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],[1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],[1,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1],[1,0,0,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,1],[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],[1,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,1],[1,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1],[1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],[1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1],[1,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,0,1],[1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
 
     function resize() {
-        const ratio = LOGICAL_WIDTH / LOGICAL_HEIGHT;
+        const r = LOGICAL_WIDTH / LOGICAL_HEIGHT;
         let w = window.innerWidth, h = window.innerHeight;
-        if (w/h > ratio) w = h * ratio; else h = w / ratio;
+        if (w/h > r) w = h * r; else h = w / r;
         gameWrapper.style.width = w + 'px'; gameWrapper.style.height = h + 'px';
         canvas.width = w; canvas.height = h; state.scaleFactor = w / LOGICAL_WIDTH;
     }
@@ -93,7 +110,7 @@
 
     function toggleMenu(id, show) { document.getElementById(id).style.display = show ? 'flex' : 'none'; }
     function setControl(type) { state.controlType = type; document.getElementById('ctrlSwipe').classList.toggle('active', type === 'swipe'); document.getElementById('ctrlJoy').classList.toggle('active', type === 'joy'); }
-    function setIA(val, btnId) { state.aiAggression = val; ['iaEasy', 'iaMed', 'iaHard'].forEach(id => document.getElementById(id).classList.remove('active')); document.getElementById(btnId).classList.add('active'); }
+    function setIA(val, id) { state.aiAggression = val; ['iaEasy', 'iaMed', 'iaHard'].forEach(b => document.getElementById(b).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
     function startGame() { toggleMenu('mainMenu', false); canvas.style.display = 'block'; document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block'); document.getElementById('fsBtn').style.display = 'block'; if(state.controlType === 'joy') joystick.style.display = 'block'; initLevel(true); requestAnimationFrame(loop); }
 
@@ -104,23 +121,17 @@
         clearTimeout(timers.powerUp); clearTimeout(timers.glitch);
         state.isGameOver = false; state.isGlitchActive = false; state.isSuper = false;
         pellets = []; powerUps = []; particles = [];
-        let validSpots = [];
-        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c] === 0) { let isGlitch = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); pellets.push({x:c, y:r, isGlitch: isGlitch}); if (!isGlitch && !(r === 9 && c === 15)) validSpots.push({x:c, y:r}); } } }
-        for(let i=0; i<5; i++) if(validSpots.length > 0) powerUps.push({...validSpots.splice(Math.floor(Math.random()*validSpots.length), 1)[0], type: 'bolt'});
+        let valid = [];
+        for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c] === 0) { let isG = (r === 1 && (c === 1 || c === 30)) || (r === 16 && (c === 1 || c === 30)); pellets.push({x:c, y:r, isGlitch: isG}); if (!isG && !(r === 9 && c === 15)) valid.push({x:c, y:r}); } } }
+        for(let i=0; i<5; i++) if(valid.length > 0) powerUps.push({...valid.splice(Math.floor(Math.random()*valid.length), 1)[0], type: 'bolt'});
         state.pelletsLeft = pellets.length; player.x = 15; player.y = 9; player.dx = player.dy = 0;
-        ghosts = [{x:1,y:1,color:'#ff3333',startX:1,startY:1},{x:30,y:1,color:'#33ffff',startX:30,startY:1},{x:30,y:16,color:'#ffaa00',startX:30,startY:16}];
+        ghosts = [{x:1,y:1,color:'#ff3333',startX:1,startY:1,lastX:1,lastY:1},{x:30,y:1,color:'#33ffff',startX:30,startY:1,lastX:30,lastY:1},{x:30,y:16,color:'#ffaa00',startX:30,startY:16,lastX:30,lastY:16}];
         updateUI();
     }
 
-    function updateUI() {
-        document.getElementById('score').textContent = state.score; document.getElementById('level').textContent = state.level; document.getElementById('lives').textContent = '♥'.repeat(state.lives);
-        document.getElementById('glitchBar').style.width = state.glitchCharge + '%';
-        state.glitchCharge >= 100 ? document.getElementById('glitchBar').classList.add('glitch-ready') : document.getElementById('glitchBar').classList.remove('glitch-ready');
-    }
+    function updateUI() { document.getElementById('score').textContent = state.score; document.getElementById('level').textContent = state.level; document.getElementById('lives').textContent = '♥'.repeat(state.lives); document.getElementById('glitchBar').style.width = state.glitchCharge + '%'; state.glitchCharge >= 100 ? document.getElementById('glitchBar').classList.add('glitch-ready') : document.getElementById('glitchBar').classList.remove('glitch-ready'); }
 
-    function createParticle(x, y, color, isSuper = false) {
-        return { x: x*GRID_SIZE+7, y: y*GRID_SIZE+7, vx:(Math.random()-0.5)*(isSuper?4:2), vy:(Math.random()-0.5)*(isSuper?4:2), life:isSuper?25:12, color:color, size:isSuper?2.5:1.5 };
-    }
+    function createParticle(x, y, color, isSuper = false) { return { x: x*GRID_SIZE+7, y: y*GRID_SIZE+7, vx:(Math.random()-0.5)*(isSuper?4:2), vy:(Math.random()-0.5)*(isSuper?4:2), life:isSuper?25:12, color:color, size:isSuper?2.5:1.5 }; }
 
     function triggerGlitch() { if(state.glitchCharge >= 100) { state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); clearTimeout(timers.glitch); timers.glitch = setTimeout(() => state.isGlitchActive = false, 5000); } }
 
@@ -130,7 +141,7 @@
         const oldX = player.x, oldY = player.y;
         if (can(player.x + player.dx, player.y + player.dy)) { 
             player.x += player.dx; player.y += player.dy; 
-            if (state.isSuper) { for(let j=0; j<3; j++) particles.push(createParticle(player.x, player.y, '#0ff', true)); }
+            if (state.isSuper) for(let j=0; j<3; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
             else if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.6) particles.push(createParticle(player.x, player.y, '#ff0'));
         } else player.dx = player.dy = 0;
 
@@ -163,32 +174,34 @@
         for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c]) { ctx.save(); ctx.globalAlpha = state.isSuper ? 0.2 : 1.0; ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4); ctx.fill(); ctx.strokeStyle = neon; ctx.lineWidth = 1.2; ctx.shadowBlur = 8; ctx.shadowColor = neon; ctx.stroke(); ctx.restore(); } } }
         particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life/25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
         const pulse = Math.sin(Date.now()/150);
-        pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; ctx.fillRect(p.x*GRID_SIZE+6, p.y*GRID_SIZE+6, p.isGlitch?5:3, p.isGlitch?5:3); });
+        pellets.forEach(p => { 
+            ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; 
+            ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; 
+            const s = p.isGlitch ? 4 : 1.5; // PUNTOS BLANCOS MÁS PEQUEÑOS (1.5px) [cite: 2025-07-23]
+            ctx.fillRect(p.x*GRID_SIZE + (15-s)/2, p.y*GRID_SIZE + (15-s)/2, s, s); 
+        });
         powerUps.forEach(p => { ctx.shadowBlur = 15 + pulse*10; ctx.shadowColor = "#0ff"; ctx.font = "12px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+2, p.y*GRID_SIZE+12); });
         ctx.shadowBlur = 0; const pC = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
         ctx.fillStyle = pC; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pC; ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
         ctx.fillStyle = "#000"; ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3); ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0, Math.PI); ctx.stroke();
         ghosts.forEach(g => {
-            const isScared = (state.isSuper || state.isGlitchActive);
-            ctx.fillStyle = isScared ? '#555' : g.color; ctx.shadowBlur = isScared ? 0 : 10; ctx.shadowColor = g.color;
-            ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
-            if (isScared) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial"; ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9); }
+            const sc = (state.isSuper || state.isGlitchActive); ctx.fillStyle = sc ? '#555' : g.color; ctx.shadowBlur = sc ? 0 : 10; ctx.shadowColor = g.color; ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
+            if (sc) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial"; ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9); }
             else { ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2); ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1); }
         });
         ctx.restore();
         if (state.level >= 2) { ctx.save(); const grad = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 500, canvas.width/2, canvas.height/2, 1000); grad.addColorStop(0, "rgba(0,0,0,0)"); grad.addColorStop(1, "rgba(0,0,0,0.98)"); ctx.fillStyle = grad; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.restore(); }
     }
 
-    function varColor(n) { return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
     function loop(t) { if(t - lastTime > 110) { update(); draw(); lastTime = t; } requestAnimationFrame(loop); }
 
     let ts = null;
     canvas.addEventListener('touchstart', e => { ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; if(ts.y > window.innerHeight*0.7) triggerGlitch(); }, {passive:false});
     canvas.addEventListener('touchmove', e => { if(state.controlType === 'swipe' && ts) { let dx = e.touches[0].clientX - ts.x, dy = e.touches[0].clientY - ts.y; if(Math.abs(dx)>15 || Math.abs(dy)>15) { if(Math.abs(dx)>Math.abs(dy)) { player.nextDx = dx>0?1:-1; player.nextDy = 0; } else { player.nextDy = dy>0?1:-1; player.nextDx = 0; } ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; } } }, {passive:false});
-    joystick.addEventListener('touchmove', e => { const rect = joystick.getBoundingClientRect(); const jx = e.touches[0].clientX - rect.left - 50, jy = e.touches[0].clientY - rect.top - 50; const dist = Math.min(Math.sqrt(jx*jx + jy*jy), 40), angle = Math.atan2(jy, jx); knob.style.transform = `translate(${Math.cos(angle)*dist}px, ${Math.sin(angle)*dist}px)`; if(dist > 20) { if(Math.abs(jx) > Math.abs(jy)) { player.nextDx = jx>0?1:-1; player.nextDy = 0; } else { player.nextDy = jy>0?1:-1; player.nextDx = 0; } } }, {passive:false});
+    joystick.addEventListener('touchmove', e => { const r = joystick.getBoundingClientRect(); const jx = e.touches[0].clientX-r.left-40, jy = e.touches[0].clientY-r.top-40; const d = Math.min(Math.sqrt(jx*jx+jy*jy),30), a = Math.atan2(jy,jx); knob.style.transform = `translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px)`; if(d>15) { if(Math.abs(jx)>Math.abs(jy)) { player.nextDx=jx>0?1:-1; player.nextDy=0; } else { player.nextDy=jy>0?1:-1; player.nextDx=0; } } }, {passive:false});
     joystick.addEventListener('touchend', () => knob.style.transform = 'translate(0,0)');
     document.getElementById('fsBtn').onclick = () => { if(!document.fullscreenElement) gameWrapper.requestFullscreen(); else document.exitFullscreen(); };
-    window.addEventListener('keydown', e => { if(e.key === 'ArrowUp') player.nextDx = 0, player.nextDy = -1; if(e.key === 'ArrowDown') player.nextDx = 0, player.nextDy = 1; if(e.key === 'ArrowLeft') player.nextDx = -1, player.nextDy = 0; if(e.key === 'ArrowRight') player.nextDx = 1, player.nextDy = 0; if(e.key === ' ') triggerGlitch(); });
+    window.addEventListener('keydown', e => { if(e.key.includes('Arrow')) { const d = {Up:[0,-1],Down:[0,1],Left:[-1,0],Right:[1,0]}[e.key.replace('Arrow','')]; player.nextDx=d[0]; player.nextDy=d[1]; } if(e.key === ' ') triggerGlitch(); });
 </script>
 </body>
 </html>
