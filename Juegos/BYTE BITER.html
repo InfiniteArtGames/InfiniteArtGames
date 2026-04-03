@@ -3,14 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Levels - Infinite Art Games</title>
+    <title>BYTE BITER - Level 2 Red - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; 
             --neon-magenta: #f0f; 
             --neon-cyan: #0ff;
+            --neon-red: #f00;
             --wall-bg: rgba(0, 255, 0, 0.15); 
             --wall-bg-glitch: rgba(255, 0, 255, 0.15); 
+            --wall-bg-red: rgba(255, 0, 0, 0.15);
             --bg-dark: #000; 
         }
         body {
@@ -160,7 +162,7 @@
     }
 
     function createParticle(x, y, color, isBurst = false) {
-        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), vy: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), life: isBurst ? 25 : 10, color: color, size: isBurst ? 2 : 1.5 };
+        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * (isBurst ? 3 : 1), vy: (Math.random() - 0.5) * (isBurst ? 3 : 1), life: isBurst ? 25 : 10, color: color, size: isBurst ? 2 : 1 };
     }
 
     function triggerGlitch() { 
@@ -181,7 +183,7 @@
         const oldX = player.x, oldY = player.y;
         if (can(player.x + player.dx, player.y + player.dy)) { 
             player.x += player.dx; player.y += player.dy; 
-            if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.4) particles.push(createParticle(player.x, player.y, state.isSuper ? '#0ff' : '#ff0'));
+            if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.5) particles.push(createParticle(player.x, player.y, state.isSuper ? '#0ff' : '#ff0'));
         } else { player.dx = player.dy = 0; }
 
         if (state.isSuper) for(let j=0; j<2; j++) particles.push(createParticle(player.x, player.y, varColor('--neon-cyan'), true));
@@ -193,7 +195,7 @@
                 pellets.splice(i, 1); state.score += 10;
                 if(p.isGlitch) {
                     state.glitchCharge = Math.min(100, state.glitchCharge + 25);
-                    if(state.glitchCharge >= 100) triggerGlitch();
+                    if(state.glitchCharge >= 100) triggerGlitch(); 
                 }
                 state.pelletsLeft--; updateUI();
                 if(state.pelletsLeft <= 0) { state.level++; initLevel(); return; }
@@ -203,7 +205,7 @@
         for(let i = powerUps.length - 1; i >= 0; i--) {
             if(powerUps[i].x === player.x && powerUps[i].y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
-                for(let j=0; j<40; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
+                for(let j=0; j<30; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
                 clearTimeout(timers.powerUp);
                 timers.powerUp = setTimeout(() => { state.isSuper = false; }, 6000);
             }
@@ -245,8 +247,14 @@
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-pCanvasX, -pCanvasY);
 
-        const neonColor = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
-        const fillColor = state.isGlitchActive ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 0, 0.15)";
+        // LÓGICA DE COLORES POR NIVEL [cite: 2025-07-23]
+        let neonColor = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
+        let fillColor = state.isGlitchActive ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 0, 0.15)";
+        
+        if (state.level >= 2 && !state.isGlitchActive) {
+            neonColor = varColor('--neon-red');
+            fillColor = varColor('--wall-bg-red');
+        }
         
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
@@ -261,8 +269,7 @@
         }
         particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
         pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff'; const s = p.isGlitch ? 5 : 2; ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s); });
-        powerUps.forEach(p => { const pulse = Math.sin(Date.now() / 120) * 3; ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.shadowBlur = 10 + pulse; ctx.shadowColor = "#0ff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); ctx.shadowBlur = 0; });
-
+        powerUps.forEach(p => { ctx.font = "10px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); });
         const pColor = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
         ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
         ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill(); ctx.shadowBlur = 0;
@@ -277,15 +284,15 @@
         });
         ctx.restore();
 
-        // LÓGICA DE NIVELES: ILUMINACIÓN [cite: 2025-07-23]
+        // EFECTO LUZ NIVEL 2 [cite: 2025-07-23]
         if (state.level >= 2) {
             ctx.save();
             const centerX = canvas.width/2;
             const centerY = canvas.height/2;
-            const radius = 1000; // RADIO DE 1000 PÍXELES EXACTOS [cite: 2025-07-23]
+            const radius = 1000; // RADIO EXACTO DE 1000 [cite: 2025-07-23]
             const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.5, centerX, centerY, radius);
             gradient.addColorStop(0, "rgba(0,0,0,0)");
-            gradient.addColorStop(1, "rgba(0,0,0,0.95)"); // OSCURIDAD CASI TOTAL [cite: 2025-07-23]
+            gradient.addColorStop(1, "rgba(0,0,0,0.95)"); 
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
