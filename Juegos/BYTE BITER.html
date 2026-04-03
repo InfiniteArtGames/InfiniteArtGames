@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Level 2 Red - Infinite Art Games</title>
+    <title>BYTE BITER - Ultimate Edition - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; 
@@ -31,25 +31,76 @@
             border-radius: 8px;
             overflow: hidden; 
         }
-        #gameCanvas { display: block; }
+        #gameCanvas { display: none; }
         
-        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; border: 1px solid #333; }
+        .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; border: 1px solid #333; display: none; }
         #ui-top-left { top: 10px; left: 10px; }
         #ui-top-right { top: 10px; right: 10px; text-align: right; }
         
+        /* PANTALLA DE INICIO POTENCIADA */
+        #mainMenu {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%; text-align: center; padding: 20px; box-sizing: border-box;
+            background: radial-gradient(circle, #051a05 0%, #000 70%);
+        }
+        
+        /* Título Poderoso */
+        .title-container { position: relative; margin-bottom: 10px; }
+        h1 { 
+            font-size: 4rem; 
+            color: #fff; 
+            text-shadow: 
+                0 0 7px #fff,
+                0 0 10px #fff,
+                0 0 21px var(--neon-green),
+                0 0 42px var(--neon-green),
+                0 0 82px var(--neon-green),
+                0 0 92px var(--neon-green);
+            margin: 0;
+            letter-spacing: 5px;
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow: 
+                    0 0 7px #fff, 0 0 10px #fff, 0 0 21px var(--neon-green),
+                    0 0 42px var(--neon-green), 0 0 82px var(--neon-green);
+            }
+            20%, 24%, 55% { text-shadow: none; }
+        }
+
+        .credits { 
+            font-size: 0.9rem; 
+            color: var(--neon-cyan); 
+            margin-bottom: 40px; 
+            letter-spacing: 4px; 
+            text-shadow: 0 0 5px var(--neon-cyan);
+            opacity: 0.8;
+        }
+
+        .diff-btn {
+            width: 240px; padding: 14px; margin: 10px;
+            background: rgba(0, 255, 255, 0.05); border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan); font-family: inherit; font-weight: bold;
+            cursor: pointer; transition: 0.3s; border-radius: 4px;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .diff-btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.05); }
+        .diff-btn.adv { border-color: var(--neon-red); color: var(--neon-red); }
+        .diff-btn.adv:hover { background: var(--neon-red); color: #000; box-shadow: 0 0 20px var(--neon-red); }
+
+        /* HUD y UI In-Game */
         .score-val { color: var(--neon-green); font-size: 1.1em; text-shadow: 0 0 5px var(--neon-green); }
         .lives-display { color: #f22; font-size: 1.3em; text-shadow: 0 0 8px #f00; }
-        .glitch-text { color: var(--neon-magenta); font-size: 0.7em; letter-spacing: 1px; }
-        .glitch-container { width: 90px; height: 5px; border: 1px solid #444; background: #111; margin-top: 4px; border-radius: 2px; }
         .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.1s; box-shadow: 0 0 10px var(--neon-magenta); }
         .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff !important; }
         
-        @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 4px 6px; font-size: 10px; cursor: pointer; z-index: 110; border-radius: 3px; font-weight: bold; }
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 4px 6px; font-size: 10px; cursor: pointer; z-index: 110; border-radius: 3px; display: none; }
 
         #overlay { 
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); display: none; flex-direction: column; 
+            background: rgba(0,0,0,0.95); display: none; flex-direction: column; 
             align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px);
         }
         #restartBtn { padding: 15px 40px; background: transparent; border: 2px solid var(--neon-green); color: var(--neon-green); font-family: inherit; font-size: 1.1rem; cursor: pointer; border-radius: 4px; }
@@ -57,18 +108,29 @@
 </head>
 <body>
     <div id="gameWrapper">
+        <div id="mainMenu">
+            <div class="title-container">
+                <h1>BYTE BITER</h1>
+            </div>
+            <div class="credits">INFINITE ART GAMES</div>
+            <button class="diff-btn" onclick="startGame(0.2)">IA: FÁCIL</button>
+            <button class="diff-btn" onclick="startGame(0.5)">IA: MEDIA</button>
+            <button class="diff-btn adv" onclick="startGame(0.9)">IA: AVANZADA</button>
+        </div>
+
         <canvas id="gameCanvas"></canvas>
+        
         <div class="ui-element" id="ui-top-left">
             <span style="font-size: 0.8em; opacity: 0.7;">DATA:</span> <span class="score-val" id="score">0</span><br>
             <span class="lives-display" id="lives">♥♥♥</span>
         </div>
         <div class="ui-element" id="ui-top-right">
             <span style="font-size: 0.8em; opacity: 0.7;">NODE:</span> <span id="level">1</span><br>
-            <span class="glitch-text">GLITCH_DRIVE</span>
-            <div class="glitch-container"><div class="glitch-bar" id="glitchBar"></div></div>
+            <span class="glitch-text" style="color:var(--neon-magenta); font-size:0.7em;">GLITCH_DRIVE</span>
+            <div class="glitch-container" style="width:90px; height:5px; border:1px solid #444; background:#111; margin-top:4px; border-radius:2px;"><div class="glitch-bar" id="glitchBar"></div></div>
         </div>
         <button id="fsBtn">FS</button>
-        <div id="overlay"><h2 id="endStatus">SYSTEM_HALT</h2><button id="restartBtn">REBOOT</button></div>
+        <div id="overlay"><h2 id="endStatus" style="color:#fff; text-shadow:0 0 15px var(--neon-red);">SYSTEM_HALT</h2><button id="restartBtn">REBOOT</button></div>
     </div>
 
 <script>
@@ -77,7 +139,7 @@
     const gameWrapper = document.getElementById('gameWrapper');
 
     const LOGICAL_WIDTH = 480, LOGICAL_HEIGHT = 270, GRID_SIZE = 15, GRID_W = 32, GRID_H = 18;
-    let state = { score: 0, level: 1, lives: 3, pelletsLeft: 0, glitchCharge: 0, isGlitchActive: false, isGameOver: false, scaleFactor: 1, currentZoom: 1.2, isSuper: false };
+    let state = { score: 0, level: 1, lives: 3, pelletsLeft: 0, glitchCharge: 0, isGlitchActive: false, isGameOver: false, scaleFactor: 1, currentZoom: 1.2, isSuper: false, aiAggression: 0.5 };
     let player = { x: 15, y: 9, dx: 0, dy: 0, nextDx: 0, nextDy: 0 };
     let ghosts = [], pellets = [], powerUps = [], particles = [];
     let timers = { powerUp: null, glitch: null };
@@ -111,6 +173,15 @@
         canvas.width = w; canvas.height = h; state.scaleFactor = w / LOGICAL_WIDTH;
     }
     window.onresize = resize; resize();
+
+    function startGame(difficulty) {
+        state.aiAggression = difficulty;
+        document.getElementById('mainMenu').style.display = 'none';
+        canvas.style.display = 'block';
+        document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block');
+        document.getElementById('fsBtn').style.display = 'block';
+        initLevel(true);
+    }
 
     function can(x, y, isPlayer = true) {
         if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false;
@@ -162,7 +233,7 @@
     }
 
     function createParticle(x, y, color, isBurst = false) {
-        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * (isBurst ? 3 : 1), vy: (Math.random() - 0.5) * (isBurst ? 3 : 1), life: isBurst ? 25 : 10, color: color, size: isBurst ? 2 : 1 };
+        return { x: x * GRID_SIZE + GRID_SIZE/2, y: y * GRID_SIZE + GRID_SIZE/2, vx: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), vy: (Math.random() - 0.5) * (isBurst ? 3 : 1.5), life: isBurst ? 25 : 10, color: color, size: isBurst ? 2 : 1.5 };
     }
 
     function triggerGlitch() { 
@@ -205,7 +276,7 @@
         for(let i = powerUps.length - 1; i >= 0; i--) {
             if(powerUps[i].x === player.x && powerUps[i].y === player.y) {
                 powerUps.splice(i, 1); state.isSuper = true;
-                for(let j=0; j<30; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
+                for(let j=0; j<40; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
                 clearTimeout(timers.powerUp);
                 timers.powerUp = setTimeout(() => { state.isSuper = false; }, 6000);
             }
@@ -217,7 +288,7 @@
                 let move;
                 const choices = dirs.filter(d => !(g.x + d.x === g.lastX && g.y + d.y === g.lastY));
                 const finalDirs = choices.length > 0 ? choices : dirs;
-                if(g.mode === 'stalker' && !state.isSuper) {
+                if(!state.isSuper && Math.random() < state.aiAggression) {
                     move = finalDirs.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
                 } else move = finalDirs[Math.floor(Math.random()*finalDirs.length)];
                 if(move) { g.lastX = g.x; g.lastY = g.y; g.x += move.x; g.y += move.y; }
@@ -247,14 +318,9 @@
         ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-pCanvasX, -pCanvasY);
 
-        // LÓGICA DE COLORES POR NIVEL [cite: 2025-07-23]
         let neonColor = state.isGlitchActive ? varColor('--neon-magenta') : varColor('--neon-green');
         let fillColor = state.isGlitchActive ? "rgba(255, 0, 255, 0.15)" : "rgba(0, 255, 0, 0.15)";
-        
-        if (state.level >= 2 && !state.isGlitchActive) {
-            neonColor = varColor('--neon-red');
-            fillColor = varColor('--wall-bg-red');
-        }
+        if (state.level >= 2 && !state.isGlitchActive) { neonColor = varColor('--neon-red'); fillColor = varColor('--wall-bg-red'); }
         
         for(let r=0; r<GRID_H; r++) {
             for(let c=0; c<GRID_W; c++) {
@@ -269,7 +335,7 @@
         }
         particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life / 25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
         pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? varColor('--neon-magenta') : '#fff'; const s = p.isGlitch ? 5 : 2; ctx.fillRect(p.x*GRID_SIZE + (GRID_SIZE-s)/2, p.y*GRID_SIZE + (GRID_SIZE-s)/2, s, s); });
-        powerUps.forEach(p => { ctx.font = "10px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); });
+        powerUps.forEach(p => { const pulse = Math.sin(Date.now() / 120) * 3; ctx.font = "10px Arial"; ctx.fillStyle = "#fff"; ctx.shadowBlur = 10 + pulse; ctx.shadowColor = "#0ff"; ctx.fillText("⚡", p.x*GRID_SIZE+3, p.y*GRID_SIZE+11); ctx.shadowBlur = 0; });
         const pColor = state.isSuper ? varColor('--neon-cyan') : (state.isGlitchActive ? varColor('--neon-magenta') : '#ffff00');
         ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
         ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill(); ctx.shadowBlur = 0;
@@ -284,17 +350,12 @@
         });
         ctx.restore();
 
-        // EFECTO LUZ NIVEL 2 [cite: 2025-07-23]
         if (state.level >= 2) {
             ctx.save();
-            const centerX = canvas.width/2;
-            const centerY = canvas.height/2;
-            const radius = 1000; // RADIO EXACTO DE 1000 [cite: 2025-07-23]
+            const centerX = canvas.width/2; const centerY = canvas.height/2; const radius = 1000;
             const gradient = ctx.createRadialGradient(centerX, centerY, radius * 0.5, centerX, centerY, radius);
-            gradient.addColorStop(0, "rgba(0,0,0,0)");
-            gradient.addColorStop(1, "rgba(0,0,0,0.95)"); 
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, "rgba(0,0,0,0)"); gradient.addColorStop(1, "rgba(0,0,0,0.95)"); 
+            ctx.fillStyle = gradient; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.restore();
         }
     }
@@ -305,7 +366,15 @@
 
     let touchStartX = 0, touchStartY = 0;
     canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; if(touchStartY > window.innerHeight * 0.7) triggerGlitch(); }, {passive: false});
-    canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!touchStartX || !touchStartY) return; let dx = e.touches[0].clientX - touchStartX; let dy = e.touches[0].clientY - touchStartY; if(Math.abs(dx) > 15 || Math.abs(dy) > 15) { if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; } else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; } touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; } }, {passive: false});
+    canvas.addEventListener('touchmove', e => { 
+        e.preventDefault(); if(!touchStartX || !touchStartY) return; 
+        let dx = e.touches[0].clientX - touchStartX; let dy = e.touches[0].clientY - touchStartY; 
+        if(Math.abs(dx) > 15 || Math.abs(dy) > 15) { 
+            if(Math.abs(dx) > Math.abs(dy)) { player.nextDx = dx > 0 ? 1 : -1; player.nextDy = 0; } 
+            else { player.nextDy = dy > 0 ? 1 : -1; player.nextDx = 0; } 
+            touchStartX = e.touches[0].clientX; touchStartY = e.touches[0].clientY; 
+        } 
+    }, {passive: false});
 
     window.addEventListener('keydown', e => {
         if(e.key === 'ArrowUp') { player.nextDx = 0; player.nextDy = -1; }
@@ -316,8 +385,8 @@
     });
 
     document.getElementById('fsBtn').onclick = () => { if (!document.fullscreenElement) gameWrapper.requestFullscreen(); else document.exitFullscreen(); };
-    document.getElementById('restartBtn').onclick = () => initLevel(true);
-    initLevel(true); requestAnimationFrame(loop);
+    document.getElementById('restartBtn').onclick = () => { location.reload(); }; 
+    requestAnimationFrame(loop);
 </script>
 </body>
 </html>
