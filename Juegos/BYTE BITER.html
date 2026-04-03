@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>BYTE BITER - Pro IA Edition - Infinite Art Games</title>
+    <title>BYTE BITER - God Mode - Infinite Art Games</title>
     <style>
         :root { 
             --neon-green: #0f0; --neon-magenta: #f0f; --neon-cyan: #0ff; --neon-red: #f00;
@@ -21,11 +21,10 @@
             width: 100%; height: 100%; display: flex; align-items: center; justify-content: center;
         }
         #gameCanvas { display: none; width: 100%; height: 100%; object-fit: contain; }
-        
         .ui-element { position: absolute; pointer-events: none; font-family: 'Courier New', monospace; z-index: 100; background: rgba(0,0,0,0.5); padding: 6px; border-radius: 4px; border: 1px solid #333; display: none; }
         #ui-top-left { top: 10px; left: 10px; }
         #ui-top-right { top: 10px; right: 10px; text-align: right; }
-
+        
         #mainMenu, #optionsMenu {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             width: 100%; height: 100%; text-align: center; padding: 5%; box-sizing: border-box;
@@ -33,29 +32,17 @@
             position: absolute; top:0; left:0; z-index: 150; overflow-y: auto;
         }
         #optionsMenu { display: none; background: #000; }
-        
-        h1 { font-size: clamp(2rem, 10vw, 4rem); color: #fff; text-shadow: 0 0 7px #fff, 0 0 21px var(--neon-green), 0 0 42px var(--neon-green); margin: 0; letter-spacing: 5px; animation: flicker 1.5s infinite alternate; }
+        h1 { font-size: clamp(2rem, 10vw, 3.5rem); color: #fff; text-shadow: 0 0 7px #fff, 0 0 21px var(--neon-green); margin: 0; letter-spacing: 5px; animation: flicker 1.5s infinite alternate; }
         @keyframes flicker { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
-        
-        .credits { font-size: clamp(0.6rem, 3vw, 0.9rem); color: var(--neon-cyan); letter-spacing: 4px; margin-bottom: 5vh; text-shadow: 0 0 5px var(--neon-cyan); }
-        
-        .btn { 
-            width: 80%; max-width: 280px; padding: 12px; margin: 5px; 
-            background: rgba(0, 255, 255, 0.05); border: 2px solid var(--neon-cyan); 
-            color: var(--neon-cyan); font-family: inherit; font-weight: bold; font-size: clamp(0.8rem, 2.5vw, 1.1rem);
-            cursor: pointer; transition: 0.3s; border-radius: 4px; 
-        }
-        .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); transform: scale(1.02); }
+        .btn { width: 80%; max-width: 240px; padding: 12px; margin: 8px; background: rgba(0, 255, 255, 0.05); border: 2px solid var(--neon-cyan); color: var(--neon-cyan); font-family: inherit; font-weight: bold; cursor: pointer; transition: 0.3s; border-radius: 4px; }
+        .btn:hover { background: var(--neon-cyan); color: #000; box-shadow: 0 0 20px var(--neon-cyan); }
         .btn.active { background: var(--neon-magenta); color: #fff; border-color: #fff; }
-
+        
         #joystickContainer { position: absolute; bottom: 10%; left: 10%; width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; border: 2px solid rgba(255,255,255,0.3); display: none; z-index: 120; touch-action: none; }
         #joystickKnob { position: absolute; top: 20px; left: 20px; width: 40px; height: 40px; background: var(--neon-cyan); border-radius: 50%; box-shadow: 0 0 15px var(--neon-cyan); }
-        
         .glitch-bar { height: 100%; background: var(--neon-magenta); width: 0%; transition: width 0.1s; }
         .glitch-ready { animation: neonPulse 0.4s infinite; background: #fff !important; }
-        @keyframes neonPulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-        
-        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 6px 10px; font-size: 12px; cursor: pointer; z-index: 110; border-radius: 3px; display: none; font-weight: bold; }
+        #fsBtn { position: absolute; bottom: 10px; right: 10px; background: rgba(0,0,0,0.6); border: 1px solid #444; color: #fff; padding: 6px 10px; font-size: 10px; cursor: pointer; z-index: 110; border-radius: 3px; display: none; font-weight: bold; }
         #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px); }
     </style>
 </head>
@@ -63,32 +50,42 @@
     <div id="gameWrapper">
         <div id="mainMenu">
             <h1>BYTE BITER</h1>
-            <div class="credits">INFINITE ART GAMES</div>
+            <div style="color:var(--neon-cyan); letter-spacing:4px; margin-bottom:30px; font-size:0.8rem;">INFINITE ART GAMES</div>
             <button class="btn" onclick="startGame()">START SYSTEM</button>
             <button class="btn" onclick="toggleMenu('optionsMenu', true)">OPTIONS</button>
         </div>
-
         <div id="optionsMenu">
             <h2 style="color:var(--neon-cyan)">SETTINGS</h2>
-            <p>INPUT METHOD:</p>
+            <p>INPUT:</p>
             <button id="ctrlSwipe" class="btn active" onclick="setControl('swipe')">SWIPE</button>
             <button id="ctrlJoy" class="btn" onclick="setControl('joy')">JOYSTICK</button>
-            <p>AI CORE DIFFICULTY:</p>
+            <p>IA DIFFICULTY:</p>
             <button id="iaEasy" class="btn active" onclick="setIA(0.2, 'iaEasy')">EASY</button>
             <button id="iaMed" class="btn" onclick="setIA(0.65, 'iaMed')">MEDIUM</button>
-            <button id="iaHard" class="btn" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="setIA(0.98, 'iaHard')">ADVANCED (PRO)</button>
-            <button class="btn" onclick="toggleMenu('optionsMenu', false)" style="border-color:var(--neon-green); color:var(--neon-green); margin-top:20px;">BACK</button>
+            <button id="iaHard" class="btn" style="border-color:var(--neon-red); color:var(--neon-red);" onclick="setIA(0.98, 'iaHard')">ADVANCED</button>
+            <button class="btn" onclick="toggleMenu('optionsMenu', false)" style="border-color:var(--neon-green); color:var(--neon-green);">BACK</button>
         </div>
-
         <div id="joystickContainer"><div id="joystickKnob"></div></div>
         <canvas id="gameCanvas"></canvas>
         <div class="ui-element" id="ui-top-left">DATA: <span id="score">0</span><br><span id="lives" style="color:#f22; font-size:1.3em;">♥♥♥</span></div>
-        <div class="ui-element" id="ui-top-right">NODE: <span id="level">1</span><br><div style="width:70px; height:5px; border:1px solid #444; background:#111; margin-top:4px;"><div class="glitch-bar" id="glitchBar"></div></div></div>
+        <div class="ui-element" id="ui-top-right">NODE: <span id="level">1</span><br><div style="width:70px; height:5px; border:1px solid #444; background:#111;"><div class="glitch-bar" id="glitchBar"></div></div></div>
         <button id="fsBtn">FS</button>
         <div id="overlay"><h2>SYSTEM_HALT</h2><button class="btn" onclick="location.reload()">REBOOT</button></div>
     </div>
 
 <script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playTone(freq, type, duration, vol) {
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+    function startMusic() {
+        const notes = [261.63, 311.13, 349.23, 392.00, 466.16]; let step = 0;
+        setInterval(() => { if (!state.isGameOver) { if (step % 2 === 0) playTone(notes[Math.floor(Math.random() * notes.length)] / 2, 'triangle', 0.4, 0.05); step++; } }, 200);
+    }
+
     const canvas = document.getElementById('gameCanvas'), ctx = canvas.getContext('2d');
     const gameWrapper = document.getElementById('gameWrapper'), joystick = document.getElementById('joystickContainer'), knob = document.getElementById('joystickKnob');
     const LOGICAL_WIDTH = 480, LOGICAL_HEIGHT = 270, GRID_SIZE = 15, GRID_W = 32, GRID_H = 18;
@@ -100,9 +97,8 @@
     const mazeLayout = [[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1],[1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,0,0,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1],[1,0,0,1,0,0,0,1,0,0,0,0,0,1,0,1,1,0,1,0,0,0,0,0,1,0,0,0,1,0,0,1],[1,0,0,1,1,1,0,1,0,1,1,1,1,1,0,1,1,0,1,1,1,1,1,0,1,0,1,1,1,0,0,1],[1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1],[1,0,0,1,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,0,1,1,1,1,1,0,0,1],[1,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1],[1,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,1,0,0,0,0,1],[1,1,1,1,0,1,1,1,1,1,0,1,0,1,1,0,0,1,1,0,1,0,1,1,1,1,1,0,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,0,1,0,1,0,0,0,0,1,0,1,0,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1,0,1,1,1,1,0,1],[1,0,1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,1],[1,0,1,0,0,1,1,1,1,1,0,1,1,1,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,0,1],[1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,0,1,1,1,1,1,1,0,1,1,1,1,1,1,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]];
 
     function resize() {
-        const r = LOGICAL_WIDTH / LOGICAL_HEIGHT;
-        let w = window.innerWidth, h = window.innerHeight;
-        if (w/h > r) w = h * r; else h = w / r;
+        const ratio = LOGICAL_WIDTH / LOGICAL_HEIGHT; let w = window.innerWidth, h = window.innerHeight;
+        if (w/h > ratio) w = h * ratio; else h = w / ratio;
         gameWrapper.style.width = w + 'px'; gameWrapper.style.height = h + 'px';
         canvas.width = w; canvas.height = h; state.scaleFactor = w / LOGICAL_WIDTH;
     }
@@ -112,7 +108,14 @@
     function setControl(type) { state.controlType = type; document.getElementById('ctrlSwipe').classList.toggle('active', type === 'swipe'); document.getElementById('ctrlJoy').classList.toggle('active', type === 'joy'); }
     function setIA(val, id) { state.aiAggression = val; ['iaEasy', 'iaMed', 'iaHard'].forEach(b => document.getElementById(b).classList.remove('active')); document.getElementById(id).classList.add('active'); }
 
-    function startGame() { toggleMenu('mainMenu', false); canvas.style.display = 'block'; document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block'); document.getElementById('fsBtn').style.display = 'block'; if(state.controlType === 'joy') joystick.style.display = 'block'; initLevel(true); requestAnimationFrame(loop); }
+    function startGame() {
+        if (audioCtx.state === 'suspended') audioCtx.resume(); startMusic();
+        toggleMenu('mainMenu', false); canvas.style.display = 'block';
+        document.querySelectorAll('.ui-element').forEach(el => el.style.display = 'block');
+        document.getElementById('fsBtn').style.display = 'block';
+        if(state.controlType === 'joy') joystick.style.display = 'block';
+        initLevel(true); requestAnimationFrame(loop);
+    }
 
     function can(x, y, isP = true) { if(x < 0 || x >= GRID_W || y < 0 || y >= GRID_H) return false; if (state.isGlitchActive && isP) return true; return mazeLayout[y][x] === 0; }
 
@@ -129,38 +132,53 @@
         updateUI();
     }
 
-    function updateUI() { document.getElementById('score').textContent = state.score; document.getElementById('level').textContent = state.level; document.getElementById('lives').textContent = '♥'.repeat(state.lives); document.getElementById('glitchBar').style.width = state.glitchCharge + '%'; state.glitchCharge >= 100 ? document.getElementById('glitchBar').classList.add('glitch-ready') : document.getElementById('glitchBar').classList.remove('glitch-ready'); }
+    function updateUI() { document.getElementById('score').textContent = state.score; document.getElementById('lives').textContent = '♥'.repeat(state.lives); document.getElementById('level').textContent = state.level; document.getElementById('glitchBar').style.width = state.glitchCharge + '%'; state.glitchCharge >= 100 ? document.getElementById('glitchBar').classList.add('glitch-ready') : document.getElementById('glitchBar').classList.remove('glitch-ready'); }
 
-    function createParticle(x, y, color, isSuper = false) { return { x: x*GRID_SIZE+7, y: y*GRID_SIZE+7, vx:(Math.random()-0.5)*(isSuper?4:2), vy:(Math.random()-0.5)*(isSuper?4:2), life:isSuper?25:12, color:color, size:isSuper?2.5:1.5 }; }
-
-    function triggerGlitch() { if(state.glitchCharge >= 100) { state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); clearTimeout(timers.glitch); timers.glitch = setTimeout(() => state.isGlitchActive = false, 5000); } }
+    function triggerGlitch() { if(state.glitchCharge >= 100) { playTone(880, 'square', 0.5, 0.1); state.isGlitchActive = true; state.glitchCharge = 0; updateUI(); clearTimeout(timers.glitch); timers.glitch = setTimeout(() => state.isGlitchActive = false, 5000); } }
 
     function update() {
         if(state.isGameOver) return;
+        
+        // PRIORIDAD 1: COLISIÓN ENEMIGOS [cite: 2025-07-23]
+        ghosts.forEach(g => {
+            const dist = Math.sqrt(Math.pow(g.x - player.x, 2) + Math.pow(g.y - player.y, 2));
+            const collisionThreshold = (state.isSuper || state.isGlitchActive) ? 1.0 : 0.75; 
+
+            if(dist < collisionThreshold) {
+                if(state.isSuper || state.isGlitchActive) { 
+                    g.x = g.startX; g.y = g.startY; state.score += 200; updateUI(); playTone(200, 'square', 0.2, 0.3);
+                } else { 
+                    state.lives--; playTone(150, 'sawtooth', 0.5, 0.2);
+                    if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } else initLevel(); updateUI();
+                }
+            }
+        });
+
+        // Movimiento Player
         if (player.nextDx || player.nextDy) { if (can(player.x + player.nextDx, player.y + player.nextDy)) { player.dx = player.nextDx; player.dy = player.nextDy; player.nextDx = player.nextDy = 0; } }
         const oldX = player.x, oldY = player.y;
         if (can(player.x + player.dx, player.y + player.dy)) { 
             player.x += player.dx; player.y += player.dy; 
-            if (state.isSuper) for(let j=0; j<3; j++) particles.push(createParticle(player.x, player.y, '#0ff', true));
-            else if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.6) particles.push(createParticle(player.x, player.y, '#ff0'));
+            if (state.isSuper) for(let j=0; j<2; j++) particles.push({ x: player.x*GRID_SIZE+7, y: player.y*GRID_SIZE+7, vx:(Math.random()-0.5)*4, vy:(Math.random()-0.5)*4, life:25, color:'#0ff', size:2 });
+            else if ((player.x !== oldX || player.y !== oldY) && Math.random() > 0.6) particles.push({ x: player.x*GRID_SIZE+7, y: player.y*GRID_SIZE+7, vx:(Math.random()-0.5)*2, vy:(Math.random()-0.5)*2, life:10, color:'#ff0', size:1.2 });
         } else player.dx = player.dy = 0;
 
         particles.forEach((p, i) => { p.x += p.vx; p.y += p.vy; p.life--; if(p.life <= 0) particles.splice(i, 1); });
-        pellets.forEach((p, i) => { if(Math.abs(p.x - player.x) < 0.7 && Math.abs(p.y - player.y) < 0.7) { pellets.splice(i, 1); state.score += 10; if(p.isGlitch) { state.glitchCharge = Math.min(100, state.glitchCharge + 25); if(state.glitchCharge >= 100) triggerGlitch(); } state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(); } } });
-        powerUps.forEach((p, i) => { if(Math.abs(p.x - player.x) < 0.8 && Math.abs(p.y - player.y) < 0.8) { powerUps.splice(i, 1); state.isSuper = true; for(let j=0; j<40; j++) particles.push(createParticle(player.x, player.y, '#0ff', true)); clearTimeout(timers.powerUp); timers.powerUp = setTimeout(() => state.isSuper = false, 6000); } });
+
+        pellets.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.7) { pellets.splice(i, 1); state.score += 10; playTone(1200, 'sine', 0.1, 0.4); if(p.isGlitch) { state.glitchCharge = Math.min(100, state.glitchCharge + 25); if(state.glitchCharge >= 100) triggerGlitch(); } state.pelletsLeft--; updateUI(); if(state.pelletsLeft <= 0) { state.level++; initLevel(); } } });
+        
+        powerUps.forEach((p, i) => { if(Math.sqrt(Math.pow(p.x-player.x,2)+Math.pow(p.y-player.y,2)) < 0.8) { powerUps.splice(i, 1); state.isSuper = true; playTone(600, 'sawtooth', 0.4, 0.2); clearTimeout(timers.powerUp); timers.powerUp = setTimeout(() => state.isSuper = false, 7000); } });
 
         ghosts.forEach(g => {
             const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}].filter(d => can(g.x + d.x, g.y + d.y, false));
             if (dirs.length > 0) {
                 let m; const choices = dirs.filter(d => !(g.x+d.x === g.lastX && g.y+d.y === g.lastY));
                 const final = choices.length > 0 ? choices : dirs;
-                if(!state.isSuper && Math.random() < state.aiAggression) m = final.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
+                const vulnerable = state.isSuper || state.isGlitchActive;
+                if(vulnerable) m = final.sort((a,b) => (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)) - (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)))[0];
+                else if(Math.random() < state.aiAggression) m = final.sort((a,b) => (Math.abs(g.x+a.x-player.x)+Math.abs(g.y+a.y-player.y)) - (Math.abs(g.x+b.x-player.x)+Math.abs(g.y+b.y-player.y)))[0];
                 else m = final[Math.floor(Math.random()*final.length)];
                 if(m) { g.lastX = g.x; g.lastY = g.y; g.x += m.x; g.y += m.y; }
-            }
-            if(Math.sqrt(Math.pow(g.x-player.x,2)+Math.pow(g.y-player.y,2)) < 0.8) {
-                if(state.isSuper || state.isGlitchActive) { g.x = g.startX; g.y = g.startY; state.score += 200; updateUI(); for(let j=0; j<20; j++) particles.push(createParticle(player.x, player.y, g.color, true)); }
-                else { state.lives--; if(state.lives <= 0) { state.isGameOver = true; document.getElementById('overlay').style.display='flex'; } else initLevel(); updateUI(); }
             }
         });
         state.currentZoom += ((state.isGlitchActive ? 1.0 : 1.35) - state.currentZoom) * 0.05;
@@ -170,22 +188,34 @@
         ctx.save(); ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
         ctx.translate(-(player.x * GRID_SIZE + 7.5), -(player.y * GRID_SIZE + 7.5));
+        
         const neon = state.isGlitchActive ? '#f0f' : (state.level >= 2 ? '#f00' : '#0f0'), fill = state.isGlitchActive ? 'rgba(255,0,255,0.15)' : (state.level >= 2 ? 'rgba(255,0,0,0.15)' : 'rgba(0,255,0,0.15)');
         for(let r=0; r<GRID_H; r++) { for(let c=0; c<GRID_W; c++) { if(mazeLayout[r][c]) { ctx.save(); ctx.globalAlpha = state.isSuper ? 0.2 : 1.0; ctx.fillStyle = fill; ctx.beginPath(); ctx.roundRect(c*GRID_SIZE, r*GRID_SIZE, GRID_SIZE, GRID_SIZE, 4); ctx.fill(); ctx.strokeStyle = neon; ctx.lineWidth = 1.2; ctx.shadowBlur = 8; ctx.shadowColor = neon; ctx.stroke(); ctx.restore(); } } }
         particles.forEach(p => { ctx.save(); ctx.fillStyle = p.color; ctx.globalAlpha = p.life/25; ctx.fillRect(p.x, p.y, p.size, p.size); ctx.restore(); });
         const pulse = Math.sin(Date.now()/150);
-        pellets.forEach(p => { 
-            ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; 
-            ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; 
-            const s = p.isGlitch ? 4 : 1.5; // PUNTOS BLANCOS MÁS PEQUEÑOS (1.5px) [cite: 2025-07-23]
-            ctx.fillRect(p.x*GRID_SIZE + (15-s)/2, p.y*GRID_SIZE + (15-s)/2, s, s); 
-        });
+        pellets.forEach(p => { ctx.fillStyle = p.isGlitch ? '#f0f' : '#fff'; ctx.shadowBlur = 10 + pulse*5; ctx.shadowColor = ctx.fillStyle; const s = p.isGlitch ? 4 : 1.5; ctx.fillRect(p.x*GRID_SIZE + (15-s)/2, p.y*GRID_SIZE + (15-s)/2, s, s); });
         powerUps.forEach(p => { ctx.shadowBlur = 15 + pulse*10; ctx.shadowColor = "#0ff"; ctx.font = "12px Arial"; ctx.fillText("⚡", p.x*GRID_SIZE+2, p.y*GRID_SIZE+12); });
-        ctx.shadowBlur = 0; const pC = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
-        ctx.fillStyle = pC; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pC; ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
-        ctx.fillStyle = "#000"; ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3); ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0, Math.PI); ctx.stroke();
+        
+        // ROSTRO PODEROSO [cite: 2025-07-23]
+        const pColor = state.isSuper ? '#0ff' : (state.isGlitchActive ? '#f0f' : '#ff0');
+        ctx.fillStyle = pColor; ctx.shadowBlur = state.isSuper ? 30 : 12; ctx.shadowColor = pColor;
+        ctx.beginPath(); ctx.roundRect(player.x*GRID_SIZE+2, player.y*GRID_SIZE+2, 11, 11, 2.5); ctx.fill();
+        ctx.restore(); ctx.save(); 
+        ctx.translate(canvas.width/2, canvas.height/2); ctx.scale(state.scaleFactor * state.currentZoom, state.scaleFactor * state.currentZoom);
+        ctx.translate(-(player.x * GRID_SIZE + 7.5), -(player.y * GRID_SIZE + 7.5));
+        
+        if (state.isSuper || state.isGlitchActive) {
+            ctx.strokeStyle = "#000"; ctx.lineWidth = 1.2; ctx.beginPath();
+            ctx.moveTo(player.x*GRID_SIZE+3, player.y*GRID_SIZE+4); ctx.lineTo(player.x*GRID_SIZE+5, player.y*GRID_SIZE+6); ctx.lineTo(player.x*GRID_SIZE+3, player.y*GRID_SIZE+8);
+            ctx.moveTo(player.x*GRID_SIZE+12, player.y*GRID_SIZE+4); ctx.lineTo(player.x*GRID_SIZE+10, player.y*GRID_SIZE+6); ctx.lineTo(player.x*GRID_SIZE+12, player.y*GRID_SIZE+8); ctx.stroke();
+            ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 1.5, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.fillStyle = "#000"; ctx.fillRect(player.x*GRID_SIZE+4, player.y*GRID_SIZE+5, 2, 3); ctx.fillRect(player.x*GRID_SIZE+9, player.y*GRID_SIZE+5, 2, 3);
+            ctx.beginPath(); ctx.arc(player.x*GRID_SIZE+7.5, player.y*GRID_SIZE+9, 2.5, 0, Math.PI); ctx.stroke();
+        }
+
         ghosts.forEach(g => {
-            const sc = (state.isSuper || state.isGlitchActive); ctx.fillStyle = sc ? '#555' : g.color; ctx.shadowBlur = sc ? 0 : 10; ctx.shadowColor = g.color; ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
+            const sc = (state.isSuper || state.isGlitchActive); ctx.fillStyle = sc ? '#555' : g.color; ctx.beginPath(); ctx.roundRect(g.x*GRID_SIZE+2, g.y*GRID_SIZE+2, 11, 11, 4); ctx.fill();
             if (sc) { ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.font = "bold 8px Arial"; ctx.strokeText("> <", g.x*GRID_SIZE+2, g.y*GRID_SIZE+9); }
             else { ctx.fillStyle = '#fff'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+4, 2, 2); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+4, 2, 2); ctx.fillStyle = '#000'; ctx.fillRect(g.x*GRID_SIZE+4, g.y*GRID_SIZE+5, 1, 1); ctx.fillRect(g.x*GRID_SIZE+9, g.y*GRID_SIZE+5, 1, 1); }
         });
@@ -194,7 +224,6 @@
     }
 
     function loop(t) { if(t - lastTime > 110) { update(); draw(); lastTime = t; } requestAnimationFrame(loop); }
-
     let ts = null;
     canvas.addEventListener('touchstart', e => { ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; if(ts.y > window.innerHeight*0.7) triggerGlitch(); }, {passive:false});
     canvas.addEventListener('touchmove', e => { if(state.controlType === 'swipe' && ts) { let dx = e.touches[0].clientX - ts.x, dy = e.touches[0].clientY - ts.y; if(Math.abs(dx)>15 || Math.abs(dy)>15) { if(Math.abs(dx)>Math.abs(dy)) { player.nextDx = dx>0?1:-1; player.nextDy = 0; } else { player.nextDy = dy>0?1:-1; player.nextDx = 0; } ts = {x:e.touches[0].clientX, y:e.touches[0].clientY}; } } }, {passive:false});
