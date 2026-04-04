@@ -2,29 +2,27 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Fullscreen Edition</title>
+    <title>Infinite Art GP - Pro Scale</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
-        body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
-        canvas { display: block; background: #222; border-left: 5px solid #f39c12; border-right: 5px solid #f39c12; max-width: 100%; max-height: 100%; }
-        #hud { position: absolute; top: 20px; left: 20px; color: #fff; background: rgba(0,0,0,0.9); padding: 15px; border: 3px solid #f39c12; pointer-events: none; border-radius: 12px; z-index: 10; min-width: 160px; }
-        #msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 60px; text-align: center; text-shadow: 6px 6px #000; z-index: 20; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 25px; border: 5px solid gold; width: 70%; display: block; }
+        body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
+        canvas { display: block; background: #222; }
+        #hud { position: absolute; top: 15px; left: 15px; color: #fff; background: rgba(0,0,0,0.8); padding: 10px; border: 2px solid #f39c12; pointer-events: none; border-radius: 8px; z-index: 10; font-size: 12px; }
+        #msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 40px; text-align: center; text-shadow: 4px 4px #000; z-index: 20; background: rgba(0,0,0,0.9); padding: 20px; border-radius: 20px; border: 4px solid gold; width: 60%; display: block; }
         .stat { color: #f39c12; font-weight: bold; }
-        #fs-btn { position: absolute; bottom: 20px; right: 20px; padding: 15px 25px; background: gold; color: #000; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; z-index: 30; font-family: sans-serif; box-shadow: 0 5px #b8860b; }
-        #fs-btn:active { box-shadow: 0 2px #b8860b; transform: translateY(3px); }
+        #fs-btn { position: absolute; bottom: 15px; right: 15px; width: 45px; height: 45px; background: rgba(255, 215, 0, 0.7); color: #000; border: 2px solid #fff; border-radius: 50%; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
 
 <div id="hud">
     <span class="stat">RANK:</span> <span id="rank">--</span>/10<br>
-    <span class="stat">AMMO:</span> <span id="ammo">5</span><br>
-    <span class="stat">POWER:</span> <span id="pwr" style="color:#eee">NORMAL</span><br>
+    <span class="stat">BALAS:</span> <span id="ammo">5</span><br>
     <span class="stat">META:</span> <span id="dist">5000</span>km
 </div>
 
 <div id="msg">3</div>
-<button id="fs-btn">PANTALLA COMPLETA</button>
+<button id="fs-btn">FS</button>
 <canvas id="raceCanvas"></canvas>
 
 <script>
@@ -32,29 +30,28 @@ const canvas = document.getElementById('raceCanvas');
 const ctx = canvas.getContext('2d');
 const fsBtn = document.getElementById('fs-btn');
 
-// --- LÓGICA DE EXPANSIÓN TOTAL ---
-function resizeCanvas() {
+// --- SISTEMA DE RESOLUCIÓN REAL (EVITA EL ZOOM) ---
+function resize() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
+    // Reposicionar jugador al centro al redimensionar
+    if(racers[0]) {
+        racers[0].y = canvas.height * 0.8; // Carro a 80% de la pantalla (más arriba)
+    }
 }
-
-window.addEventListener('resize', resizeCanvas);
-resizeCanvas();
+window.addEventListener('resize', resize);
 
 fsBtn.addEventListener('click', () => {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().then(() => {
-            fsBtn.style.display = 'none'; // Ocultar botón al entrar
-            setTimeout(resizeCanvas, 100); // Re-ajustar tras el cambio
-        }).catch(err => alert(`Error: ${err.message}`));
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
+    } else {
+        document.exitFullscreen();
     }
 });
 
+// Detectar cambio de pantalla completa para forzar re-dibujo
 document.addEventListener('fullscreenchange', () => {
-    if (!document.fullscreenElement) {
-        fsBtn.style.display = 'block'; // Mostrar botón al salir
-        resizeCanvas();
-    }
+    setTimeout(resize, 100);
 });
 
 const GOAL_DIST = 50000; 
@@ -67,44 +64,48 @@ const biomes = [
     { name: "Noche", grass: "#0a0a2a", track1: "#111", track2: "#050505", border1: "#00f2ff", border2: "#7000ff", tree: "#001a33" },
     { name: "Marte", grass: "#a04000", track1: "#5d4037", track2: "#4e342e", border1: "#ffcc80", border2: "#e65100", tree: "#4e342e" }
 ];
-let currentBiome = biomes[0];
+let currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
 const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ecf0f1', '#e74c3c', '#2c3e50', '#27ae60'];
 
 function init() {
-    currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
+    resize();
     const B_SPEED = 12.5;
-    racers = [{ id: 0, x: canvas.width/2, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: B_SPEED, nitro: 0, missiles: 0 }];
+    // Jugador con posición Y dinámica (carro más arriba)
+    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.8, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: B_SPEED, nitro: 0, missiles: 0 }];
+    
     for(let i=0; i<9; i++) {
         racers.push({
-            id: i+1, x: canvas.width/2 + (i % 3 - 1) * 160, progress: (i + 1) * 300, 
+            id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, 
+            progress: (i + 1) * 350, 
             color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL",
             baseSpeed: B_SPEED + (Math.random() * 1.5 - 0.75), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0
         });
     }
+
     const spots = [7000, 14000, 21000, 28000, 35000, 42000];
     const pTypes = ['B', 'T', 'N', 'S', 'M', 'B'];
     spots.forEach(dist => {
         for(let j=0; j<6; j++) {
-            items.push({ type: pTypes[j % pTypes.length], x: (canvas.width/2 - 250) + (j * 100), progress: dist, active: true });
+            items.push({ type: pTypes[j % pTypes.length], x: (canvas.width / 2 - 250) + (j * 100), progress: dist, active: true });
         }
     });
-    for(let i=0; i<25; i++) windLines.push({ x: Math.random()*canvas.width, y: Math.random()*canvas.height, len: 40 + Math.random()*60 });
+    for(let i=0; i<25; i++) windLines.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, len: 60 + Math.random() * 80 });
 }
 init();
 
 function createExplosion(x, y, color, count=15) {
-    for(let i=0; i<count; i++) particles.push({ x: x, y: y, vX: (Math.random()-0.5)*15, vY: (Math.random()-0.5)*15, life: 1.0, color: color });
+    for(let i=0; i<count; i++) particles.push({ x: x, y: y, vX: (Math.random() - 0.5) * 15, vY: (Math.random() - 0.5) * 15, life: 1.0, color: color });
 }
 
 function triggerSonicBomb(owner) {
     shake = 25;
-    let yPos = owner.isPlayer ? canvas.height - 150 : (canvas.height - 150) - (owner.progress - playerProgress);
+    let yPos = owner.isPlayer ? racers[0].y : racers[0].y - (owner.progress - playerProgress);
     createExplosion(owner.x, yPos, '#fff', 35);
     racers.forEach(r => {
         if(r.id !== owner.id) {
             let distY = owner.progress - r.progress;
-            if(distY > 0 && distY < 700 && Math.abs(r.x - owner.x) < 220) {
-                r.stun = 150; createExplosion(r.x, (canvas.height - 150) - (r.progress - playerProgress), '#f0f', 12);
+            if(distY > 0 && distY < 800 && Math.abs(r.x - owner.x) < 250) {
+                r.stun = 150; createExplosion(r.x, racers[0].y - (r.progress - playerProgress), '#f0f', 12);
             }
         }
     });
@@ -112,42 +113,40 @@ function triggerSonicBomb(owner) {
 
 function drawF1Car(x, y, color, stun, isNitro) {
     ctx.save(); ctx.translate(x, y);
+    const s = canvas.width < 600 ? 0.8 : 1.1; // Escalar carros según pantalla
+    ctx.scale(s, s);
+    
     ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-30, 15, 60, 40);
     ctx.fillStyle = '#111';
-    ctx.fillRect(-40, -30, 14, 22); ctx.fillRect(26, -30, 14, 22);
-    ctx.fillRect(-42, 10, 16, 26);  ctx.fillRect(26, 10, 16, 26);
+    ctx.fillRect(-40, -32, 16, 25); ctx.fillRect(24, -32, 16, 25); // Ruedas Del.
+    ctx.fillRect(-45, 12, 18, 30);  ctx.fillRect(27, 12, 18, 30);   // Ruedas Tras.
+    
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.moveTo(0, -50); ctx.lineTo(12, -10); ctx.lineTo(14, 30); ctx.lineTo(-14, 30); ctx.lineTo(-12, -10); ctx.fill();
-    ctx.fillStyle = shadeColor(color, -25);
-    ctx.fillRect(-28, -5, 15, 25); ctx.fillRect(13, -5, 15, 25);
-    ctx.fillStyle = '#222'; ctx.fillRect(-38, -48, 76, 6);
-    ctx.fillStyle = '#111'; ctx.fillRect(-42, 32, 84, 10);
-    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -2, 6, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -60); ctx.lineTo(15, -15); ctx.lineTo(18, 35); ctx.lineTo(-18, 35); ctx.lineTo(-15, -15); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.fillRect(-40, -55, 80, 8); // Alerón Del.
+    ctx.fillStyle = '#111'; ctx.fillRect(-45, 35, 90, 12); // Alerón Tras.
+    ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2); ctx.fill(); // Cabina
+    ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -3, 6, 0, Math.PI*2); ctx.fill(); // Piloto
+    
     if(stun > 0) { ctx.fillStyle='white'; ctx.font="bold 20px Arial"; ctx.fillText("X X", -16, -10); }
-    if(isNitro) { ctx.fillStyle='#00f2ff'; ctx.beginPath(); ctx.arc(0, 45, 15, 0, Math.PI*2); ctx.fill(); }
+    if(isNitro) { ctx.fillStyle='#00f2ff'; ctx.beginPath(); ctx.arc(0, 50, 18, 0, Math.PI*2); ctx.fill(); }
     ctx.restore();
 }
 
-function shadeColor(color, percent) {
-    let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 0x00FF) + amt, B = (num & 0x0000FF) + amt;
-    return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
-}
-
 function fire(r) {
-    const isTriple = r.gunType === "TRIPLE";
-    const bColor = isTriple ? '#00f2ff' : '#fff';
     if(r.missiles > 0) {
         let target = null; let minDist = 99999;
         racers.forEach(o => { if(o.id !== r.id && o.progress > r.progress) { let d = o.progress-r.progress; if(d < minDist){ minDist=d; target=o; } } });
-        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 52, ownerId: r.id, color: '#3dfc03', isMissile: true, target: target });
+        allBullets.push({ x: r.x, progress: r.progress + 150, dy: 55, ownerId: r.id, color: '#3dfc03', isMissile: true, target: target });
         r.missiles--;
     } else {
+        const isTriple = r.gunType === "TRIPLE";
+        const bColor = isTriple ? '#00f2ff' : '#fff';
         if (isTriple) {
-            allBullets.push({ x: r.x - 20, progress: r.progress + 100, dy: 70, ownerId: r.id, color: bColor });
-            allBullets.push({ x: r.x + 20, progress: r.progress + 100, dy: 70, ownerId: r.id, color: bColor });
+            allBullets.push({ x: r.x - 25, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor });
+            allBullets.push({ x: r.x + 25, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor });
         }
-        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 70, ownerId: r.id, color: bColor });
+        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 75, ownerId: r.id, color: bColor });
         r.ammo--;
     }
 }
@@ -160,56 +159,55 @@ let countdown = setInterval(() => {
     else { msgBox.style.display = "none"; clearInterval(countdown); }
 }, 1000);
 
-function drawTree(x, y) {
-    ctx.fillStyle = currentBiome.tree;
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x + 25, y + 70); ctx.lineTo(x - 25, y + 70); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(x, y + 25); ctx.lineTo(x + 35, y + 100); ctx.lineTo(x - 35, y + 100); ctx.fill();
-}
-
 function update() {
     if(gameState === "RACING") {
         let sorted = [...racers].sort((a,b) => b.progress - a.progress);
         let playerRank = sorted.findIndex(r => r.id === 0) + 1;
         let leaderP = sorted[0].progress;
-        let curve = (playerProgress > 1500) ? Math.sin((playerProgress - 1500) / 2500) * 230 : 0;
-        let targetSpeed = (canvas.height - tY) / 20;
+        let curve = (playerProgress > 1500) ? Math.sin((playerProgress - 1500) / 2500) * 250 : 0;
         
-        if(racers[0].nitro > 0) { targetSpeed += 25; racers[0].nitro--; shake = 3; }
-        if (Math.abs(racers[0].x - (canvas.width/2 + curve)) > 195) targetSpeed *= 0.3;
-        if (playerRank > 2) targetSpeed += (leaderP - playerProgress) / 120; 
+        let targetSpeed = (canvas.height - tY) / 18;
+        if(racers[0].nitro > 0) { targetSpeed += 25; racers[0].nitro--; shake = 4; }
+        if (Math.abs(racers[0].x - (canvas.width / 2 + curve)) > 210) targetSpeed *= 0.3;
+        if (playerRank > 2) targetSpeed += (leaderP - playerProgress) / 110; 
+
         worldSpeed += (targetSpeed - worldSpeed) * 0.12;
         if(racers[0].stun > 0) { worldSpeed *= 0.2; racers[0].stun--; shake = 6; }
         playerProgress += worldSpeed;
         racers[0].progress = playerProgress;
-        racers[0].x += (tX - racers[0].x) * 0.2;
-        windLines.forEach(l => { l.y += worldSpeed * 2.5 + 15; if(l.y > canvas.height) { l.y = -100; l.x = Math.random() * canvas.width; } });
+        racers[0].x += (tX - racers[0].x) * 0.22;
+
+        windLines.forEach(l => { l.y += worldSpeed * 3 + 15; if(l.y > canvas.height) { l.y = -100; l.x = Math.random() * canvas.width; } });
         particles.forEach((p, i) => { p.x += p.vX; p.y += p.vY; p.life -= 0.03; if(p.life <= 0) particles.splice(i, 1); });
+        
         allBullets.forEach((b, i) => {
             if(b.isMissile && b.target) { b.x += (b.target.x - b.x) * 0.12; b.progress += b.dy; }
             else { b.progress += b.dy; }
-            if(Math.abs(b.progress - playerProgress) > 5000) allBullets.splice(i, 1);
+            if(Math.abs(b.progress - playerProgress) > 6000) allBullets.splice(i, 1);
         });
+
         racers.forEach(r => {
             if(!r.isPlayer && r.stun <= 0) {
                 let rankIA = sorted.findIndex(rac => rac.id === r.id) + 1;
-                r.progress += r.baseSpeed + (rankIA > 3 ? (leaderP - r.progress) / 180 : 0) + (r.nitro > 0 ? 20 : 0);
+                r.progress += r.baseSpeed + (rankIA > 3 ? (leaderP - r.progress) / 170 : 0) + (r.nitro > 0 ? 20 : 0);
                 if(r.nitro > 0) r.nitro--;
-                if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 65 && racers[0].progress > r.progress) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 150; } }
-                let rC = (r.progress > 1500) ? Math.sin((r.progress - 1500) / 2500) * 230 : 0;
-                r.x += ((canvas.width/2 + rC) - r.x) * 0.06;
+                if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 70 && racers[0].progress > r.progress) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 140; } }
+                let rC = (r.progress > 1500) ? Math.sin((r.progress - 1500) / 2500) * 250 : 0;
+                r.x += ((canvas.width / 2 + rC) - r.x) * 0.07;
             }
         });
+
         racers.forEach(r => {
-            let rY = r.isPlayer ? canvas.height - 150 : (canvas.height - 150) - (r.progress - playerProgress);
-            allBullets.forEach((b, bi) => { if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 50 && Math.abs(r.progress - b.progress) < 130) { r.stun = 120; createExplosion(r.x, rY, b.color, 22); allBullets.splice(bi, 1); if(r.isPlayer) shake = 20; } });
-            racers.forEach(other => { if(r.id !== other.id && Math.abs(r.x - other.x) < 60 && Math.abs(r.progress - other.progress) < 100) { if(r.x < other.x) { r.x -= 8; other.x += 8; } else { r.x += 8; other.x -= 8; } if(r.isPlayer) { worldSpeed *= 0.8; shake = 10; } } });
-            items.forEach(p => { if(p.active && Math.abs(r.x - p.x) < 60 && Math.abs(r.progress - p.progress) < 120) { if(p.type === 'B') r.ammo += 5; if(p.type === 'T') r.gunType = "TRIPLE"; if(p.type === 'N') r.nitro = 150; if(p.type === 'S') triggerSonicBomb(r); if(p.type === 'M') r.missiles += 2; p.active = false; } });
+            let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
+            allBullets.forEach((b, bi) => { if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 60 && Math.abs(r.progress - b.progress) < 150) { r.stun = 120; createExplosion(r.x, rY, b.color, 25); allBullets.splice(bi, 1); if(r.isPlayer) shake = 25; } });
+            racers.forEach(other => { if(r.id !== other.id && Math.abs(r.x - other.x) < 70 && Math.abs(r.progress - other.progress) < 120) { if(r.x < other.x) { r.x -= 12; other.x += 12; } else { r.x += 12; other.x -= 12; } if(r.isPlayer) { worldSpeed *= 0.75; shake = 10; } } });
+            items.forEach(p => { if(p.active && Math.abs(r.x - p.x) < 70 && Math.abs(r.progress - p.progress) < 150) { if(p.type === 'B') r.ammo += 5; if(p.type === 'T') r.gunType = "TRIPLE"; if(p.type === 'N') r.nitro = 180; if(p.type === 'S') triggerSonicBomb(r); if(p.type === 'M') r.missiles += 2; p.active = false; } });
         });
+
         document.getElementById('rank').innerText = playerRank;
         document.getElementById('ammo').innerText = racers[0].ammo + (racers[0].missiles > 0 ? " +M" : "");
-        document.getElementById('pwr').innerText = racers[0].gunType;
         document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
-        if(playerProgress >= GOAL_DIST) { gameState = "FINISHED"; msgBox.style.display = "block"; msgBox.innerHTML = "¡FINAL! " + (playerRank === 1 ? "🏆" : ""); }
+        if(playerProgress >= GOAL_DIST) { gameState = "FINISHED"; msgBox.style.display = "block"; msgBox.innerHTML = "🏁 FINAL 🏁"; }
         if(shake > 0) shake *= 0.85;
     }
     draw();
@@ -220,51 +218,54 @@ function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     if(shake > 0.1) ctx.translate(Math.random()*shake - shake/2, Math.random()*shake - shake/2);
-    let curve = (playerProgress > 1500) ? Math.sin((playerProgress - 1500) / 2500) * 230 : 0;
-    ctx.translate(-curve * 0.7, 0);
-    ctx.fillStyle = currentBiome.grass; ctx.fillRect(-2000, 0, 5000 + canvas.width, canvas.height);
-    ctx.strokeStyle = "rgba(255,255,255,0.25)"; ctx.lineWidth = 2;
+    let curve = (playerProgress > 1500) ? Math.sin((playerProgress - 1500) / 2500) * 250 : 0;
+    ctx.translate(-curve * 0.8, 0);
+
+    ctx.fillStyle = currentBiome.grass; ctx.fillRect(-canvas.width, 0, canvas.width*3, canvas.height);
+    ctx.strokeStyle = "rgba(255,255,255,0.2)"; ctx.lineWidth = 2;
     windLines.forEach(l => { ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + l.len); ctx.stroke(); });
-    for(let i=0; i<15; i++) {
-        let treeY = ((playerProgress / 6) + (i * 250)) % (canvas.height + 250) - 100;
-        drawTree(canvas.width/2 + curve - 550, canvas.height - treeY);
-        drawTree(canvas.width/2 + curve + 550, canvas.height - treeY);
-    }
+
+    // Pista más ancha y centrada
     for(let i=0; i<45; i++) {
-        let y = canvas.height - (i * (canvas.height/40));
-        let zD = playerProgress + (i * 80);
-        let zC = (zD > 1500) ? Math.sin((zD - 1500) / 2500) * 230 : 0;
+        let y = canvas.height - (i * (canvas.height/35));
+        let zD = playerProgress + (i * 90);
+        let zC = (zD > 1500) ? Math.sin((zD - 1500) / 2500) * 250 : 0;
         ctx.fillStyle = (Math.floor(zD/150)%2==0) ? currentBiome.track1 : currentBiome.track2;
-        ctx.fillRect(canvas.width/2 + zC - 200, y, 400, canvas.height/40 + 1);
+        ctx.fillRect(canvas.width / 2 + zC - 250, y, 500, canvas.height/35 + 1);
         ctx.fillStyle = (Math.floor(zD/150)%2==0) ? currentBiome.border1 : currentBiome.border2;
-        ctx.fillRect(canvas.width/2 + zC - 230, y, 30, canvas.height/40);
-        ctx.fillRect(canvas.width/2 + zC + 200, y, 30, canvas.height/40);
-        if(zD >= GOAL_DIST && zD < GOAL_DIST + 100) { ctx.fillStyle = (Math.floor(zD/25)%2==0) ? '#000' : '#fff'; ctx.fillRect(canvas.width/2 + zC - 200, y, 400, 20); }
-        if(Math.abs(zD) < 300) { ctx.fillStyle='#fff'; ctx.fillRect(canvas.width/2 + zC - 200, y, 400, 10); }
+        ctx.fillRect(canvas.width / 2 + zC - 280, y, 30, canvas.height/35);
+        ctx.fillRect(canvas.width / 2 + zC + 250, y, 30, canvas.height/35);
+        if(zD >= GOAL_DIST && zD < GOAL_DIST + 150) { ctx.fillStyle='#fff'; ctx.fillRect(canvas.width/2 + zC - 250, y, 500, 30); }
     }
+
     particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); });
     ctx.globalAlpha = 1.0;
-    items.forEach(p => { if(p.active) { let pY = (canvas.height - 150) - (p.progress - playerProgress); if(pY > -100 && pY < canvas.height+100) { ctx.fillStyle = (p.type === 'B'?'#f1c40f':(p.type === 'T'?'#00f2ff':(p.type === 'N'?'#ff6600':(p.type === 'S'?'#ff00ff':'#3dfc03')))); ctx.fillRect(p.x - 25, pY - 25, 50, 50); ctx.fillStyle = '#000'; ctx.font="bold 24px Arial"; ctx.fillText(p.type, p.x-7, pY+7); } } });
-    allBullets.forEach(b => { let bY = (canvas.height - 150) - (b.progress - playerProgress); ctx.fillStyle = b.color; if(b.isMissile) { ctx.fillRect(b.x-8, bY-25, 16, 50); ctx.fillStyle='#f00'; ctx.fillRect(b.x-5, bY+20, 10, 15); } else { ctx.fillRect(b.x - 3, bY - 30, 6, 60); } });
+    
+    items.forEach(p => { if(p.active) { let pY = racers[0].y - (p.progress - playerProgress); if(pY > -100 && pY < canvas.height+100) { 
+        ctx.fillStyle = (p.type === 'B'?'#f1c40f':(p.type === 'T'?'#00f2ff':(p.type === 'N'?'#ff6600':(p.type === 'S'?'#ff00ff':'#3dfc03')))); 
+        ctx.fillRect(p.x - 30, pY - 30, 60, 60); ctx.fillStyle = '#000'; ctx.font="bold 28px Arial"; ctx.fillText(p.type, p.x-10, pY+10); } } 
+    });
+
+    allBullets.forEach(b => { let bY = racers[0].y - (b.progress - playerProgress); ctx.fillStyle = b.color; if(b.isMissile) { ctx.fillRect(b.x-10, bY-30, 20, 60); ctx.fillStyle='#f00'; ctx.fillRect(b.x-6, bY+25, 12, 18); } else { ctx.fillRect(b.x-5, bY-50, 10, 100); } });
+
     racers.forEach(r => {
-        let rY = (canvas.height - 150) - (r.progress - playerProgress);
+        let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
         if(rY > -200 && rY < canvas.height + 200) drawF1Car(r.x, rY, r.color, r.stun, r.nitro > 0);
     });
     ctx.restore();
 }
 
-let tX = canvas.width/2, tY = canvas.height - 150;
-canvas.addEventListener('touchstart', e => {
-    tX = e.touches[0].clientX - canvas.offsetLeft; tY = e.touches[0].clientY - canvas.offsetTop;
+let tX = window.innerWidth / 2, tY = window.innerHeight - 150;
+const handleIn = (e) => {
+    tX = (e.touches ? e.touches[0].clientX : e.clientX);
+    tY = (e.touches ? e.touches[0].clientY : e.clientY);
     if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0)) fire(racers[0]);
     if(gameState === "FINISHED") location.reload();
-});
-canvas.addEventListener('touchmove', e => { tX = e.touches[0].clientX - canvas.offsetLeft; tY = e.touches[0].clientY - canvas.offsetTop; });
-canvas.addEventListener('mousedown', e => {
-    if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0)) fire(racers[0]);
-    if(gameState === "FINISHED") location.reload();
-});
-canvas.addEventListener('mousemove', e => { tX = e.clientX - canvas.offsetLeft; tY = e.clientY - canvas.offsetTop; });
+};
+canvas.addEventListener('touchstart', handleIn);
+canvas.addEventListener('touchmove', (e) => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; });
+canvas.addEventListener('mousedown', handleIn);
+canvas.addEventListener('mousemove', (e) => { if(e.buttons > 0) { tX = e.clientX; tY = e.clientY; } });
 
 update();
 </script>
