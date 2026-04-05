@@ -2,30 +2,19 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Precision Edition</title>
+    <title>Infinite Art GP - Precision Pro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
-        canvas { display: block; background: #222; margin: 0 auto; }
-        
-        #start-screen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            z-index: 100; color: white; text-align: center;
-        }
+        canvas { display: block; background: #222; margin: 0 auto; width: 100vw; height: 100vh; object-fit: contain; }
+        #start-screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; color: white; text-align: center; }
         #start-screen h1 { font-size: clamp(30px, 8vw, 60px); color: gold; margin: 0; text-shadow: 4px 4px #ff0000; }
         #start-screen h2 { font-size: clamp(14px, 3vw, 22px); color: #aaa; letter-spacing: 5px; margin-bottom: 30px; }
-        #play-btn { 
-            padding: 20px 60px; font-size: 25px; background: #f39c12; color: #000; 
-            border: none; border-radius: 50px; cursor: pointer; font-weight: bold;
-            box-shadow: 0 10px #d35400; transition: 0.2s;
-        }
-        #play-btn:active { transform: translateY(5px); box-shadow: 0 5px #d35400; }
-
-        #hud { position: absolute; top: 15px; left: 15px; color: #fff; background: rgba(0,0,0,0.8); padding: 12px; border: 2px solid #f39c12; pointer-events: none; border-radius: 8px; z-index: 10; font-size: 14px; display: none; }
+        #play-btn { padding: 20px 60px; font-size: 25px; background: #f39c12; color: #000; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; box-shadow: 0 10px #d35400; transition: 0.2s; }
+        #hud { position: absolute; top: 15px; left: 15px; color: #fff; background: rgba(0,0,0,0.85); padding: 12px; border: 2px solid #f39c12; pointer-events: none; border-radius: 8px; z-index: 10; font-size: 14px; display: none; line-height: 1.4; }
         #msg { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); color: #fff; font-size: 60px; text-align: center; text-shadow: 4px 4px #000; z-index: 20; background: rgba(0,0,0,0.9); padding: 30px; border-radius: 20px; border: 4px solid gold; width: 60%; display: none; }
         .stat { color: #f39c12; font-weight: bold; }
+        .vel { color: #00f2ff; font-size: 18px; }
         #fs-btn { position: absolute; bottom: 15px; right: 15px; width: 50px; height: 50px; background: rgba(255, 215, 0, 0.6); color: #000; border: 2px solid #fff; border-radius: 50%; font-size: 14px; font-weight: bold; cursor: pointer; z-index: 30; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
     </style>
 </head>
@@ -34,14 +23,16 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">SUPREME RACING</p>
+    <p style="color: #888;">VISUAL POLISH UPDATE</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
 <div id="hud">
     <span class="stat">RANK:</span> <span id="rank">--</span>/10<br>
     <span class="stat">AMMO:</span> <span id="ammo">5</span><br>
-    <span class="stat">META:</span> <span id="dist">5000</span>km
+    <span class="stat">META:</span> <span id="dist">5000</span>km<br>
+    <hr style="border:0; border-top:1px solid #444;">
+    <span class="stat">VELOCIDAD:</span> <br><span id="hud-vel" class="vel">0</span> <span class="vel" style="font-size:10px">KM/H</span>
 </div>
 
 <div id="msg">3</div>
@@ -54,6 +45,10 @@ const ctx = canvas.getContext('2d');
 const fsBtn = document.getElementById('fs-btn');
 const playBtn = document.getElementById('play-btn');
 const startScreen = document.getElementById('start-screen');
+
+const MAX_SPEED_BASE = 16.5; 
+const NITRO_BOOST = 5.5;    
+const CONVERSION_FACTOR = 15; 
 
 function resize() {
     canvas.width = window.innerWidth;
@@ -74,11 +69,9 @@ playBtn.addEventListener('click', () => {
     startCountdown();
 });
 
-document.addEventListener('fullscreenchange', () => setTimeout(resize, 150));
-
 const GOAL_DIST = 50000; 
 let playerProgress = 0, worldSpeed = 0, gameState = "MENU", timer = 3;
-let allBullets = [], racers = [], items = [], particles = [], windLines = [];
+let allBullets = [], racers = [], items = [], particles = [], windLines = [], shockwaves = [];
 let shake = 0; 
 
 const biomes = [
@@ -90,18 +83,23 @@ const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ec
 
 function init() {
     resize();
-    const B_SPEED = 13.0;
-    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: B_SPEED, nitro: 0, missiles: 0 }];
+    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0, lastX: canvas.width / 2 }];
     for(let i=0; i<9; i++) {
-        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: B_SPEED + (Math.random() * 1.5), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0 });
+        racers.push({ 
+            id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, 
+            color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", 
+            baseSpeed: MAX_SPEED_BASE + (Math.random() * 1.2 - 0.6), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0, hitCounter: 0, angle: 0, lastX: 0 
+        });
     }
     const spots = [8000, 16000, 24000, 32000, 40000];
     const pTypes = ['B', 'T', 'N', 'S', 'M', 'B'];
     spots.forEach(dist => {
         for(let j=0; j<6; j++) items.push({ type: pTypes[j % pTypes.length], offsetX: (j - 2.5) * 110, progress: dist, active: true });
     });
-    // LÍNEAS DE VIENTO MEJORADAS: Más largas y rápidas
-    for(let i=0; i<35; i++) windLines.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, len: 100 + Math.random() * 150, speed: 20 + Math.random() * 30 });
+    for(let i=0; i<40; i++) {
+        let sideX = Math.random() > 0.5 ? Math.random() * (canvas.width * 0.2) : canvas.width - (Math.random() * (canvas.width * 0.2));
+        windLines.push({ x: sideX, y: Math.random() * canvas.height, baseLen: 120 + Math.random() * 180 });
+    }
 }
 init();
 
@@ -111,53 +109,71 @@ function startCountdown() {
     let countdown = setInterval(() => {
         timer--;
         if(timer > 0) msgBox.innerText = timer;
-        else if(timer === 0) msgBox.innerText = "¡FUERA!";
+        else if(timer === 0) msgBox.innerText = "¡DALE!";
         else { msgBox.style.display = 'none'; clearInterval(countdown); gameState = "RACING"; }
     }, 1000);
 }
 
-function getTrackCurve(prog) {
-    return (prog > 1500) ? Math.sin((prog - 1500) / 2500) * 280 : 0;
-}
+function getTrackCurve(prog) { return (prog > 1500) ? Math.sin((prog - 1500) / 2500) * 280 : 0; }
 
-function drawF1Car(x, y, color, stun, isNitro) {
-    ctx.save(); ctx.translate(x, y);
-    const s = canvas.width < 600 ? 0.75 : 1.0; ctx.scale(s, s);
+function drawF1Car(r, yPos) {
+    const { x, color, stun, nitro, isPlayer, angle, progress } = r;
+    ctx.save();
+    ctx.translate(x, yPos);
+    
+    // INCLINACIÓN DINÁMICA: Rota un poco hacia donde se mueve
+    ctx.rotate(angle);
+    
+    const s = canvas.width < 600 ? 0.75 : 1.0; 
+    ctx.scale(s, s);
+
+    // Sombra
     ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-30, 15, 60, 40);
+
+    // RUEDAS CON LÍNEA DE GIRO ANIMADA
+    const wheelFlash = (Math.sin(Date.now() / (500 / (worldSpeed || 1))) > 0);
     ctx.fillStyle = '#111';
-    ctx.fillRect(-40, -30, 14, 22); ctx.fillRect(26, -30, 14, 22);
-    ctx.fillRect(-42, 10, 16, 26);  ctx.fillRect(26, 10, 16, 26);
+    
+    // Dibujo de las 4 ruedas
+    [[-40, -30], [26, -30], [-42, 10], [26, 10]].forEach(([wx, wy]) => {
+        ctx.fillRect(wx, wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
+        if(wheelFlash && stun <= 0) {
+            ctx.fillStyle = 'rgba(200,200,200,0.6)';
+            ctx.fillRect(wx + 2, wy + 5, 2, 8); // Línea blanca de movimiento
+            ctx.fillStyle = '#111';
+        }
+    });
+    
+    // Chasis
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.moveTo(0, -50); ctx.lineTo(12, -10); ctx.lineTo(14, 30); ctx.lineTo(-14, 30); ctx.lineTo(-12, -10); ctx.fill();
-    ctx.fillStyle = shadeColor(color, -25); ctx.fillRect(-28, -5, 15, 25); ctx.fillRect(13, -5, 15, 25);
     ctx.fillStyle = '#222'; ctx.fillRect(-38, -48, 76, 6);
     ctx.fillStyle = '#111'; ctx.fillRect(-42, 32, 84, 10);
     ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -2, 6, 0, Math.PI*2); ctx.fill();
+    
     if(stun > 0) { ctx.fillStyle='white'; ctx.font="bold 20px Arial"; ctx.fillText("X X", -16, -10); }
-    if(isNitro) { ctx.fillStyle='#00f2ff'; ctx.beginPath(); ctx.arc(0, 45, 15, 0, Math.PI*2); ctx.fill(); }
+    if(nitro > 0) { ctx.fillStyle='#00f2ff'; ctx.beginPath(); ctx.arc(0, 45, 15, 0, Math.PI*2); ctx.fill(); }
+    
+    if(isPlayer) {
+        ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(-35, 60, 70, 20);
+        ctx.fillStyle = "gold"; ctx.font = "bold 14px Arial";
+        ctx.fillText(Math.floor(worldSpeed * CONVERSION_FACTOR) + " KM/H", -30, 75);
+    }
     ctx.restore();
-}
-
-function shadeColor(color, percent) {
-    let num = parseInt(color.replace("#",""),16), amt = Math.round(2.55 * percent), R = (num >> 16) + amt, G = (num >> 8 & 0x00FF) + amt, B = (num & 0x0000FF) + amt;
-    return "#" + (0x1000000 + (R<255?R<0?0:R:255)*0x10000 + (G<255?G<0?0:G:255)*0x100 + (B<255?B<0?0:B:255)).toString(16).slice(1);
 }
 
 function fire(r) {
     if(r.missiles > 0) {
         let target = null; let minDist = 99999;
         racers.forEach(o => { if(o.id !== r.id && o.progress > r.progress) { let d = o.progress - r.progress; if(d < minDist){ minDist=d; target=o; } } });
-        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 55, ownerId: r.id, color: '#3dfc03', isMissile: true, target: target });
+        allBullets.push({ x: r.x, progress: r.progress + 130, dy: MAX_SPEED_BASE + NITRO_BOOST + 5, ownerId: r.id, color: '#ff0000', isMissile: true, target: target });
         r.missiles--;
     } else {
         const isTriple = r.gunType === "TRIPLE";
         const bColor = isTriple ? '#00f2ff' : '#fff';
-        if (isTriple) {
-            allBullets.push({ x: r.x - 25, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor });
-            allBullets.push({ x: r.x + 25, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor });
-        }
-        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 70, ownerId: r.id, color: bColor });
+        if (isTriple) { allBullets.push({ x: r.x - 20, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor }); allBullets.push({ x: r.x + 20, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor }); }
+        allBullets.push({ x: r.x, progress: r.progress + 130, dy: 75, ownerId: r.id, color: bColor });
         r.ammo--;
     }
 }
@@ -165,70 +181,71 @@ function fire(r) {
 function update() {
     if(gameState === "RACING") {
         let sorted = [...racers].sort((a,b) => b.progress - a.progress);
-        let pRank = sorted.findIndex(r => r.id === 0) + 1;
         let leaderP = sorted[0].progress;
+        let pRank = sorted.findIndex(r => r.id === 0) + 1;
         
-        let targetSpeed = (canvas.height - tY) / 18;
-        if(racers[0].nitro > 0) { targetSpeed += 30; racers[0].nitro--; shake = 4; }
-        
-        let pCurve = getTrackCurve(playerProgress);
-        if (Math.abs(racers[0].x - (canvas.width / 2 + pCurve)) > 230) targetSpeed *= 0.3;
-        if (pRank > 2) targetSpeed += (leaderP - playerProgress) / 130; 
+        // --- LÓGICA DE MOVIMIENTO JUGADOR ---
+        let baseT = racers[0].baseSpeed; 
+        if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 3; }
+        let catchUp = (pRank > 2) ? (leaderP - playerProgress) / 150 : 0;
+        let finalTarget = baseT + Math.min(catchUp, 4); 
 
-        worldSpeed += (targetSpeed - worldSpeed) * 0.12;
-        if(racers[0].stun > 0) { worldSpeed *= 0.2; racers[0].stun--; shake = 6; }
+        // Césped
+        let playerCurve = getTrackCurve(playerProgress);
+        if (Math.abs(racers[0].x - (canvas.width / 2 + playerCurve)) > 230) { finalTarget = 4; shake = 1; }
+
+        worldSpeed += (finalTarget - worldSpeed) * 0.1;
+        if(racers[0].stun > 0) { worldSpeed = 0; racers[0].stun--; }
+        
         playerProgress += worldSpeed;
         racers[0].progress = playerProgress;
+        
+        // Cálculo de inclinación por movimiento lateral
+        let targetAngle = (tX - racers[0].x) * 0.005;
+        racers[0].angle += (targetAngle - racers[0].angle) * 0.1;
         racers[0].x += (tX - racers[0].x) * 0.22;
 
-        windLines.forEach(l => { 
-            l.y += l.speed + worldSpeed; 
-            if(l.y > canvas.height) { l.y = -l.len; l.x = Math.random() * canvas.width; } 
-        });
+        document.getElementById('hud-vel').innerText = Math.floor(worldSpeed * CONVERSION_FACTOR);
 
-        particles.forEach((p, i) => { p.x += p.vX; p.y += p.vY; p.life -= 0.03; if(p.life <= 0) particles.splice(i, 1); });
+        windLines.forEach(l => { l.y += worldSpeed * 3 + 10; if(l.y > canvas.height) { l.y = -l.baseLen; l.x = Math.random() > 0.5 ? Math.random() * (canvas.width * 0.25) : canvas.width - (Math.random() * (canvas.width * 0.25)); } });
+        particles.forEach(p => { p.x += p.vX; p.y += p.vY; p.life -= 0.03; });
+        particles = particles.filter(p => p.life > 0);
+        shockwaves.forEach(s => { s.r += 15; s.life -= 0.02; });
+        shockwaves = shockwaves.filter(s => s.life > 0);
         
-        allBullets.forEach((b, i) => {
-            if(b.isMissile && b.target) { b.x += (b.target.x - b.x) * 0.12; b.progress += b.dy; }
-            else { b.progress += b.dy; }
-            if(Math.abs(b.progress - playerProgress) > 6000) allBullets.splice(i, 1);
+        allBullets.forEach(b => { 
+            if(b.isMissile && b.target) { 
+                b.x += (b.target.x - b.x) * 0.18; b.progress += b.dy; 
+                if(Math.random()>0.5) particles.push({x: b.x, y: (racers[0].y - (b.progress - playerProgress)), vX: (Math.random()-0.5)*3, vY: 5, life: 0.5, color: '#999'});
+            } else { b.progress += b.dy; } 
         });
+        allBullets = allBullets.filter(b => Math.abs(b.progress - playerProgress) < 15000);
 
         racers.forEach(r => {
             if(!r.isPlayer && r.stun <= 0) {
-                let rRank = sorted.findIndex(rac => rac.id === r.id) + 1;
-                r.progress += r.baseSpeed + (rRank > 3 ? (leaderP - r.progress) / 180 : 0) + (r.nitro > 0 ? 25 : 0);
+                let iaRank = sorted.findIndex(rac => rac.id === r.id)+1;
+                let iaCatchUp = (iaRank > 3) ? (leaderP - r.progress) / 180 : 0;
+                r.progress += r.baseSpeed + Math.min(iaCatchUp, 4) + (r.nitro > 0 ? NITRO_BOOST : 0);
                 if(r.nitro > 0) r.nitro--;
-                if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 70 && racers[0].progress > r.progress) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 140; } }
+                
                 let rCurve = getTrackCurve(r.progress);
-                r.x += ((canvas.width / 2 + rCurve) - r.x) * 0.07;
+                let targetX = (canvas.width / 2 + rCurve) + (r.id % 3 - 1) * 150;
+                // Inclinación IA
+                r.angle = (targetX - r.x) * 0.002;
+                r.x += (targetX - r.x) * 0.07;
+
+                if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 75 && racers[0].progress > r.progress && racers[0].progress - r.progress < 800) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 140; } }
             }
         });
 
         racers.forEach(r => {
             let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
-            allBullets.forEach((b, bi) => { 
-                if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 50 && Math.abs(r.progress - b.progress) < 130) { 
-                    r.stun = 120; for(let k=0; k<15; k++) particles.push({x:r.x, y:rY, vX:(Math.random()-0.5)*15, vY:(Math.random()-0.5)*15, life:1, color:b.color});
-                    allBullets.splice(bi, 1); if(r.isPlayer) shake = 20; 
-                } 
-            });
-            // COLISIONES CON ITEMS SINCRONIZADAS
-            items.forEach(p => { 
-                if(p.active && Math.abs(r.progress - p.progress) < 120) {
-                    let itemX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX;
-                    if(Math.abs(r.x - itemX) < 60) {
-                        if(p.type === 'B') r.ammo += 5; 
-                        if(p.type === 'T') r.gunType = "TRIPLE"; 
-                        if(p.type === 'N') r.nitro = 150;
-                        if(p.type === 'M') r.missiles += 2;
-                        if(p.type === 'S') { shake = 25; racers.forEach(target => { if(target.id !== r.id && r.progress - target.progress > 0 && r.progress - target.progress < 700) target.stun = 150; }); }
-                        p.active = false; 
-                    }
-                } 
-            });
+            allBullets.forEach(b => { if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 55 && Math.abs(r.progress - b.progress) < 130) { r.stun = 120; for(let k=0;k<15;k++) particles.push({x:r.x, y:rY, vX:(Math.random()-0.5)*15, vY:(Math.random()-0.5)*15, life:1, color:b.color}); b.progress = -999999; if(r.isPlayer) shake = 25; } });
+            racers.forEach(other => { if(r.id !== other.id && Math.abs(r.progress - other.progress) < 110 && Math.abs(r.x - other.x) < 75) { let f = (r.x < other.x) ? -15 : 15; r.x += f; other.x -= f; if(r.isPlayer) worldSpeed *= 0.5; r.hitCounter += 5; if(r.hitCounter > 40) { r.stun = 150; r.hitCounter = 0; } } });
+            if(r.hitCounter > 0) r.hitCounter *= 0.98;
+            items.forEach(p => { if(p.active && Math.abs(r.progress - p.progress) < 130) { let iX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX; if(Math.abs(r.x - iX) < 75) { if(p.type==='B') r.ammo+=5; if(p.type==='T') r.gunType="TRIPLE"; if(p.type==='N') r.nitro=150; if(p.type==='M') r.missiles+=2; if(p.type==='S') { shake=30; racers.forEach(t => { if(t.id!==r.id && r.progress-t.progress > 0 && r.progress-t.progress < 750) t.stun=150; }); shockwaves.push({x:r.x, y:rY, r:10, life:1}); } p.active=false; } } });
         });
-
+        
         document.getElementById('rank').innerText = pRank;
         document.getElementById('ammo').innerText = racers[0].ammo + (racers[0].missiles > 0 ? " +M" : "");
         document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
@@ -245,61 +262,57 @@ function draw() {
     if(shake > 0.1) ctx.translate(Math.random()*shake - shake/2, Math.random()*shake - shake/2);
     let curve = getTrackCurve(playerProgress);
     ctx.translate(-curve * 0.7, 0);
-
     ctx.fillStyle = currentBiome.grass; ctx.fillRect(-canvas.width * 2, 0, canvas.width * 5, canvas.height);
-    
-    // VIENTO MÁS VISIBLE
-    ctx.strokeStyle = "rgba(255,255,255,0.4)"; ctx.lineWidth = 3;
-    windLines.forEach(l => { ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + l.len); ctx.stroke(); });
 
-    // Pista
+    for(let i=0; i<15; i++) {
+        let treeY = ( (playerProgress / 6) + (i * 250) ) % (canvas.height + 250);
+        let xOff = getTrackCurve(playerProgress + (canvas.height - treeY)*2);
+        ctx.fillStyle = currentBiome.tree;
+        ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff - 550, treeY - 100); ctx.lineTo(canvas.width/2 + xOff - 520, treeY - 20); ctx.lineTo(canvas.width/2 + xOff - 580, treeY - 20); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff + 550, treeY - 100); ctx.lineTo(canvas.width/2 + xOff + 580, treeY - 20); ctx.lineTo(canvas.width/2 + xOff + 520, treeY - 20); ctx.fill();
+    }
+
     for(let i=0; i<45; i++) {
         let y = canvas.height - (i * (canvas.height/35));
-        let zD = playerProgress + (i * 90);
-        let zC = getTrackCurve(zD);
+        let zD = playerProgress + (i * 90); let zC = getTrackCurve(zD);
         ctx.fillStyle = (Math.floor(zD/150)%2==0) ? currentBiome.track1 : currentBiome.track2;
         ctx.fillRect(canvas.width / 2 + zC - 300, y, 600, canvas.height/35 + 1);
         ctx.fillStyle = (Math.floor(zD/150)%2==0) ? currentBiome.border1 : currentBiome.border2;
-        ctx.fillRect(canvas.width / 2 + zC - 330, y, 30, canvas.height/35);
-        ctx.fillRect(canvas.width / 2 + zC + 300, y, 30, canvas.height/35);
-        
-        if(Math.abs(zD) < 400) { ctx.fillStyle = (Math.floor(zD/40)%2==0) ? '#fff' : '#000'; ctx.fillRect(canvas.width/2 + zC - 300, y, 600, 15); }
-        if(zD >= GOAL_DIST && zD < GOAL_DIST + 300) { ctx.fillStyle = (Math.floor(zD/50)%2==0) ? '#fff' : '#000'; ctx.fillRect(canvas.width/2 + zC - 300, y, 600, 30); }
+        ctx.fillRect(canvas.width/2+zC-330, y, 30, canvas.height/35); ctx.fillRect(canvas.width/2+zC+300, y, 30, canvas.height/35);
+        if(Math.abs(zD) < 400) { ctx.fillStyle = '#fff'; ctx.fillRect(canvas.width/2+zC-300, y, 600, 15); }
+        if(zD >= GOAL_DIST && zD < GOAL_DIST + 300) { ctx.fillStyle = '#fff'; ctx.fillRect(canvas.width/2+zC-300, y, 600, 30); }
     }
 
-    particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); });
-    ctx.globalAlpha = 1.0;
-    
-    // ITEMS DIBUJADOS CON LA CURVA EXACTA
     items.forEach(p => { if(p.active) { 
         let pY = racers[0].y - (p.progress - playerProgress); 
         if(pY > -100 && pY < canvas.height+100) { 
             let pX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX;
-            ctx.fillStyle = (p.type === 'B'?'#f1c40f':(p.type === 'T'?'#00f2ff':(p.type === 'N'?'#ff6600':(p.type === 'S'?'#ff00ff':'#3dfc03')))); 
-            ctx.fillRect(pX - 30, pY - 30, 60, 60); ctx.fillStyle = '#000'; ctx.font="bold 28px Arial"; ctx.fillText(p.type, pX-10, pY+10); 
+            ctx.fillStyle = (p.type==='B'?'#f1c40f':(p.type==='T'?'#00f2ff':(p.type==='N'?'#ff6600':(p.type==='S'?'#ff00ff':'#3dfc03')))); 
+            ctx.fillRect(pX-30, pY-30, 60, 60); ctx.fillStyle='#000'; ctx.font="bold 28px Arial"; ctx.fillText(p.type, pX-10, pY+10); 
         } 
     } });
 
-    allBullets.forEach(b => { 
-        let bY = racers[0].y - (b.progress - playerProgress); 
-        ctx.fillStyle = b.color; 
-        if(b.isMissile) ctx.fillRect(b.x-10, bY-30, 20, 60); else ctx.fillRect(b.x-5, bY-50, 10, 100); 
-    });
+    allBullets.forEach(b => { let bY = racers[0].y - (b.progress - playerProgress); ctx.fillStyle = b.color; if(b.isMissile) { ctx.fillRect(b.x-12, bY-30, 24, 60); ctx.fillStyle = '#ff6600'; ctx.fillRect(b.x-8, bY+25, 16, 15); } else { ctx.fillRect(b.x-5, bY-50, 10, 100); } });
 
     racers.forEach(r => {
         let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
-        if(rY > -200 && rY < canvas.height + 200) drawF1Car(r.x, rY, r.color, r.stun, r.nitro > 0);
+        if(rY > -200 && rY < canvas.height + 200) drawF1Car(r, rY);
     });
+
+    shockwaves.forEach(s => { ctx.strokeStyle=`rgba(255, 0, 255, ${s.life})`; ctx.lineWidth=10; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.stroke(); });
+
+    if(worldSpeed > 5) {
+        ctx.globalAlpha = Math.min(1, (worldSpeed - 5) / 20);
+        ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 3;
+        windLines.forEach(l => { let curLen = l.baseLen * (worldSpeed / 25); ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + curLen); ctx.stroke(); });
+        ctx.globalAlpha = 1.0;
+    }
+    particles.forEach(p => { ctx.globalAlpha = p.life; ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 8, 8); });
     ctx.restore();
 }
 
-let tX = window.innerWidth / 2, tY = window.innerHeight - 150;
-const handleIn = (e) => {
-    tX = (e.touches ? e.touches[0].clientX : e.clientX);
-    tY = (e.touches ? e.touches[0].clientY : e.clientY);
-    if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0) && racers[0].stun <= 0) fire(racers[0]);
-    if(gameState === "FINISHED") location.reload();
-};
+let tX = window.innerWidth / 2, tY = window.innerHeight;
+const handleIn = (e) => { tX = (e.touches ? e.touches[0].clientX : e.clientX); tY = (e.touches ? e.touches[0].clientY : e.clientY); if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0) && racers[0].stun <= 0) fire(racers[0]); if(gameState === "FINISHED") location.reload(); };
 canvas.addEventListener('touchstart', handleIn);
 canvas.addEventListener('mousedown', handleIn);
 canvas.addEventListener('touchmove', (e) => { tX = e.touches[0].clientX; tY = e.touches[0].clientY; });
