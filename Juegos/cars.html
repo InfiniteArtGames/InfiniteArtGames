@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Full Audio Edition</title>
+    <title>Infinite Art GP - Master Final Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -22,7 +22,7 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">FULL PLAYER AUDIO FIX</p>
+    <p style="color: #888;">THE ULTIMATE RACING EXPERIENCE</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
@@ -149,23 +149,40 @@ function drawF1Car(r, yPos) {
     const { x, color, stun, invul, shieldHealth, nitro, isPlayer, angle } = r;
     if (invul > 0 && Math.floor(Date.now() / 50) % 2 === 0) return;
     ctx.save(); ctx.translate(x, yPos); ctx.scale(gameScale * CAR_SIZE_BOOST, gameScale * CAR_SIZE_BOOST); ctx.rotate(angle);
+    
     if (shieldHealth > 0) {
-        ctx.strokeStyle = '#00ff00'; ctx.lineWidth = shieldHealth * 2.5; ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI*2); ctx.stroke();
+        ctx.strokeStyle = '#00ff00'; ctx.lineWidth = shieldHealth * 2.5;
+        ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI*2); ctx.stroke();
         ctx.fillStyle = `rgba(0, 255, 0, ${shieldHealth * 0.1})`; ctx.fill();
     }
+
     const currentVel = isPlayer ? worldSpeed : r.baseSpeed;
-    const isMoving = currentVel > 2 && stun <= 0; const wheelAngle = (Date.now() / (1000 / currentVel)) % (Math.PI * 2);
+    const isMoving = currentVel > 2 && stun <= 0;
+    const wheelAngle = (Date.now() / (1000 / currentVel)) % (Math.PI * 2);
+
+    // BARRAS DE SUSPENSIÓN (RUEDAS DELANTERAS ADELANTADAS 4PX: DE -30 A -34)
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 3;
+    // Delanteras: Simetría ±12 a ±32, adelantadas a Y = -21/-23
+    ctx.beginPath(); ctx.moveTo(-12, -17); ctx.lineTo(-32, -23); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, -17); ctx.lineTo(32, -23); ctx.stroke();
+    // Traseras: Se mantienen
+    ctx.beginPath(); ctx.moveTo(-12, 23); ctx.lineTo(-38, 23); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, 23); ctx.lineTo(38, 23); ctx.stroke();
+
+    // LLANTAS (DELANTERAS ADELANTADAS A Y = -34)
     ctx.fillStyle = '#111';
-    [[-40, -30], [26, -30], [-42, 10], [26, 10]].forEach(([wx, wy]) => {
-        ctx.fillRect(wx, wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
-        if(isMoving) { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(wx + 2, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); ctx.fillStyle = '#111'; }
+    [[-32, -34], [32, -34], [-38, 10], [38, 10]].forEach(([wx, wy]) => {
+        ctx.fillRect(wx - (wy < 0 ? 7 : 8), wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
+        if(isMoving) { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(wx - 5, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); ctx.fillStyle = '#111'; }
     });
+
     if(nitro > 0) {
         ctx.fillStyle = (Math.random() > 0.5) ? '#00f2ff' : '#ffffff';
         for(let i=0; i<15; i++) { ctx.beginPath(); let size = 15 + Math.random()*25; ctx.arc(Math.random()*24-12, 45 + Math.random()*35, size/2, 0, Math.PI*2); ctx.fill(); }
     }
-    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
-    ctx.fillStyle = '#222'; ctx.fillRect(-38, -50, 76, 6); ctx.fillStyle = '#111'; ctx.fillRect(-42, 32, 84, 10);
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.fillRect(-32, -50, 64, 6); ctx.fillStyle = '#111'; ctx.fillRect(-38, 32, 76, 10);
     ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -2, 6, 0, Math.PI*2); ctx.fill();
     if(stun > 0) { ctx.fillStyle='white'; ctx.font="bold 18px Arial"; ctx.fillText("X X", -14, -10); }
@@ -174,7 +191,7 @@ function drawF1Car(r, yPos) {
 
 function fire(r) {
     let sortedRacers = [...racers].sort((a,b) => b.progress - a.progress);
-    playShootSound(); // SONIDO PARA TODOS LOS QUE DISPAREN
+    playShootSound(); 
     if(r.missiles > 0) {
         let target = sortedRacers.find(res => res.id !== r.id && res.stun <= 0);
         if(!target) target = (sortedRacers[0].id !== r.id) ? sortedRacers[0] : sortedRacers[1];
@@ -211,7 +228,6 @@ function update() {
         particles.forEach(p => { p.x += p.vX; p.y += p.vY; p.life -= 0.02; }); particles = particles.filter(p => p.life > 0);
         shockwaves.forEach(s => { s.r += 20; s.life -= 0.02; }); shockwaves = shockwaves.filter(s => s.life > 0);
         allBullets.forEach(b => { if(b.isMissile && b.target) { b.x += (b.target.x - b.x) * 0.35; b.progress += b.dy; if(Math.random()>0.05) particles.push({x: b.x, y: (racers[0].y - (b.progress - playerProgress)), vX:(Math.random()-0.5)*6, vY:8, life:0.8, color:'#ff4400'}); } else { b.progress += b.dy; } });
-        allBullets = allBullets.filter(b => Math.abs(b.progress - playerProgress) < 50000);
         racers.forEach(r => {
             if(!r.isPlayer) {
                 if(r.invul > 0) r.invul--;
