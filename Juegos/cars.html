@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Mud & Respawn</title>
+    <title>Infinite Art GP - Battle Fixed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -23,7 +23,7 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">MUD & RESPAWN UPDATE</p>
+    <p style="color: #888;">AI AGGRESSION UPDATE</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
@@ -86,16 +86,13 @@ function init() {
     resize();
     racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
     for(let i=0; i<9; i++) {
-        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 1.2 - 0.6), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
+        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 1.2 - 0.6), motorFlux: 0.5 + Math.random(), shootTimer: 100, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
     }
     const spots = [8000, 16000, 24000, 32000, 40000];
     spots.forEach(dist => {
         for(let j=0; j<6; j++) items.push({ type: P_TYPES[j % P_TYPES.length], offsetX: (j - 2.5) * 110, progress: dist, active: true, timer: 0 });
     });
-    for(let i=0; i<40; i++) {
-        let sideX = Math.random() > 0.5 ? Math.random() * (canvas.width * 0.2) : canvas.width - (Math.random() * (canvas.width * 0.2));
-        windLines.push({ x: sideX, y: Math.random() * canvas.height, baseLen: 120 + Math.random() * 180 });
-    }
+    for(let i=0; i<40; i++) windLines.push({ x: Math.random() * canvas.width, y: Math.random() * canvas.height, baseLen: 120 + Math.random() * 180 });
 }
 init();
 
@@ -114,6 +111,14 @@ function getTrackCurve(prog) { return (prog > 1500) ? Math.sin((prog - 1500) / 2
 
 function createExplosion(x, y, color, count=15) {
     for(let i=0; i<count; i++) particles.push({ x: x, y: y, vX: (Math.random() - 0.5) * 15, vY: (Math.random() - 0.5) * 15, life: 1.0, color: color });
+}
+
+function triggerSonicBomb(owner) {
+    shake = 30;
+    let yPos = owner.isPlayer ? racers[0].y : racers[0].y - (owner.progress - playerProgress);
+    shockwaves.push({ x: owner.x, y: yPos, r: 10, maxR: 500, life: 1.0 });
+    createExplosion(owner.x, yPos, '#fff', 40);
+    racers.forEach(r => { if(r.id !== owner.id) { let distY = owner.progress - r.progress; if(distY > 0 && distY < 750 && Math.abs(r.x - owner.x) < 250) { r.stun = 150; } } });
 }
 
 function drawF1Car(r, yPos) {
@@ -159,7 +164,7 @@ function fire(r) {
         racers.forEach(o => { if(o.id !== r.id && o.progress > r.progress) { let d = o.progress - r.progress; if(d < minDist){ minDist=d; target=o; } } });
         allBullets.push({ x: r.x, progress: r.progress + 130, dy: MAX_SPEED_BASE + 8, ownerId: r.id, color: '#ff0000', isMissile: true, target: target });
         r.missiles--;
-    } else {
+    } else if (r.ammo > 0) {
         const isTriple = r.gunType === "TRIPLE";
         const bColor = isTriple ? '#00f2ff' : '#fff';
         if (isTriple) { allBullets.push({ x: r.x - 20, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor }); allBullets.push({ x: r.x + 20, progress: r.progress + 100, dy: 75, ownerId: r.id, color: bColor }); }
@@ -180,10 +185,9 @@ function update() {
         let playerCurve = getTrackCurve(playerProgress);
         let isOff = Math.abs(racers[0].x - (canvas.width/2 + playerCurve)) > 230;
         
-        // FRENADO PANTANO + PARTÍCULAS LODO
         if(isOff) {
             worldSpeed += (3 - worldSpeed) * 0.1;
-            if(worldSpeed > 1) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); // Partículas de lodo
+            if(worldSpeed > 1) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2);
         } else {
             let finalTarget = baseT + Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 4);
             worldSpeed += (finalTarget - worldSpeed) * 0.1;
@@ -219,7 +223,15 @@ function update() {
                 let rCurve = getTrackCurve(r.progress);
                 let targetX = (canvas.width / 2 + rCurve) + (r.id % 3 - 1) * 150;
                 r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * 0.07;
-                if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 75 && racers[0].progress > r.progress && racers[0].progress - r.progress < 800) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 140; } }
+                
+                // IA DISPARA SI TIENE OBJETIVO ADELANTE
+                if((r.ammo > 0 || r.missiles > 0)) {
+                    let hasTargetAhead = racers.some(other => other.id !== r.id && other.progress > r.progress && other.progress - r.progress < 1200 && Math.abs(other.x - r.x) < 80);
+                    if(hasTargetAhead) {
+                        r.shootTimer--;
+                        if(r.shootTimer <= 0) { fire(r); r.shootTimer = 150; }
+                    }
+                }
             }
         });
 
@@ -243,17 +255,17 @@ function update() {
             });
             if(r.hitCounter > 0) r.hitCounter *= 0.95;
 
-            // ITEMS CON REGENERACIÓN ALEATORIA (3-4 segundos)
+            // BUG FIX: NO COGER ITEMS EN STUN
             items.forEach(p => { 
                 if(!p.active) {
                     p.timer--;
                     if(p.timer <= 0) { p.active = true; p.type = P_TYPES[Math.floor(Math.random()*P_TYPES.length)]; }
-                } else if(Math.abs(r.progress - p.progress) < 130) { 
+                } else if(r.stun <= 0 && Math.abs(r.progress - p.progress) < 130) { 
                     let iX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX; 
                     if(Math.abs(r.x - iX) < 75) { 
                         if(p.type==='B') r.ammo+=5; if(p.type==='T') r.gunType="TRIPLE"; if(p.type==='N') r.nitro=150; if(p.type==='M') r.missiles+=2; 
-                        if(p.type==='S') { shake=30; racers.forEach(t => { if(t.id!==r.id && r.progress-t.progress > 0 && r.progress-t.progress < 750) t.stun=150; }); shockwaves.push({x:r.x, y:rY, r:10, life:1}); } 
-                        p.active=false; p.timer = 180 + Math.random()*60; // 3-4 segundos a 60fps
+                        if(p.type==='S') { triggerSonicBomb(r); } 
+                        p.active=false; p.timer = 200 + Math.random()*100;
                     } 
                 } 
             });
