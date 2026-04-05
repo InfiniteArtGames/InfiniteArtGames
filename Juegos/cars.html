@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Inferno Boss & Ammo Fix</title>
+    <title>Infinite Art GP - Setsu God Speed</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -22,13 +22,13 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">BOSS AI & HUD FIXED</p>
+    <p style="color: #888;">SETSU: 500 KM/H OVERLOAD</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
 <div id="hud">
     <span class="stat">RANK:</span> <span id="rank">--</span>/10<br>
-    <span class="stat">BALAS:</span> <span id="ammo">5</span><br>
+    <span class="stat">BALAS:</span> <span id="ammo">5</span> <span id="triple-ind" style="color:#00f2ff; display:none;">+T</span><br>
     <span class="stat">META:</span> <span id="dist">10000</span>km<br>
     <hr style="border:0; border-top:1px solid #444;">
     <span class="stat">VELOCIDAD:</span> <br><span id="hud-vel" class="vel">0</span> <span class="vel" style="font-size:10px">KM/H</span>
@@ -45,7 +45,7 @@ const fsBtn = document.getElementById('fs-btn');
 const playBtn = document.getElementById('play-btn');
 const startScreen = document.getElementById('start-screen');
 
-// AUDIO ENGINE
+// MOTOR DE AUDIO
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playShootSound() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -116,15 +116,15 @@ const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ec
 
 function init() {
     resize();
-    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.82, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
+    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.82, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", tripleCharges: 0, baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
     for(let i=0; i<9; i++) {
         let row = Math.floor(i / 2); let side = (i % 2 === 0) ? -1 : 1;
         let isBoss = (currentBiome.name === "Inferno" && i === 4); 
         racers.push({ 
             id: i+1, x: canvas.width / 2 + (side * 120 * gameScale), progress: 300 + (row * 350), 
             color: isBoss ? "#000000" : racerColors[i % racerColors.length], 
-            isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", 
-            baseSpeed: isBoss ? 30.0 : (MAX_SPEED_BASE + (Math.random() * 2 - 1)), 
+            isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", tripleCharges: 0,
+            baseSpeed: isBoss ? 33.5 : (MAX_SPEED_BASE + (Math.random() * 2 - 1)), // SETSU 500+ KM/H
             isInfernoBoss: isBoss, nitro: 0, motorFlux: 0.5 + Math.random(), shootTimer: 30, missiles: 0, hitCounter: 0, angle: 0 
         });
     }
@@ -163,30 +163,23 @@ function drawF1Car(r, yPos) {
         ctx.fillStyle = `rgba(0, 242, 255, ${shieldHealth * 0.1})`; ctx.fill();
     }
     const currentVel = isPlayer ? worldSpeed : r.baseSpeed;
-    const isMoving = currentVel > 2 && stun <= 0;
-    const wheelAngle = (Date.now() / (1000 / (currentVel || 1))) % (Math.PI * 2);
-
-    ctx.strokeStyle = isInfernoBoss ? '#ff0000' : '#888'; 
-    ctx.lineWidth = 3;
+    const isMoving = currentVel > 2 && stun <= 0; const wheelAngle = (Date.now() / (1000 / (currentVel || 1))) % (Math.PI * 2);
+    ctx.strokeStyle = isInfernoBoss ? '#ff0000' : '#888'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(-12, -17); ctx.lineTo(-32, -23); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(12, -17); ctx.lineTo(32, -23); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(-12, 23); ctx.lineTo(-38, 23); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(12, 23); ctx.lineTo(38, 23); ctx.stroke();
-
     ctx.fillStyle = isInfernoBoss ? '#300' : '#111';
     [[-32, -34], [32, -34], [-38, 10], [38, 10]].forEach(([wx, wy]) => {
         if(isInfernoBoss) { ctx.shadowBlur = 15; ctx.shadowColor = "red"; ctx.fillStyle = "#ff0000"; }
-        ctx.fillRect(wx - (wy < 0 ? 7 : 8), wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
-        ctx.shadowBlur = 0;
-        if(isMoving) { 
-            ctx.fillStyle = isInfernoBoss ? 'rgba(255,100,100,0.8)' : 'rgba(255,255,255,0.3)'; 
-            ctx.fillRect(wx - 5, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); 
-            ctx.fillStyle = '#111'; 
-        }
+        ctx.fillRect(wx - (wy < 0 ? 7 : 8), wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26); ctx.shadowBlur = 0;
+        if(isMoving) { ctx.fillStyle = isInfernoBoss ? 'rgba(255,100,100,0.8)' : 'rgba(255,255,255,0.3)'; ctx.fillRect(wx - 5, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); ctx.fillStyle = '#111'; }
     });
-
-    ctx.fillStyle = color;
-    ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
+    if(nitro > 0) {
+        ctx.fillStyle = isInfernoBoss ? (Math.random() > 0.5 ? '#ff0000' : '#ff6600') : (Math.random() > 0.5 ? '#00f2ff' : '#ffffff');
+        for(let i=0; i<15; i++) { ctx.beginPath(); let size = 15 + Math.random()*25; ctx.arc(Math.random()*24-12, 45 + Math.random()*35, size/2, 0, Math.PI*2); ctx.fill(); }
+    }
+    ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
     ctx.fillStyle = '#222'; ctx.fillRect(-32, -50, 64, 6); ctx.fillStyle = '#111'; ctx.fillRect(-38, 32, 76, 10);
     ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -2, 6, 0, Math.PI*2); ctx.fill();
@@ -210,6 +203,7 @@ function fire(r) {
             if (isTriple) { 
                 allBullets.push({ x: r.x - (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); 
                 allBullets.push({ x: r.x + (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); 
+                r.tripleCharges--; if(r.tripleCharges <= 0) r.gunType = "NORMAL";
             }
             allBullets.push({ x: r.x, progress: r.progress + 150, dy: 130, ownerId: r.id, color: bColor });
             r.ammo--;
@@ -220,25 +214,28 @@ function fire(r) {
 function update() {
     if(gameState === "RACING") {
         let sorted = [...racers].sort((a,b) => b.progress - a.progress);
-        let leaderP = sorted[0].progress; 
-        let pRank = sorted.findIndex(r => r.id === 0) + 1;
-        
+        let leaderP = sorted[0].progress; let pRank = sorted.findIndex(r => r.id === 0) + 1;
         let playerTrackX = canvas.width/2 + getTrackCurve(playerProgress) * gameScale;
-        let trackLimit = (TRACK_WIDTH_BASE / 2) * gameScale; 
-        let playerOff = Math.abs(racers[0].x - playerTrackX) > trackLimit;
+        let trackLimit = (TRACK_WIDTH_BASE / 2) * gameScale; let playerOff = Math.abs(racers[0].x - playerTrackX) > trackLimit;
         
         let baseT = racers[0].baseSpeed; 
         if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 10; }
-        if(playerOff) { worldSpeed += (5 - worldSpeed) * 0.15; if(worldSpeed > 2) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
-        else { worldSpeed += (baseT + Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 4) - worldSpeed) * 0.1; }
+        if(playerOff) { worldSpeed += (4.5 - worldSpeed) * 0.15; if(worldSpeed > 2) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
+        else { 
+            // LIMITADOR DE VELOCIDAD JUGADOR: Maximo 440 KM/H sin nitro
+            let rubberBand = Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 2.7);
+            worldSpeed += (baseT + rubberBand - worldSpeed) * 0.1; 
+        }
+        
         if(racers[0].stun > 0) { worldSpeed = 0; racers[0].stun--; }
         if(racers[0].invul > 0) racers[0].invul--;
         playerProgress += worldSpeed; racers[0].progress = playerProgress;
         racers[0].angle += ((tX - racers[0].x) * 0.005 - racers[0].angle) * 0.1; racers[0].x += (tX - racers[0].x) * 0.22;
         
-        // ACTUALIZACION DE HUD
         document.getElementById('hud-vel').innerText = Math.floor(worldSpeed * CONVERSION_FACTOR);
+        document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
         document.getElementById('ammo').innerText = racers[0].ammo;
+        document.getElementById('triple-ind').style.display = (racers[0].gunType === "TRIPLE") ? "inline" : "none";
 
         windLines.forEach(l => { l.y += worldSpeed * 5 + 30; if(l.y > canvas.height) { l.y = -l.len; l.x = Math.random() * canvas.width; l.opacity = 0.1 + Math.random() * 0.4; } });
         particles.forEach(p => { p.x += p.vX; p.y += p.vY; p.life -= 0.02; }); particles = particles.filter(p => p.life > 0);
@@ -248,18 +245,18 @@ function update() {
         racers.forEach(r => {
             if(!r.isPlayer) {
                 let rRank = sorted.findIndex(res => res.id === r.id) + 1;
-                // LOGICA BOSS: NITRO SI ESTA POR DEBAJO DEL 3er PUESTO
-                if(r.isInfernoBoss && rRank > 3) { r.nitro = 100; shake = 2; }
-
+                if(r.isInfernoBoss && rRank > 3) { r.nitro = 100; }
                 if(r.invul > 0) r.invul--;
                 if(r.stun > 0) { r.stun--; }
                 else {
                     let rTrackX = canvas.width/2 + getTrackCurve(r.progress) * gameScale; let rOff = Math.abs(r.x - rTrackX) > trackLimit;
-                    let speedMult = rOff ? 0.2 : 1.0;
+                    let speedMult = rOff ? 0.15 : 1.0; 
                     r.progress += (r.baseSpeed + (r.nitro > 0 ? NITRO_BOOST + 3 : 0)) * speedMult;
                     if(r.nitro > 0) r.nitro--;
-                    let targetX = rTrackX + (rOff ? 0 : (r.id % 3 - 1) * 150 * gameScale); 
-                    r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * (rOff ? 0.15 : 0.09);
+                    let laneOffset = (rOff) ? 0 : (r.id % 3 - 1) * 150 * gameScale;
+                    let targetX = rTrackX + laneOffset; 
+                    r.angle = (targetX - r.x) * 0.002; 
+                    r.x += (targetX - r.x) * (rOff ? 0.25 : 0.09);
                     if(sorted[0].id !== r.id || r.missiles > 0) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = (r.ammo > 3) ? 20 : 60; } }
                 }
             }
@@ -278,15 +275,21 @@ function update() {
             items.forEach(p => { if(!p.active) { p.timer--; if(p.timer <= 0) { p.active = true; p.type = P_TYPES[Math.floor(Math.random()*P_TYPES.length)]; } } 
                 else if(r.stun <= 0 && Math.abs(r.progress - p.progress) < 250) { 
                     let iX = (canvas.width / 2 + getTrackCurve(p.progress) * gameScale) + p.offsetX * gameScale; 
-                    if(Math.abs(r.x - iX) < (75 * gameScale)) { if(p.type==='B') r.ammo += 5; if(p.type==='T') r.gunType = "TRIPLE"; if(p.type==='N') r.nitro = 300; if(p.type==='M') r.missiles += 3; if(p.type==='E') r.shieldHealth = 3;
+                    if(Math.abs(r.x - iX) < (75 * gameScale)) { if(p.type==='B') r.ammo += 5; if(p.type==='T') { r.gunType = "TRIPLE"; r.tripleCharges = 6; } if(p.type==='N') r.nitro = 300; if(p.type==='M') r.missiles += 3; if(p.type==='E') r.shieldHealth = 3;
                         if(p.type==='S') { shockwaves.push({x:r.x, y:rY, r:15, life:1}); racers.forEach(t => { if(t.id!==r.id && t.invul <= 0 && t.shieldHealth <= 0 && Math.abs(r.progress-t.progress) < 1200) { t.stun=180; t.invul=150; } else if(t.shieldHealth > 0 && t.id!==r.id && Math.abs(r.progress-t.progress) < 1200) { t.shieldHealth--; t.invul=60; } }); } 
                         p.active = false; p.timer = 400; 
                     } 
                 } 
             });
         });
-        document.getElementById('rank').innerText = pRank; document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
-        if(playerProgress >= GOAL_DIST) { gameState = "FINISHED"; const suffix = (pRank === 1) ? "ST" : (pRank === 2) ? "ND" : (pRank === 3) ? "RD" : "TH"; document.getElementById('msg').style.display = "block"; document.getElementById('msg').innerHTML = `🏁 FINAL 🏁<br><span style="color:gold; font-size:40px">${pRank}${suffix} PLACE</span>`; }
+        document.getElementById('rank').innerText = pRank;
+        if(playerProgress >= GOAL_DIST) { 
+            gameState = "FINISHED"; 
+            let winMsg = (sorted[0].id === 0) ? "🏁 ¡HAS GANADO! 🏁" : (sorted[0].isInfernoBoss ? "🏁 SETSU HA GANADO 🏁" : "🏁 FIN DE CARRERA 🏁");
+            let winColor = (sorted[0].isInfernoBoss) ? "#ff0000" : "gold";
+            document.getElementById('msg').style.display = "block"; document.getElementById('msg').style.color = winColor;
+            document.getElementById('msg').innerHTML = `${winMsg}<br><span style="font-size:30px">POSICIÓN: ${pRank}</span>`; 
+        }
         if(shake > 0) shake *= 0.88;
     }
     draw(); requestAnimationFrame(update);
@@ -326,7 +329,7 @@ function draw() {
 let tX = window.innerWidth / 2;
 const handleIn = (e) => { 
     tX = (e.touches ? e.touches[0].clientX : e.clientX); 
-    if(gameState === "RACING" && (racers[0].ammo > 0 || racers[0].missiles > 0) && racers[0].stun <= 0) fire(racers[0]); 
+    if(gameState === "RACING" && racers[0].stun <= 0) fire(racers[0]); 
     if(gameState === "FINISHED") location.reload(); 
 };
 canvas.addEventListener('touchstart', handleIn); canvas.addEventListener('mousedown', handleIn);
