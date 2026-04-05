@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Precision Pro</title>
+    <title>Infinite Art GP - Mud & Respawn</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -23,13 +23,13 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">VISUAL POLISH UPDATE</p>
+    <p style="color: #888;">MUD & RESPAWN UPDATE</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
 <div id="hud">
     <span class="stat">RANK:</span> <span id="rank">--</span>/10<br>
-    <span class="stat">AMMO:</span> <span id="ammo">5</span><br>
+    <span class="stat">BALAS:</span> <span id="ammo">5</span><br>
     <span class="stat">META:</span> <span id="dist">5000</span>km<br>
     <hr style="border:0; border-top:1px solid #444;">
     <span class="stat">VELOCIDAD:</span> <br><span id="hud-vel" class="vel">0</span> <span class="vel" style="font-size:10px">KM/H</span>
@@ -49,6 +49,7 @@ const startScreen = document.getElementById('start-screen');
 const MAX_SPEED_BASE = 16.5; 
 const NITRO_BOOST = 5.5;    
 const CONVERSION_FACTOR = 15; 
+const P_TYPES = ['B', 'T', 'N', 'S', 'M'];
 
 function resize() {
     canvas.width = window.innerWidth;
@@ -83,18 +84,13 @@ const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ec
 
 function init() {
     resize();
-    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0, lastX: canvas.width / 2 }];
+    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
     for(let i=0; i<9; i++) {
-        racers.push({ 
-            id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, 
-            color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", 
-            baseSpeed: MAX_SPEED_BASE + (Math.random() * 1.2 - 0.6), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0, hitCounter: 0, angle: 0, lastX: 0 
-        });
+        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 350, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 1.2 - 0.6), motorFlux: 0.5 + Math.random(), shootTimer: 120, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
     }
     const spots = [8000, 16000, 24000, 32000, 40000];
-    const pTypes = ['B', 'T', 'N', 'S', 'M', 'B'];
     spots.forEach(dist => {
-        for(let j=0; j<6; j++) items.push({ type: pTypes[j % pTypes.length], offsetX: (j - 2.5) * 110, progress: dist, active: true });
+        for(let j=0; j<6; j++) items.push({ type: P_TYPES[j % P_TYPES.length], offsetX: (j - 2.5) * 110, progress: dist, active: true, timer: 0 });
     });
     for(let i=0; i<40; i++) {
         let sideX = Math.random() > 0.5 ? Math.random() * (canvas.width * 0.2) : canvas.width - (Math.random() * (canvas.width * 0.2));
@@ -116,49 +112,43 @@ function startCountdown() {
 
 function getTrackCurve(prog) { return (prog > 1500) ? Math.sin((prog - 1500) / 2500) * 280 : 0; }
 
+function createExplosion(x, y, color, count=15) {
+    for(let i=0; i<count; i++) particles.push({ x: x, y: y, vX: (Math.random() - 0.5) * 15, vY: (Math.random() - 0.5) * 15, life: 1.0, color: color });
+}
+
 function drawF1Car(r, yPos) {
-    const { x, color, stun, nitro, isPlayer, angle, progress } = r;
-    ctx.save();
-    ctx.translate(x, yPos);
-    
-    // INCLINACIÓN DINÁMICA: Rota un poco hacia donde se mueve
-    ctx.rotate(angle);
-    
-    const s = canvas.width < 600 ? 0.75 : 1.0; 
-    ctx.scale(s, s);
+    const { x, color, stun, nitro, isPlayer, angle } = r;
+    ctx.save(); ctx.translate(x, yPos); ctx.rotate(angle);
+    const s = canvas.width < 600 ? 0.75 : 1.0; ctx.scale(s, s);
 
-    // Sombra
-    ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-30, 15, 60, 40);
-
-    // RUEDAS CON LÍNEA DE GIRO ANIMADA
-    const wheelFlash = (Math.sin(Date.now() / (500 / (worldSpeed || 1))) > 0);
+    const moving = (isPlayer ? worldSpeed : r.baseSpeed) > 1 && stun <= 0;
+    const wheelFlash = moving && (Math.sin(Date.now() / 50) > 0);
+    
     ctx.fillStyle = '#111';
-    
-    // Dibujo de las 4 ruedas
     [[-40, -30], [26, -30], [-42, 10], [26, 10]].forEach(([wx, wy]) => {
         ctx.fillRect(wx, wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
-        if(wheelFlash && stun <= 0) {
-            ctx.fillStyle = 'rgba(200,200,200,0.6)';
-            ctx.fillRect(wx + 2, wy + 5, 2, 8); // Línea blanca de movimiento
+        if(wheelFlash) {
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillRect(wx + 2, wy + 5, 3, 8);
             ctx.fillStyle = '#111';
         }
     });
-    
-    // Chasis
+
     ctx.fillStyle = color;
-    ctx.beginPath(); ctx.moveTo(0, -50); ctx.lineTo(12, -10); ctx.lineTo(14, 30); ctx.lineTo(-14, 30); ctx.lineTo(-12, -10); ctx.fill();
-    ctx.fillStyle = '#222'; ctx.fillRect(-38, -48, 76, 6);
-    ctx.fillStyle = '#111'; ctx.fillRect(-42, 32, 84, 10);
+    ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
+    ctx.fillStyle = '#222'; ctx.fillRect(-38, -50, 76, 6); ctx.fillStyle = '#111'; ctx.fillRect(-42, 32, 84, 10);
     ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill();
     ctx.fillStyle = '#ffff00'; ctx.beginPath(); ctx.arc(0, -2, 6, 0, Math.PI*2); ctx.fill();
-    
+
     if(stun > 0) { ctx.fillStyle='white'; ctx.font="bold 20px Arial"; ctx.fillText("X X", -16, -10); }
     if(nitro > 0) { ctx.fillStyle='#00f2ff'; ctx.beginPath(); ctx.arc(0, 45, 15, 0, Math.PI*2); ctx.fill(); }
     
     if(isPlayer) {
+        let playerCurve = getTrackCurve(playerProgress);
+        let offTrack = Math.abs(x - (canvas.width/2 + playerCurve)) > 230;
         ctx.fillStyle = "rgba(0,0,0,0.6)"; ctx.fillRect(-35, 60, 70, 20);
-        ctx.fillStyle = "gold"; ctx.font = "bold 14px Arial";
-        ctx.fillText(Math.floor(worldSpeed * CONVERSION_FACTOR) + " KM/H", -30, 75);
+        ctx.fillStyle = offTrack ? "red" : "gold";
+        ctx.font = "bold 14px Arial"; ctx.fillText(Math.floor(worldSpeed * CONVERSION_FACTOR) + " KM/H", -30, 75);
     }
     ctx.restore();
 }
@@ -167,7 +157,7 @@ function fire(r) {
     if(r.missiles > 0) {
         let target = null; let minDist = 99999;
         racers.forEach(o => { if(o.id !== r.id && o.progress > r.progress) { let d = o.progress - r.progress; if(d < minDist){ minDist=d; target=o; } } });
-        allBullets.push({ x: r.x, progress: r.progress + 130, dy: MAX_SPEED_BASE + NITRO_BOOST + 5, ownerId: r.id, color: '#ff0000', isMissile: true, target: target });
+        allBullets.push({ x: r.x, progress: r.progress + 130, dy: MAX_SPEED_BASE + 8, ownerId: r.id, color: '#ff0000', isMissile: true, target: target });
         r.missiles--;
     } else {
         const isTriple = r.gunType === "TRIPLE";
@@ -184,66 +174,89 @@ function update() {
         let leaderP = sorted[0].progress;
         let pRank = sorted.findIndex(r => r.id === 0) + 1;
         
-        // --- LÓGICA DE MOVIMIENTO JUGADOR ---
         let baseT = racers[0].baseSpeed; 
         if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 3; }
-        let catchUp = (pRank > 2) ? (leaderP - playerProgress) / 150 : 0;
-        let finalTarget = baseT + Math.min(catchUp, 4); 
-
-        // Césped
+        
         let playerCurve = getTrackCurve(playerProgress);
-        if (Math.abs(racers[0].x - (canvas.width / 2 + playerCurve)) > 230) { finalTarget = 4; shake = 1; }
+        let isOff = Math.abs(racers[0].x - (canvas.width/2 + playerCurve)) > 230;
+        
+        // FRENADO PANTANO + PARTÍCULAS LODO
+        if(isOff) {
+            worldSpeed += (3 - worldSpeed) * 0.1;
+            if(worldSpeed > 1) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); // Partículas de lodo
+        } else {
+            let finalTarget = baseT + Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 4);
+            worldSpeed += (finalTarget - worldSpeed) * 0.1;
+        }
 
-        worldSpeed += (finalTarget - worldSpeed) * 0.1;
         if(racers[0].stun > 0) { worldSpeed = 0; racers[0].stun--; }
         
         playerProgress += worldSpeed;
         racers[0].progress = playerProgress;
-        
-        // Cálculo de inclinación por movimiento lateral
         let targetAngle = (tX - racers[0].x) * 0.005;
         racers[0].angle += (targetAngle - racers[0].angle) * 0.1;
         racers[0].x += (tX - racers[0].x) * 0.22;
 
         document.getElementById('hud-vel').innerText = Math.floor(worldSpeed * CONVERSION_FACTOR);
 
-        windLines.forEach(l => { l.y += worldSpeed * 3 + 10; if(l.y > canvas.height) { l.y = -l.baseLen; l.x = Math.random() > 0.5 ? Math.random() * (canvas.width * 0.25) : canvas.width - (Math.random() * (canvas.width * 0.25)); } });
+        windLines.forEach(l => { l.y += worldSpeed * 3 + 10; if(l.y > canvas.height) { l.y = -l.baseLen; l.x = Math.random() > 0.5 ? Math.random()*(canvas.width*0.25) : canvas.width-(Math.random()*(canvas.width*0.25)); } });
         particles.forEach(p => { p.x += p.vX; p.y += p.vY; p.life -= 0.03; });
         particles = particles.filter(p => p.life > 0);
         shockwaves.forEach(s => { s.r += 15; s.life -= 0.02; });
         shockwaves = shockwaves.filter(s => s.life > 0);
-        
+
         allBullets.forEach(b => { 
             if(b.isMissile && b.target) { 
                 b.x += (b.target.x - b.x) * 0.18; b.progress += b.dy; 
-                if(Math.random()>0.5) particles.push({x: b.x, y: (racers[0].y - (b.progress - playerProgress)), vX: (Math.random()-0.5)*3, vY: 5, life: 0.5, color: '#999'});
+                if(Math.random()>0.4) particles.push({x: b.x, y: (racers[0].y - (b.progress - playerProgress)), vX:(Math.random()-0.5)*4, vY:5, life:0.6, color:'#777'});
             } else { b.progress += b.dy; } 
         });
-        allBullets = allBullets.filter(b => Math.abs(b.progress - playerProgress) < 15000);
 
         racers.forEach(r => {
             if(!r.isPlayer && r.stun <= 0) {
-                let iaRank = sorted.findIndex(rac => rac.id === r.id)+1;
-                let iaCatchUp = (iaRank > 3) ? (leaderP - r.progress) / 180 : 0;
-                r.progress += r.baseSpeed + Math.min(iaCatchUp, 4) + (r.nitro > 0 ? NITRO_BOOST : 0);
+                r.progress += r.baseSpeed + (r.nitro > 0 ? NITRO_BOOST : 0);
                 if(r.nitro > 0) r.nitro--;
-                
                 let rCurve = getTrackCurve(r.progress);
                 let targetX = (canvas.width / 2 + rCurve) + (r.id % 3 - 1) * 150;
-                // Inclinación IA
-                r.angle = (targetX - r.x) * 0.002;
-                r.x += (targetX - r.x) * 0.07;
-
+                r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * 0.07;
                 if((r.ammo > 0 || r.missiles > 0) && Math.abs(r.x - racers[0].x) < 75 && racers[0].progress > r.progress && racers[0].progress - r.progress < 800) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = 140; } }
             }
         });
 
         racers.forEach(r => {
             let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
-            allBullets.forEach(b => { if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 55 && Math.abs(r.progress - b.progress) < 130) { r.stun = 120; for(let k=0;k<15;k++) particles.push({x:r.x, y:rY, vX:(Math.random()-0.5)*15, vY:(Math.random()-0.5)*15, life:1, color:b.color}); b.progress = -999999; if(r.isPlayer) shake = 25; } });
-            racers.forEach(other => { if(r.id !== other.id && Math.abs(r.progress - other.progress) < 110 && Math.abs(r.x - other.x) < 75) { let f = (r.x < other.x) ? -15 : 15; r.x += f; other.x -= f; if(r.isPlayer) worldSpeed *= 0.5; r.hitCounter += 5; if(r.hitCounter > 40) { r.stun = 150; r.hitCounter = 0; } } });
-            if(r.hitCounter > 0) r.hitCounter *= 0.98;
-            items.forEach(p => { if(p.active && Math.abs(r.progress - p.progress) < 130) { let iX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX; if(Math.abs(r.x - iX) < 75) { if(p.type==='B') r.ammo+=5; if(p.type==='T') r.gunType="TRIPLE"; if(p.type==='N') r.nitro=150; if(p.type==='M') r.missiles+=2; if(p.type==='S') { shake=30; racers.forEach(t => { if(t.id!==r.id && r.progress-t.progress > 0 && r.progress-t.progress < 750) t.stun=150; }); shockwaves.push({x:r.x, y:rY, r:10, life:1}); } p.active=false; } } });
+            allBullets.forEach(b => { 
+                if(b.ownerId !== r.id && Math.abs(r.x - b.x) < 55 && Math.abs(r.progress - b.progress) < 130) { 
+                    r.stun = b.isMissile ? 180 : 120; 
+                    createExplosion(r.x, rY, b.isMissile ? '#ff4400' : b.color, b.isMissile ? 40 : 20); 
+                    b.progress = -999999; if(r.isPlayer) shake = 30; 
+                } 
+            });
+
+            racers.forEach(other => {
+                if(r.id !== other.id && Math.abs(r.progress - other.progress) < 110 && Math.abs(r.x - other.x) < 75) {
+                    let f = (r.x < other.x) ? -15 : 15; r.x += f; other.x -= f;
+                    if(r.isPlayer) worldSpeed *= 0.5;
+                    r.hitCounter += 15;
+                    if(r.hitCounter > 40) { r.stun = 120; r.hitCounter = 0; createExplosion(r.x, rY, '#ff0000', 25); }
+                }
+            });
+            if(r.hitCounter > 0) r.hitCounter *= 0.95;
+
+            // ITEMS CON REGENERACIÓN ALEATORIA (3-4 segundos)
+            items.forEach(p => { 
+                if(!p.active) {
+                    p.timer--;
+                    if(p.timer <= 0) { p.active = true; p.type = P_TYPES[Math.floor(Math.random()*P_TYPES.length)]; }
+                } else if(Math.abs(r.progress - p.progress) < 130) { 
+                    let iX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX; 
+                    if(Math.abs(r.x - iX) < 75) { 
+                        if(p.type==='B') r.ammo+=5; if(p.type==='T') r.gunType="TRIPLE"; if(p.type==='N') r.nitro=150; if(p.type==='M') r.missiles+=2; 
+                        if(p.type==='S') { shake=30; racers.forEach(t => { if(t.id!==r.id && r.progress-t.progress > 0 && r.progress-t.progress < 750) t.stun=150; }); shockwaves.push({x:r.x, y:rY, r:10, life:1}); } 
+                        p.active=false; p.timer = 180 + Math.random()*60; // 3-4 segundos a 60fps
+                    } 
+                } 
+            });
         });
         
         document.getElementById('rank').innerText = pRank;
@@ -301,8 +314,8 @@ function draw() {
 
     shockwaves.forEach(s => { ctx.strokeStyle=`rgba(255, 0, 255, ${s.life})`; ctx.lineWidth=10; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.stroke(); });
 
-    if(worldSpeed > 5) {
-        ctx.globalAlpha = Math.min(1, (worldSpeed - 5) / 20);
+    if(worldSpeed > 1) {
+        ctx.globalAlpha = Math.min(1, worldSpeed / 10);
         ctx.strokeStyle = "rgba(255,255,255,0.45)"; ctx.lineWidth = 3;
         windLines.forEach(l => { let curLen = l.baseLen * (worldSpeed / 25); ctx.beginPath(); ctx.moveTo(l.x, l.y); ctx.lineTo(l.x, l.y + curLen); ctx.stroke(); });
         ctx.globalAlpha = 1.0;
