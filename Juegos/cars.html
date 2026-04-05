@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Setsu God Speed</title>
+    <title>Infinite Art GP - The Awakening of Setsu</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -22,7 +22,7 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">SETSU: 500 KM/H OVERLOAD</p>
+    <p id="sub-msg" style="color: #888;">THE CHALLENGE BEGINS</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
@@ -45,7 +45,7 @@ const fsBtn = document.getElementById('fs-btn');
 const playBtn = document.getElementById('play-btn');
 const startScreen = document.getElementById('start-screen');
 
-// MOTOR DE AUDIO
+// AUDIO ENGINE
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playShootSound() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -111,7 +111,19 @@ const biomes = [
     { name: "Night", grass: "#050510", track1: "#111", track2: "#000", border1: "#bc13fe", border2: "#000", tree: "#202040", fog: "rgba(0,0,0,0.9)", type: "neo" },
     { name: "Inferno", grass: "#1a1a1a", track1: "#3e2723", track2: "#2d1b10", border1: "#ff4400", border2: "#000", tree: "#ff6600", fog: "rgba(255,68,0,0.6)", type: "pine" }
 ];
-let currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
+
+// LOGICA DE DESBLOQUEO INFERNO
+let hasPlayedBefore = localStorage.getItem('artGP_played');
+let currentBiome;
+if (!hasPlayedBefore) {
+    // Si es la primera vez, solo elige entre los 4 primeros
+    currentBiome = biomes[Math.floor(Math.random() * 4)];
+} else {
+    // Si ya jugo, desbloquea Inferno
+    currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
+    document.getElementById('sub-msg').innerText = "SETSU IS WATCHING...";
+}
+
 const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ecf0f1', '#e74c3c', '#2c3e50', '#27ae60'];
 
 function init() {
@@ -124,7 +136,7 @@ function init() {
             id: i+1, x: canvas.width / 2 + (side * 120 * gameScale), progress: 300 + (row * 350), 
             color: isBoss ? "#000000" : racerColors[i % racerColors.length], 
             isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", tripleCharges: 0,
-            baseSpeed: isBoss ? 33.5 : (MAX_SPEED_BASE + (Math.random() * 2 - 1)), // SETSU 500+ KM/H
+            baseSpeed: isBoss ? 30.0 : (MAX_SPEED_BASE + (Math.random() * 2 - 1)), 
             isInfernoBoss: isBoss, nitro: 0, motorFlux: 0.5 + Math.random(), shootTimer: 30, missiles: 0, hitCounter: 0, angle: 0 
         });
     }
@@ -222,7 +234,6 @@ function update() {
         if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 10; }
         if(playerOff) { worldSpeed += (4.5 - worldSpeed) * 0.15; if(worldSpeed > 2) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
         else { 
-            // LIMITADOR DE VELOCIDAD JUGADOR: Maximo 440 KM/H sin nitro
             let rubberBand = Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 2.7);
             worldSpeed += (baseT + rubberBand - worldSpeed) * 0.1; 
         }
@@ -245,7 +256,17 @@ function update() {
         racers.forEach(r => {
             if(!r.isPlayer) {
                 let rRank = sorted.findIndex(res => res.id === r.id) + 1;
-                if(r.isInfernoBoss && rRank > 3) { r.nitro = 100; }
+                
+                // VELOCIDAD ADAPTATIVA DE SETSU (BOSS)
+                if(r.isInfernoBoss) {
+                    if (rRank > 3) {
+                        r.baseSpeed = 33.5; // ~502 KM/H si va perdiendo
+                        r.nitro = 10; // Chispas de nitro constantes
+                    } else {
+                        r.baseSpeed = 30.0; // ~450 KM/H si va en punta
+                    }
+                }
+
                 if(r.invul > 0) r.invul--;
                 if(r.stun > 0) { r.stun--; }
                 else {
@@ -255,8 +276,7 @@ function update() {
                     if(r.nitro > 0) r.nitro--;
                     let laneOffset = (rOff) ? 0 : (r.id % 3 - 1) * 150 * gameScale;
                     let targetX = rTrackX + laneOffset; 
-                    r.angle = (targetX - r.x) * 0.002; 
-                    r.x += (targetX - r.x) * (rOff ? 0.25 : 0.09);
+                    r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * (rOff ? 0.25 : 0.09);
                     if(sorted[0].id !== r.id || r.missiles > 0) { r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = (r.ammo > 3) ? 20 : 60; } }
                 }
             }
@@ -285,6 +305,7 @@ function update() {
         document.getElementById('rank').innerText = pRank;
         if(playerProgress >= GOAL_DIST) { 
             gameState = "FINISHED"; 
+            localStorage.setItem('artGP_played', 'true'); // Desbloquea Inferno para la proxima
             let winMsg = (sorted[0].id === 0) ? "🏁 ¡HAS GANADO! 🏁" : (sorted[0].isInfernoBoss ? "🏁 SETSU HA GANADO 🏁" : "🏁 FIN DE CARRERA 🏁");
             let winColor = (sorted[0].isInfernoBoss) ? "#ff0000" : "gold";
             document.getElementById('msg').style.display = "block"; document.getElementById('msg').style.color = winColor;
