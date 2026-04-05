@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Master Final Edition</title>
+    <title>Infinite Art GP - Inferno Boss & Ammo Fix</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -22,7 +22,7 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">THE ULTIMATE RACING EXPERIENCE</p>
+    <p style="color: #888;">BOSS AI & HUD FIXED</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
@@ -45,7 +45,7 @@ const fsBtn = document.getElementById('fs-btn');
 const playBtn = document.getElementById('play-btn');
 const startScreen = document.getElementById('start-screen');
 
-// MOTOR DE AUDIO
+// AUDIO ENGINE
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 function playShootSound() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -108,7 +108,8 @@ const biomes = [
     { name: "Forest", grass: "#2d5a27", track1: "#333", track2: "#222", border1: "#fff", border2: "#ff0", tree: "#1b3a1a", fog: "rgba(45,90,39,0.4)", type: "classic" },
     { name: "Autumn", grass: "#8e4420", track1: "#444", track2: "#333", border1: "#fff", border2: "#d35400", tree: "#5e2a14", fog: "rgba(142,68,32,0.4)", type: "classic" },
     { name: "Snow", grass: "#f0f0f0", track1: "#2c3e50", track2: "#34495e", border1: "#fff", border2: "#3498db", tree: "#ffffff", fog: "rgba(255,255,255,0.6)", type: "pine" },
-    { name: "Night", grass: "#050510", track1: "#111", track2: "#000", border1: "#bc13fe", border2: "#000", tree: "#202040", fog: "rgba(0,0,0,0.9)", type: "neo" }
+    { name: "Night", grass: "#050510", track1: "#111", track2: "#000", border1: "#bc13fe", border2: "#000", tree: "#202040", fog: "rgba(0,0,0,0.9)", type: "neo" },
+    { name: "Inferno", grass: "#1a1a1a", track1: "#3e2723", track2: "#2d1b10", border1: "#ff4400", border2: "#000", tree: "#ff6600", fog: "rgba(255,68,0,0.6)", type: "pine" }
 ];
 let currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
 const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ecf0f1', '#e74c3c', '#2c3e50', '#27ae60'];
@@ -118,7 +119,14 @@ function init() {
     racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.82, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
     for(let i=0; i<9; i++) {
         let row = Math.floor(i / 2); let side = (i % 2 === 0) ? -1 : 1;
-        racers.push({ id: i+1, x: canvas.width / 2 + (side * 120 * gameScale), progress: 300 + (row * 350), color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 2 - 1), motorFlux: 0.5 + Math.random(), shootTimer: 30, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
+        let isBoss = (currentBiome.name === "Inferno" && i === 4); 
+        racers.push({ 
+            id: i+1, x: canvas.width / 2 + (side * 120 * gameScale), progress: 300 + (row * 350), 
+            color: isBoss ? "#000000" : racerColors[i % racerColors.length], 
+            isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", 
+            baseSpeed: isBoss ? 30.0 : (MAX_SPEED_BASE + (Math.random() * 2 - 1)), 
+            isInfernoBoss: isBoss, nitro: 0, motorFlux: 0.5 + Math.random(), shootTimer: 30, missiles: 0, hitCounter: 0, angle: 0 
+        });
     }
     const supplyZones = [GOAL_DIST * 0.15, GOAL_DIST * 0.50, GOAL_DIST * 0.75];
     supplyZones.forEach(zoneProg => {
@@ -146,40 +154,37 @@ function createExplosion(x, y, color, count=15) {
 }
 
 function drawF1Car(r, yPos) {
-    const { x, color, stun, invul, shieldHealth, nitro, isPlayer, angle } = r;
+    const { x, color, stun, invul, shieldHealth, nitro, isPlayer, angle, isInfernoBoss } = r;
     if (invul > 0 && Math.floor(Date.now() / 50) % 2 === 0) return;
     ctx.save(); ctx.translate(x, yPos); ctx.scale(gameScale * CAR_SIZE_BOOST, gameScale * CAR_SIZE_BOOST); ctx.rotate(angle);
-    
     if (shieldHealth > 0) {
-        ctx.strokeStyle = '#00ff00'; ctx.lineWidth = shieldHealth * 2.5;
+        ctx.strokeStyle = '#00f2ff'; ctx.lineWidth = shieldHealth * 2.5;
         ctx.beginPath(); ctx.arc(0, 0, 70, 0, Math.PI*2); ctx.stroke();
-        ctx.fillStyle = `rgba(0, 255, 0, ${shieldHealth * 0.1})`; ctx.fill();
+        ctx.fillStyle = `rgba(0, 242, 255, ${shieldHealth * 0.1})`; ctx.fill();
     }
-
     const currentVel = isPlayer ? worldSpeed : r.baseSpeed;
     const isMoving = currentVel > 2 && stun <= 0;
-    const wheelAngle = (Date.now() / (1000 / currentVel)) % (Math.PI * 2);
+    const wheelAngle = (Date.now() / (1000 / (currentVel || 1))) % (Math.PI * 2);
 
-    // BARRAS DE SUSPENSIÓN (RUEDAS DELANTERAS ADELANTADAS 4PX: DE -30 A -34)
-    ctx.strokeStyle = '#888'; ctx.lineWidth = 3;
-    // Delanteras: Simetría ±12 a ±32, adelantadas a Y = -21/-23
+    ctx.strokeStyle = isInfernoBoss ? '#ff0000' : '#888'; 
+    ctx.lineWidth = 3;
     ctx.beginPath(); ctx.moveTo(-12, -17); ctx.lineTo(-32, -23); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(12, -17); ctx.lineTo(32, -23); ctx.stroke();
-    // Traseras: Se mantienen
     ctx.beginPath(); ctx.moveTo(-12, 23); ctx.lineTo(-38, 23); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(12, 23); ctx.lineTo(38, 23); ctx.stroke();
 
-    // LLANTAS (DELANTERAS ADELANTADAS A Y = -34)
-    ctx.fillStyle = '#111';
+    ctx.fillStyle = isInfernoBoss ? '#300' : '#111';
     [[-32, -34], [32, -34], [-38, 10], [38, 10]].forEach(([wx, wy]) => {
+        if(isInfernoBoss) { ctx.shadowBlur = 15; ctx.shadowColor = "red"; ctx.fillStyle = "#ff0000"; }
         ctx.fillRect(wx - (wy < 0 ? 7 : 8), wy, wy < 0 ? 14 : 16, wy < 0 ? 22 : 26);
-        if(isMoving) { ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillRect(wx - 5, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); ctx.fillStyle = '#111'; }
+        ctx.shadowBlur = 0;
+        if(isMoving) { 
+            ctx.fillStyle = isInfernoBoss ? 'rgba(255,100,100,0.8)' : 'rgba(255,255,255,0.3)'; 
+            ctx.fillRect(wx - 5, wy + Math.sin(wheelAngle)*10 + 10, 10, 2); 
+            ctx.fillStyle = '#111'; 
+        }
     });
 
-    if(nitro > 0) {
-        ctx.fillStyle = (Math.random() > 0.5) ? '#00f2ff' : '#ffffff';
-        for(let i=0; i<15; i++) { ctx.beginPath(); let size = 15 + Math.random()*25; ctx.arc(Math.random()*24-12, 45 + Math.random()*35, size/2, 0, Math.PI*2); ctx.fill(); }
-    }
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.moveTo(0, -55); ctx.lineTo(13, -15); ctx.lineTo(15, 30); ctx.lineTo(-15, 30); ctx.lineTo(-13, -15); ctx.fill();
     ctx.fillStyle = '#222'; ctx.fillRect(-32, -50, 64, 6); ctx.fillStyle = '#111'; ctx.fillRect(-38, 32, 76, 10);
@@ -190,19 +195,22 @@ function drawF1Car(r, yPos) {
 }
 
 function fire(r) {
+    if(r.ammo <= 0 && r.missiles <= 0) return;
     let sortedRacers = [...racers].sort((a,b) => b.progress - a.progress);
     playShootSound(); 
     if(r.missiles > 0) {
         let target = sortedRacers.find(res => res.id !== r.id && res.stun <= 0);
         if(!target) target = (sortedRacers[0].id !== r.id) ? sortedRacers[0] : sortedRacers[1];
         allBullets.push({ x: r.x, progress: r.progress + 150, dy: MAX_SPEED_BASE + 40, ownerId: r.id, color: '#ff0000', isMissile: true, target: target });
-        r.missiles--; return;
-    } 
-    if (r.ammo > 0) {
+        r.missiles--; 
+    } else if (r.ammo > 0) {
         let victims = racers.filter(res => res.id !== r.id && (res.progress - r.progress) > 0 && (res.progress - r.progress) < 4000 && res.stun <= 0 && Math.abs(r.x - res.x) < (250 * gameScale));
         if(victims.length > 0 || r.isPlayer) {
             const isTriple = r.gunType === "TRIPLE"; const bColor = isTriple ? '#00f2ff' : '#fff';
-            if (isTriple) { allBullets.push({ x: r.x - (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); allBullets.push({ x: r.x + (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); }
+            if (isTriple) { 
+                allBullets.push({ x: r.x - (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); 
+                allBullets.push({ x: r.x + (35 * gameScale), progress: r.progress + 100, dy: 130, ownerId: r.id, color: bColor }); 
+            }
             allBullets.push({ x: r.x, progress: r.progress + 150, dy: 130, ownerId: r.id, color: bColor });
             r.ammo--;
         }
@@ -212,29 +220,43 @@ function fire(r) {
 function update() {
     if(gameState === "RACING") {
         let sorted = [...racers].sort((a,b) => b.progress - a.progress);
-        let leaderP = sorted[0].progress; let pRank = sorted.findIndex(r => r.id === 0) + 1;
+        let leaderP = sorted[0].progress; 
+        let pRank = sorted.findIndex(r => r.id === 0) + 1;
+        
         let playerTrackX = canvas.width/2 + getTrackCurve(playerProgress) * gameScale;
-        let trackLimit = (TRACK_WIDTH_BASE / 2) * gameScale; let playerOff = Math.abs(racers[0].x - playerTrackX) > trackLimit;
+        let trackLimit = (TRACK_WIDTH_BASE / 2) * gameScale; 
+        let playerOff = Math.abs(racers[0].x - playerTrackX) > trackLimit;
+        
         let baseT = racers[0].baseSpeed; 
         if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 10; }
-        if(playerOff) { worldSpeed += (5 - worldSpeed) * 0.1; if(worldSpeed > 2) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
+        if(playerOff) { worldSpeed += (5 - worldSpeed) * 0.15; if(worldSpeed > 2) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
         else { worldSpeed += (baseT + Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 4) - worldSpeed) * 0.1; }
         if(racers[0].stun > 0) { worldSpeed = 0; racers[0].stun--; }
         if(racers[0].invul > 0) racers[0].invul--;
         playerProgress += worldSpeed; racers[0].progress = playerProgress;
         racers[0].angle += ((tX - racers[0].x) * 0.005 - racers[0].angle) * 0.1; racers[0].x += (tX - racers[0].x) * 0.22;
+        
+        // ACTUALIZACION DE HUD
         document.getElementById('hud-vel').innerText = Math.floor(worldSpeed * CONVERSION_FACTOR);
+        document.getElementById('ammo').innerText = racers[0].ammo;
+
         windLines.forEach(l => { l.y += worldSpeed * 5 + 30; if(l.y > canvas.height) { l.y = -l.len; l.x = Math.random() * canvas.width; l.opacity = 0.1 + Math.random() * 0.4; } });
         particles.forEach(p => { p.x += p.vX; p.y += p.vY; p.life -= 0.02; }); particles = particles.filter(p => p.life > 0);
         shockwaves.forEach(s => { s.r += 20; s.life -= 0.02; }); shockwaves = shockwaves.filter(s => s.life > 0);
         allBullets.forEach(b => { if(b.isMissile && b.target) { b.x += (b.target.x - b.x) * 0.35; b.progress += b.dy; if(Math.random()>0.05) particles.push({x: b.x, y: (racers[0].y - (b.progress - playerProgress)), vX:(Math.random()-0.5)*6, vY:8, life:0.8, color:'#ff4400'}); } else { b.progress += b.dy; } });
+        
         racers.forEach(r => {
             if(!r.isPlayer) {
+                let rRank = sorted.findIndex(res => res.id === r.id) + 1;
+                // LOGICA BOSS: NITRO SI ESTA POR DEBAJO DEL 3er PUESTO
+                if(r.isInfernoBoss && rRank > 3) { r.nitro = 100; shake = 2; }
+
                 if(r.invul > 0) r.invul--;
                 if(r.stun > 0) { r.stun--; }
                 else {
                     let rTrackX = canvas.width/2 + getTrackCurve(r.progress) * gameScale; let rOff = Math.abs(r.x - rTrackX) > trackLimit;
-                    r.progress += (r.baseSpeed + (r.nitro > 0 ? NITRO_BOOST + 3 : 0)) * (rOff ? 0.25 : 1.0);
+                    let speedMult = rOff ? 0.2 : 1.0;
+                    r.progress += (r.baseSpeed + (r.nitro > 0 ? NITRO_BOOST + 3 : 0)) * speedMult;
                     if(r.nitro > 0) r.nitro--;
                     let targetX = rTrackX + (rOff ? 0 : (r.id % 3 - 1) * 150 * gameScale); 
                     r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * (rOff ? 0.15 : 0.09);
@@ -245,7 +267,7 @@ function update() {
         racers.forEach(r => {
             let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
             allBullets.forEach(b => { if(b.ownerId !== r.id && r.invul <= 0 && Math.abs(r.x - b.x) < (85 * gameScale) && Math.abs(r.progress - b.progress) < 150) { 
-                playHitSound(); if (r.shieldHealth > 0) { r.shieldHealth--; r.invul = 60; b.progress = -999999; createExplosion(r.x, rY, '#00ff00', 20); } 
+                playHitSound(); if (r.shieldHealth > 0) { r.shieldHealth--; r.invul = 60; b.progress = -999999; createExplosion(r.x, rY, '#00f2ff', 20); } 
                 else { r.stun = b.isMissile ? 180 : 120; r.invul = 150; createExplosion(r.x, rY, b.isMissile ? '#ff2200' : b.color, 45); b.progress = -9999999; if(r.isPlayer) shake = 50; }
             } });
             racers.forEach(other => { if(r.id !== other.id && r.invul <= 0 && Math.abs(r.progress - other.progress) < 130 && Math.abs(r.x - other.x) < (100 * gameScale)) { 
@@ -263,8 +285,7 @@ function update() {
                 } 
             });
         });
-        document.getElementById('rank').innerText = pRank; document.getElementById('ammo').innerText = racers[0].ammo + (racers[0].missiles > 0 ? " +M" : "");
-        document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
+        document.getElementById('rank').innerText = pRank; document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
         if(playerProgress >= GOAL_DIST) { gameState = "FINISHED"; const suffix = (pRank === 1) ? "ST" : (pRank === 2) ? "ND" : (pRank === 3) ? "RD" : "TH"; document.getElementById('msg').style.display = "block"; document.getElementById('msg').innerHTML = `🏁 FINAL 🏁<br><span style="color:gold; font-size:40px">${pRank}${suffix} PLACE</span>`; }
         if(shake > 0) shake *= 0.88;
     }
@@ -278,10 +299,11 @@ function draw() {
     ctx.fillStyle = currentBiome.grass; ctx.fillRect(-canvas.width * 2, 0, canvas.width * 5, canvas.height);
     for(let i=0; i<30; i++) {
         let treeY = ( (playerProgress / 6) + (i * 250) ) % (canvas.height + 250); let xOff = getTrackCurve(playerProgress + (canvas.height - treeY)*2) * gameScale;
-        ctx.fillStyle = currentBiome.tree; let sideX = 650 * gameScale;
-        if(currentBiome.type === "pine") { ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff - sideX, treeY - 120); ctx.lineTo(canvas.width/2 + xOff - sideX + 70, treeY - 30); ctx.lineTo(canvas.width/2 + xOff - sideX - 70, treeY - 30); ctx.fill(); ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff + sideX, treeY - 120); ctx.lineTo(canvas.width/2 + xOff + sideX + 70, treeY - 30); ctx.lineTo(canvas.width/2 + xOff + sideX - 70, treeY - 30); ctx.fill(); } 
-        else if(currentBiome.type === "neo") { ctx.fillRect(canvas.width/2 + xOff - sideX, treeY - 150, 40, 150); ctx.fillRect(canvas.width/2 + xOff + sideX - 40, treeY - 150, 40, 150); } 
-        else { ctx.fillRect(canvas.width/2+xOff-sideX+40, treeY-40, 20, 40); ctx.beginPath(); ctx.arc(canvas.width/2+xOff-sideX+50, treeY-60, 45, 0, Math.PI*2); ctx.fill(); ctx.fillRect(canvas.width/2+xOff+sideX-60, treeY-40, 20, 40); ctx.beginPath(); ctx.arc(canvas.width/2+xOff+sideX-50, treeY-60, 45, 0, Math.PI*2); ctx.fill(); }
+        let sideX = 650 * gameScale; ctx.fillStyle = "#5d4037"; ctx.fillRect(canvas.width/2 + xOff - sideX - 5, treeY - 20, 10, 20); ctx.fillRect(canvas.width/2 + xOff + sideX - 5, treeY - 20, 10, 20); 
+        ctx.fillStyle = currentBiome.tree;
+        if(currentBiome.type === "pine") { [0, 25, 50].forEach(offset => { ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff - sideX, treeY - 100 + offset); ctx.lineTo(canvas.width/2 + xOff - sideX + 50 - offset/2, treeY - 30 + offset); ctx.lineTo(canvas.width/2 + xOff - sideX - 50 + offset/2, treeY - 30 + offset); ctx.fill(); ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff + sideX, treeY - 100 + offset); ctx.lineTo(canvas.width/2 + xOff + sideX + 50 - offset/2, treeY - 30 + offset); ctx.lineTo(canvas.width/2 + xOff + sideX - 50 + offset/2, treeY - 30 + offset); ctx.fill(); }); } 
+        else if(currentBiome.type === "neo") { ctx.fillRect(canvas.width/2 + xOff - sideX - 20, treeY - 150, 40, 150); ctx.fillRect(canvas.width/2 + xOff + sideX - 20, treeY - 150, 40, 150); } 
+        else { [ [-20, -40], [20, -40], [0, -70] ].forEach(([ox, oy]) => { ctx.beginPath(); ctx.arc(canvas.width/2+xOff-sideX+ox, treeY+oy, 35, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(canvas.width/2+xOff+sideX+ox, treeY+oy, 35, 0, Math.PI*2); ctx.fill(); }); }
     }
     for(let i=0; i<45; i++) {
         let y = canvas.height - (i * (canvas.height/35)); let zD = playerProgress + (i * 90); let zC = getTrackCurve(zD) * gameScale;
