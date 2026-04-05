@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Infinite Art GP - Final Edition</title>
+    <title>Infinite Art GP - Classic Nature & Triple Shield</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         body { margin: 0; background: #000; overflow: hidden; touch-action: none; font-family: 'Arial Black', sans-serif; }
@@ -22,7 +22,7 @@
 <div id="start-screen">
     <h2>INFINITE ART GAMES</h2>
     <h1>INFINITE ART GP</h1>
-    <p style="color: #888;">THE FINAL RACE</p>
+    <p style="color: #888;">NATURAL BIOMES & TRIPLE SHIELD</p>
     <button id="play-btn">P L A Y</button>
 </div>
 
@@ -75,18 +75,19 @@ let allBullets = [], racers = [], items = [], particles = [], windLines = [], sh
 let shake = 0; 
 
 const biomes = [
-    { name: "Snow", grass: "#e0e0e0", track1: "#2c3e50", track2: "#34495e", border1: "#fff", border2: "#3498db", tree: "#ffffff", fog: "rgba(255,255,255,0.7)", type: "pine" },
-    { name: "Night", grass: "#050510", track1: "#111", track2: "#000", border1: "#bc13fe", border2: "#000", tree: "#202040", fog: "rgba(0,0,0,0.9)", type: "neo" },
-    { name: "Mars", grass: "#a04000", track1: "#3e2723", track2: "#2d1b10", border1: "#ffa726", border2: "#000", tree: "#4e342e", fog: "rgba(160,64,0,0.5)", type: "dead" }
+    { name: "Forest", grass: "#2d5a27", track1: "#333", track2: "#222", border1: "#fff", border2: "#ff0", tree: "#1b3a1a", fog: "rgba(45,90,39,0.4)", type: "classic" },
+    { name: "Autumn", grass: "#8e4420", track1: "#444", track2: "#333", border1: "#fff", border2: "#d35400", tree: "#5e2a14", fog: "rgba(142,68,32,0.4)", type: "classic" },
+    { name: "Snow", grass: "#f0f0f0", track1: "#2c3e50", track2: "#34495e", border1: "#fff", border2: "#3498db", tree: "#ffffff", fog: "rgba(255,255,255,0.6)", type: "pine" },
+    { name: "Night", grass: "#050510", track1: "#111", track2: "#000", border1: "#bc13fe", border2: "#000", tree: "#202040", fog: "rgba(0,0,0,0.9)", type: "neo" }
 ];
 let currentBiome = biomes[Math.floor(Math.random() * biomes.length)];
 const racerColors = ['#f39c12', '#9b59b6', '#3498db', '#1abc9c', '#f1c40f', '#ecf0f1', '#e74c3c', '#2c3e50', '#27ae60'];
 
 function init() {
     resize();
-    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, invul: 0, shield: false, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
+    racers = [{ id: 0, x: canvas.width / 2, y: canvas.height * 0.78, progress: 0, color: '#e74c3c', isPlayer: true, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 }];
     for(let i=0; i<9; i++) {
-        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 450, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, invul: 0, shield: false, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 2 - 1), motorFlux: 0.5 + Math.random(), shootTimer: 30, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
+        racers.push({ id: i+1, x: canvas.width / 2 + (i % 3 - 1) * 180, progress: (i + 1) * 450, color: racerColors[i % racerColors.length], isPlayer: false, stun: 0, invul: 0, shieldHealth: 0, ammo: 5, gunType: "NORMAL", baseSpeed: MAX_SPEED_BASE + (Math.random() * 2 - 1), motorFlux: 0.5 + Math.random(), shootTimer: 30, nitro: 0, missiles: 0, hitCounter: 0, angle: 0 });
     }
     const supplyZones = [GOAL_DIST * 0.15, GOAL_DIST * 0.50, GOAL_DIST * 0.75];
     supplyZones.forEach(zoneProg => {
@@ -118,15 +119,17 @@ function createExplosion(x, y, color, count=15) {
 }
 
 function drawF1Car(r, yPos) {
-    const { x, color, stun, invul, shield, nitro, isPlayer, angle } = r;
+    const { x, color, stun, invul, shieldHealth, nitro, isPlayer, angle } = r;
     if (invul > 0 && Math.floor(Date.now() / 50) % 2 === 0) return;
     ctx.save(); ctx.translate(x, yPos); ctx.rotate(angle);
     const s = canvas.width < 600 ? 0.75 : 1.0; ctx.scale(s, s);
-    if (shield) {
-        ctx.strokeStyle = '#00ff00'; ctx.lineWidth = 4;
+    
+    if (shieldHealth > 0) {
+        ctx.strokeStyle = '#00ff00'; ctx.lineWidth = shieldHealth * 2;
         ctx.beginPath(); ctx.arc(0, 0, 65, 0, Math.PI*2); ctx.stroke();
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.2)'; ctx.fill();
+        ctx.fillStyle = `rgba(0, 255, 0, ${shieldHealth * 0.1})`; ctx.fill();
     }
+
     ctx.fillStyle = '#111';
     const moving = (isPlayer ? worldSpeed : r.baseSpeed) > 1 && stun <= 0;
     const wheelFlash = moving && (Math.sin(Date.now() / 50) > 0);
@@ -183,7 +186,6 @@ function update() {
         let baseT = racers[0].baseSpeed; 
         
         if(racers[0].nitro > 0) { baseT += NITRO_BOOST; racers[0].nitro--; shake = 10; }
-        
         if(playerOff) { worldSpeed += (5 - worldSpeed) * 0.1; if(worldSpeed > 1) createExplosion(racers[0].x, racers[0].y + 40, '#5d4037', 2); } 
         else { worldSpeed += (baseT + Math.min((pRank > 2 ? (leaderP - playerProgress)/150 : 0), 4) - worldSpeed) * 0.1; }
         
@@ -215,16 +217,12 @@ function update() {
                 else {
                     let rTrackX = canvas.width/2 + getTrackCurve(r.progress);
                     let rOff = Math.abs(r.x - rTrackX) > 230;
-                    let speedMod = rOff ? 0.2 : 1.0; // FRENAR IA SI ESTA FUERA
-                    
+                    let speedMod = rOff ? 0.2 : 1.0; 
                     r.progress += (r.baseSpeed + (r.nitro > 0 ? NITRO_BOOST + 3 : 0)) * speedMod;
                     if(r.nitro > 0) r.nitro--;
-                    
                     let laneOffset = (r.id % 3 - 1) * 150;
-                    let targetX = rTrackX + (rOff ? 0 : laneOffset); // BUSCAR PISTA SI ESTA FUERA
-                    r.angle = (targetX - r.x) * 0.002; 
-                    r.x += (targetX - r.x) * (rOff ? 0.15 : 0.09);
-                    
+                    let targetX = rTrackX + (rOff ? 0 : laneOffset); 
+                    r.angle = (targetX - r.x) * 0.002; r.x += (targetX - r.x) * (rOff ? 0.15 : 0.09);
                     if(sorted[0].id !== r.id || r.missiles > 0) {
                         r.shootTimer--; if(r.shootTimer <= 0) { fire(r); r.shootTimer = (r.ammo > 3) ? 20 : 60; }
                     }
@@ -236,14 +234,18 @@ function update() {
             let rY = r.isPlayer ? racers[0].y : racers[0].y - (r.progress - playerProgress);
             allBullets.forEach(b => { 
                 if(b.ownerId !== r.id && r.invul <= 0 && Math.abs(r.x - b.x) < 65 && Math.abs(r.progress - b.progress) < 150) { 
-                    if (r.shield) { r.shield = false; r.invul = 60; b.progress = -999999; createExplosion(r.x, rY, '#00ff00', 20); } 
-                    else { r.stun = b.isMissile ? 180 : 120; r.invul = 150; createExplosion(r.x, rY, b.isMissile ? '#ff2200' : b.color, 45); b.progress = -9999999; if(r.isPlayer) shake = 50; }
+                    if (r.shieldHealth > 0) { 
+                        r.shieldHealth--; r.invul = 60; b.progress = -999999; createExplosion(r.x, rY, '#00ff00', 20); 
+                    } else {
+                        r.stun = b.isMissile ? 180 : 120; r.invul = 150; createExplosion(r.x, rY, b.isMissile ? '#ff2200' : b.color, 45); b.progress = -9999999; if(r.isPlayer) shake = 50; 
+                    }
                 } 
             });
             racers.forEach(other => { 
                 if(r.id !== other.id && r.invul <= 0 && Math.abs(r.progress - other.progress) < 120 && Math.abs(r.x - other.x) < 80) { 
                     let f = (r.x < other.x) ? -20 : 20; r.x += f; other.x -= f; if(r.isPlayer) worldSpeed *= 0.5;
-                    r.hitCounter += 15; if(r.hitCounter > 40) { r.stun = 120; r.hitCounter = 0; createExplosion(r.x, rY, '#ff0000', 30); }
+                    if(r.shieldHealth > 0) { r.shieldHealth--; r.invul = 40; } 
+                    else { r.hitCounter += 15; if(r.hitCounter > 40) { r.stun = 120; r.hitCounter = 0; createExplosion(r.x, rY, '#ff0000', 30); } }
                 } 
             });
             if(r.hitCounter > 0) r.hitCounter *= 0.95;
@@ -253,10 +255,11 @@ function update() {
                     let iX = (canvas.width / 2 + getTrackCurve(p.progress)) + p.offsetX; 
                     if(Math.abs(r.x - iX) < 110) { 
                         if(p.type==='B') r.ammo += 5; if(p.type==='T') r.gunType = "TRIPLE"; 
-                        if(p.type==='N') r.nitro = 300; if(p.type==='M') r.missiles += 3; if(p.type==='E') r.shield = true;
+                        if(p.type==='N') r.nitro = 300; if(p.type==='M') r.missiles += 3; 
+                        if(p.type==='E') r.shieldHealth = 3; // Triple carga
                         if(p.type==='S') { 
                             shockwaves.push({x:r.x, y:rY, r:15, life:1}); 
-                            racers.forEach(t => { if(t.id!==r.id && t.invul <= 0 && !t.shield && Math.abs(r.progress-t.progress) < 1200) { t.stun=180; t.invul=150; } else if(t.shield && t.id!==r.id && Math.abs(r.progress-t.progress) < 1200) { t.shield=false; t.invul=60; } }); 
+                            racers.forEach(t => { if(t.id!==r.id && t.invul <= 0 && t.shieldHealth <= 0 && Math.abs(r.progress-t.progress) < 1200) { t.stun=180; t.invul=150; } else if(t.shieldHealth > 0 && t.id!==r.id && Math.abs(r.progress-t.progress) < 1200) { t.shieldHealth--; t.invul=60; } }); 
                         } 
                         p.active = false; p.timer = 400; 
                     } 
@@ -266,12 +269,9 @@ function update() {
         document.getElementById('rank').innerText = pRank;
         document.getElementById('ammo').innerText = racers[0].ammo + (racers[0].missiles > 0 ? " +M" : "");
         document.getElementById('dist').innerText = Math.max(0, Math.floor((GOAL_DIST - playerProgress)/10));
-        
         if(playerProgress >= GOAL_DIST) { 
-            gameState = "FINISHED"; 
-            const suffix = (pRank === 1) ? "ST" : (pRank === 2) ? "ND" : (pRank === 3) ? "RD" : "TH";
-            document.getElementById('msg').style.display = "block"; 
-            document.getElementById('msg').innerHTML = `🏁 FINAL 🏁<br><span style="color:gold; font-size:40px">${pRank}${suffix} PLACE</span>`; 
+            gameState = "FINISHED"; const suffix = (pRank === 1) ? "ST" : (pRank === 2) ? "ND" : (pRank === 3) ? "RD" : "TH";
+            document.getElementById('msg').style.display = "block"; document.getElementById('msg').innerHTML = `🏁 FINAL 🏁<br><span style="color:gold; font-size:40px">${pRank}${suffix} PLACE</span>`; 
         }
         if(shake > 0) shake *= 0.88;
     }
@@ -292,11 +292,10 @@ function draw() {
             ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff - 650, treeY - 120); ctx.lineTo(canvas.width/2 + xOff - 580, treeY - 30); ctx.lineTo(canvas.width/2 + xOff - 720, treeY - 30); ctx.fill();
             ctx.beginPath(); ctx.moveTo(canvas.width/2 + xOff + 650, treeY - 120); ctx.lineTo(canvas.width/2 + xOff + 720, treeY - 30); ctx.lineTo(canvas.width/2 + xOff + 580, treeY - 30); ctx.fill();
         } else if(currentBiome.type === "neo") {
-            ctx.fillRect(canvas.width/2 + xOff - 680, treeY - 150, 40, 150);
-            ctx.fillRect(canvas.width/2 + xOff + 640, treeY - 150, 40, 150);
-        } else {
-            ctx.beginPath(); ctx.arc(canvas.width/2+xOff-650, treeY-50, 40, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(canvas.width/2+xOff+650, treeY-50, 40, 0, Math.PI*2); ctx.fill();
+            ctx.fillRect(canvas.width/2 + xOff - 680, treeY - 150, 40, 150); ctx.fillRect(canvas.width/2 + xOff + 640, treeY - 150, 40, 150);
+        } else { // Classic frondoso
+            ctx.fillRect(canvas.width/2+xOff-610, treeY-40, 20, 40); ctx.beginPath(); ctx.arc(canvas.width/2+xOff-600, treeY-60, 45, 0, Math.PI*2); ctx.fill();
+            ctx.fillRect(canvas.width/2+xOff+590, treeY-40, 20, 40); ctx.beginPath(); ctx.arc(canvas.width/2+xOff+600, treeY-60, 45, 0, Math.PI*2); ctx.fill();
         }
     }
     for(let i=0; i<45; i++) {
@@ -332,7 +331,7 @@ function draw() {
     shockwaves.forEach(s => { ctx.strokeStyle=`rgba(255, 0, 255, ${s.life})`; ctx.lineWidth=14; ctx.beginPath(); ctx.arc(s.x, s.y, s.r, 0, Math.PI*2); ctx.stroke(); });
     if(worldSpeed > 20) {
         ctx.globalAlpha = Math.min(0.6, (worldSpeed-20) / 10);
-        ctx.strokeStyle = (currentBiome.name === "Snow") ? "#fff" : "rgba(255,255,255,0.5)"; ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(255,255,255,0.5)"; ctx.lineWidth = 2;
         windLines.forEach(l => { 
             let finalX = (l.side === 1) ? canvas.width - l.xOffset : l.xOffset;
             ctx.beginPath(); ctx.moveTo(finalX, l.y); ctx.lineTo(finalX, l.y + l.len * (worldSpeed/20)); ctx.stroke(); 
