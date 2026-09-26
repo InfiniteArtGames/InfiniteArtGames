@@ -52,114 +52,6 @@
             box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
         }
 
-        /* --- BOTÓN KALU (PANEL DEL TÍTULO - DERECHA INFERIOR) --- */
-        .btn-kalu {
-            position: absolute;
-            bottom: 15px;
-            right: 20px;
-            background: linear-gradient(45deg, #ff0055, var(--primary));
-            color: #fff;
-            border: 2px solid var(--accent);
-            padding: 8px 18px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            font-size: 0.85em;
-            letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
-            transition: 0.3s;
-            z-index: 20;
-        }
-
-        .btn-kalu:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 25px var(--accent);
-            background: linear-gradient(45deg, var(--primary), #ff0055);
-        }
-
-        /* --- MODAL DE ACCESO Y APKS DE KALU --- */
-        .kalu-modal {
-            display: none;
-            position: fixed;
-            z-index: 2000;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(5, 0, 16, 0.92);
-            backdrop-filter: blur(10px);
-            align-items: center;
-            justify-content: center;
-        }
-
-        .kalu-content {
-            background: linear-gradient(145deg, rgba(30,0,70,0.95), rgba(10,0,30,0.98));
-            border: 2px solid var(--accent);
-            border-radius: 25px;
-            padding: 35px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 0 40px rgba(0, 212, 255, 0.4);
-            text-align: center;
-            position: relative;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .kalu-close {
-            position: absolute;
-            top: 15px;
-            right: 20px;
-            color: #fff;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .kalu-close:hover { color: var(--accent); }
-
-        .apk-list {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .apk-item {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--primary);
-            padding: 10px 15px;
-            border-radius: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8em;
-            transition: 0.3s;
-        }
-
-        .apk-item:hover {
-            background: rgba(160, 32, 240, 0.2);
-            border-color: var(--accent);
-        }
-
-        .btn-download {
-            background: var(--accent);
-            color: #000;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            font-size: 0.85em;
-            text-decoration: none;
-            transition: 0.3s;
-        }
-
-        .btn-download:hover {
-            background: #fff;
-            box-shadow: 0 0 10px var(--accent);
-        }
-
         /* --- TEXTO --- */
         .text-glow {
             display: block;
@@ -186,20 +78,15 @@
             h1.main-title {
                 padding: 8vh 15px 4vh 15px; 
                 min-height: 150px;
-                background-attachment: scroll; 
+                background-attachment: scroll; /* Mejor rendimiento en móvil */
             }
             .text-glow {
                 letter-spacing: 1px;
                 font-size: 1.5em;
             }
-            .btn-kalu {
-                bottom: 10px;
-                right: 10px;
-                padding: 6px 12px;
-                font-size: 0.7em;
-            }
         }
     
+/* 3. ANIMACIONES (SE MANTIENEN IGUAL) */
 @keyframes gradientMove { 
     0% { background-position: 0% 50%; } 
     100% { background-position: 200% 50%; } 
@@ -215,6 +102,7 @@
     to { opacity: 1; } 
 }
 
+/* 4. ELEMENTOS DE TEXTO Y SECCIONES */
 .poema { 
     font-size: 2.0em; 
     font-style: italic; 
@@ -225,6 +113,7 @@
     text-align: center;
 }
    
+/* 1. BLOQUEO DE SCROLL Y CONTENEDORES GENERALES */
 .no-scroll { 
     overflow: hidden !important; 
     height: 100vh !important; 
@@ -247,6 +136,7 @@
     border: 1px solid rgba(160, 32, 240, 0.3);
 }
 
+/* 5. TARJETA PRINCIPAL Y VISUALIZADOR */
 .main-card {
     margin: 40px auto; 
     padding: 30px;
@@ -273,6 +163,7 @@
     filter: drop-shadow(0 0 15px var(--primary)); 
 }
 
+/* 6. BOTONES Y NAVEGACIÓN */
 .controls { 
     display: flex; 
     justify-content: center; 
@@ -305,17 +196,30 @@
     animation: fadeIn 0.5s forwards; 
 }
 
+/* 7. CONSOLA DE JUEGO (GAME WRAPPER) */
 .game-wrapper {
-  position: relative; width: 100%; height: 450px; background: #000;
-  border-radius: 15px; border: 2px solid var(--primary); overflow: hidden;
-  box-shadow: 0 0 25px rgba(160, 32, 240, 0.4); touch-action: none;
+    position: relative; 
+    width: 100%; 
+    height: 450px; 
+    background: #000;
+    border-radius: 15px; 
+    border: 2px solid var(--primary); 
+    overflow: hidden;
+    box-shadow: 0 0 25px rgba(160, 32, 240, 0.4); 
+    touch-action: none;
 }
-#activeGameFrame { width: 100%; height: 100%; border: none; }
 
-.playlist-item {
-  font-size: 0.65em !important;   
-  padding: 6px 10px;             
-  margin: 4px 0;                
+#activeGameFrame { 
+    width: 100%; 
+    height: 100%; 
+    border: none; 
+}
+
+    /* ESTILOS DE PLAYLIST Y RESALTADO */
+    .playlist-item {
+  font-size: 0.65em !important;   /* Esto hace la letra pequeña */
+  padding: 6px 10px;             /* Compacta el espacio */
+  margin: 4px 0;                /* Reduce la separación entre nombres */
   cursor: pointer;
   font-family: 'Orbitron', sans-serif;
   transition: 0.3s;
@@ -324,116 +228,87 @@
   border-radius: 8px;
 }
 
-.playlist-item:hover {
+/* Efecto al pasar el mouse (opcional para estilo Sét-su) */
+    .playlist-item:hover {
   background: rgba(160, 32, 240, 0.2);
   color: var(--accent);
 }
 
-.video-container {
-  position: relative; width: 100%; height: 70vh; max-height: 500px;
-  margin: 20px auto; overflow: hidden; border-radius: 15px;
-  border: 2px solid var(--primary); background: #000;
-}
-video { width: 100%; height: 100%; object-fit: cover; }
-select#videoSelector {
-  width: 100%; max-width: 400px; padding: 12px; margin: 15px auto;
-  border-radius: 8px; background: #111; color: #eee; border: 1px solid var(--primary);
-  font-family: 'Orbitron';
-}
+    /* SECCIÓN VIDEOS */
+    .video-container {
+      position: relative; width: 100%; height: 70vh; max-height: 500px;
+      margin: 20px auto; overflow: hidden; border-radius: 15px;
+      border: 2px solid var(--primary); background: #000;
+    }
+    video { width: 100%; height: 100%; object-fit: cover; }
+    select#videoSelector {
+      width: 100%; max-width: 400px; padding: 12px; margin: 15px auto;
+      border-radius: 8px; background: #111; color: #eee; border: 1px solid var(--primary);
+      font-family: 'Orbitron';
+    }
 
-.galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 10px 0; }
-.personaje { width: 420px; height: 610px; display: flex; flex-direction: column; align-items: center; }
-.personaje img { width: 100%; height: 610px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
-.personaje img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
+    .galeria { display: flex; flex-wrap: wrap; justify-content: center; gap: 25px; margin: 10px 0; }
+    .personaje { width: 420px; height: 610px; display: flex; flex-direction: column; align-items: center; }
+    .personaje img { width: 100%; height: 610px; object-fit: cover; border-radius: 15px; border: 3px solid var(--primary); cursor: zoom-in; transition: 0.3s; }
+    .personaje img:hover { transform: scale(1.05); box-shadow: 0 0 20px var(--primary); }
 
-.modal-visor {
-  display: none; position: fixed; z-index: 1000; top: 0; left: 0;
-  width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-  align-items: center; justify-content: center; cursor: zoom-out;
-}
-.modal-content { max-width: 90%; max-height: 90%; border: 2px solid var(--accent); border-radius: 15px; }
+    .modal-visor {
+      display: none; position: fixed; z-index: 1000; top: 0; left: 0;
+      width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+      align-items: center; justify-content: center; cursor: zoom-out;
+    }
+    .modal-content { max-width: 90%; max-height: 90%; border: 2px solid var(--accent); border-radius: 15px; }
 
-.carousel { position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; border: 1px solid var(--accent); }
-.slides { display:flex; transition:transform 0.5s ease; }
-.slides img { width:100%; height:auto; }
+    .carousel { position:relative; max-width:900px; margin:40px auto; overflow:hidden; border-radius:20px; border: 1px solid var(--accent); }
+    .slides { display:flex; transition:transform 0.5s ease; }
+    .slides img { width:100%; height:auto; }
 
-footer { margin-top: 80px; padding: 40px; color: #FFF; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
-a { color: var(--accent); text-decoration: none; }
-
+    footer { margin-top: 80px; padding: 40px; color: #FFF; font-size: 0.9em; border-top: 1px solid rgba(160, 32, 240, 0.2); }
+    a { color: var(--accent); text-decoration: none; }
+    
+/* Contenedor de las imágenes dentro de cada personaje */
 .mini-slides {
   width: 100%;
-  height: 610px; 
+  height: 610px; /* Mantenemos el tamaño original de tu diseño */
   position: relative;
   border-radius: 15px;
   overflow: hidden;
-  border: 3px solid var(--primary); 
+  border: 3px solid var(--primary); /* El borde neón de Infinite Art Games */
 }
 
 .mini-slides img {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   object-fit: cover;
-  opacity: 0; 
-  transition: opacity 1.5s ease-in-out; 
+  opacity: 0; /* Ocultas por defecto */
+  transition: opacity 1.5s ease-in-out; /* Transición suave de 1.5s */
   cursor: zoom-in;
 }
 
-.mini-slides img.active { opacity: 1; }
+.mini-slides img.active {
+  opacity: 1; /* Solo la imagen activa se ve */
+}
 
+/* Efecto hover igual al que ya tenías */
 .mini-slides img:hover {
   transform: scale(1.05);
   box-shadow: 0 0 20px var(--primary);
 }
     
   </style>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
 </head>
-  
-<link rel="icon" type="image/x-icon" href="favicon.ico">
   
 <body id="mainBody">
   <div id="miVisor" class="modal-visor" onclick="this.style.display='none'">
     <img id="imgExpandida" class="modal-content" src="" alt="Zoom">
   </div>
 
-  <!-- VENTANA MODAL DE ACCESO Y REPOSITORIO APK DE KALU -->
-  <div id="kaluModal" class="kalu-modal">
-    <div class="kalu-content">
-      <span class="kalu-close" onclick="cerrarKaluModal()">&times;</span>
-      <h3 style="color:var(--accent); margin-top:0;">REPOSITORIO KALU ∞</h3>
-      
-      <!-- Paso 1: Autenticación -->
-      <div id="kaluAuthSection">
-        <p style="font-size: 0.85em; color: #bbb;">Ingresa la clave de acceso autorizada:</p>
-        <input type="password" id="kaluPasswordInput" placeholder="Clave secreta" style="width: 80%; padding: 10px; border-radius: 8px; border: 1px solid var(--primary); background: #000; color: #fff; font-family: 'Orbitron'; text-align: center; margin-bottom: 15px;">
-        <br>
-        <button class="btn-nav" onclick="verificarClaveKalu()">ACCEDER</button>
-        <p id="kaluErrorMsg" style="color: #ff4444; font-size: 0.75em; margin-top: 10px; display: none;">Clave incorrecta. Intenta nuevamente.</p>
-      </div>
-
-      <!-- Paso 2: Contenido APK del 1 al 10 con carpeta raíz 'Kalu' -->
-      <div id="kaluContentSection" style="display: none;">
-        <p style="font-size: 0.8em; color: var(--accent);">Archivos APK Disponibles [Game 1 - 10]</p>
-        <div class="apk-list">
-          <div class="apk-item"><span>Game 1</span><a href="Kalu/apk1.apk" class="btn-download" download="apk1.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 2</span><a href="Kalu/apk2.apk" class="btn-download" download="apk2.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 3</span><a href="Kalu/apk3.apk" class="btn-download" download="apk3.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 4</span><a href="Kalu/apk4.apk" class="btn-download" download="apk4.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 5</span><a href="Kalu/apk5.apk" class="btn-download" download="apk5.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 6</span><a href="Kalu/apk6.apk" class="btn-download" download="apk6.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 7</span><a href="Kalu/apk7.apk" class="btn-download" download="apk7.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 8</span><a href="Kalu/apk8.apk" class="btn-download" download="apk8.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 9</span><a href="Kalu/apk9.apk" class="btn-download" download="apk9.apk">DESCARGAR</a></div>
-          <div class="apk-item"><span>Game 10</span><a href="Kalu/apk10.apk" class="btn-download" download="apk10.apk">DESCARGAR</a></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <h1 class="main-title">
     <span class="text-glow">Infinite Art Games</span>
-    <!-- BOTÓN KALU AÑADIDO EN LA ESQUINA INFERIOR DERECHA DEL TÍTULO -->
-    <button class="btn-kalu" onclick="abrirKaluModal()">KALU ∞</button>
   </h1> 
 
   <div class="container">
@@ -466,6 +341,7 @@ a { color: var(--accent); text-decoration: none; }
         <button class="btn-nav" onclick="showTab('diosas')">PERSONAJES</button>
       </div>
 
+    
       <div id="musica" class="content-section">
         <h3 style="color:var(--accent);">DATABASE: TRACKS</h3>
         <div class="playlist-container">
@@ -522,10 +398,10 @@ a { color: var(--accent); text-decoration: none; }
       </div>
    </div>
      
-    <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
-    <div style="margin-top:25px;">
-      <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
-    </div>
+        <audio id="playerMP3" style="display:none;" crossorigin="anonymous"></audio>
+        <div style="margin-top:25px;">
+          <iframe width="100%" height="315" src="https://www.youtube-nocookie.com/embed/m-d6z4Drbmk" frameborder="0" allowfullscreen></iframe>
+        </div>
 
     <h2 style="color:#fff; margin-top:80px; letter-spacing:10px;">GALLERY ∞</h2>
   
@@ -582,31 +458,7 @@ a { color: var(--accent); text-decoration: none; }
   </div>
 
   <script>
-    /* CONTROL DEL MODAL DE KALU Y CONTRASEÑA */
-    function abrirKaluModal() {
-      document.getElementById('kaluModal').style.display = 'flex';
-    }
-
-    function cerrarKaluModal() {
-      document.getElementById('kaluModal').style.display = 'none';
-      document.getElementById('kaluPasswordInput').value = '';
-      document.getElementById('kaluErrorMsg').style.display = 'none';
-      document.getElementById('kaluAuthSection').style.display = 'block';
-      document.getElementById('kaluContentSection').style.display = 'none';
-    }
-
-    function verificarClaveKalu() {
-      const password = document.getElementById('kaluPasswordInput').value;
-      if (password === 'kalu25noviembre') {
-        document.getElementById('kaluErrorMsg').style.display = 'none';
-        document.getElementById('kaluAuthSection').style.display = 'none';
-        document.getElementById('kaluContentSection').style.display = 'block';
-      } else {
-        document.getElementById('kaluErrorMsg').style.display = 'block';
-      }
-    }
-
-    /* NAVEGACIÓN Y PESTAÑAS */
+    /* NAVEGACIÓN Y PESTAÑAS RECUPERADAS */
     function showTab(id) {
       const sections = document.getElementsByClassName('content-section');
       for (let s of sections) { s.style.display = 'none'; }
@@ -615,7 +467,7 @@ a { color: var(--accent); text-decoration: none; }
     }
 
     function centrarEnJuego(event) {
-      if (event) event.stopPropagation(); 
+      if (event) event.stopPropagation(); // Evita que el clic suba al body
       const card = document.getElementById('gameCard');
       const body = document.getElementById('mainBody');
       body.classList.add('no-scroll');
@@ -626,6 +478,7 @@ a { color: var(--accent); text-decoration: none; }
       document.getElementById('gameDesc').innerText = "CALIBRADO: Centro detectado ♾️";
     }
 
+    // Detectar clics fuera para recuperar scroll y pausar juego
     window.addEventListener('click', function(e) {
       const gameWrapper = document.getElementById('fullscreen-target');
       const iframe = document.getElementById('activeGameFrame');
@@ -660,9 +513,10 @@ a { color: var(--accent); text-decoration: none; }
       }
     });
 
-    /* MOTOR DE AUDIO */
+    /* MOTOR DE AUDIO COMPLETO Y RESALTADO */
     let audioCtx = null, analyser = null, isPlaying = false, isPaused = false;
     let currentTrack = 0, currentNote = 0, audioTimeout;
+    let particleColor = 'rgba(0, 212, 255, 0.9)';
     const playerMP3 = document.getElementById('playerMP3');
     const canvas = document.getElementById('visualizer');
     const ctx = canvas.getContext('2d');
@@ -710,10 +564,10 @@ a { color: var(--accent); text-decoration: none; }
       draw();
     }
 
+    /* --- MOTOR VISUAL OPTIMIZADO: INFINITE ART GAMES --- */
     let time = 0;
     let lightHistory = []; 
     let darkHistory = [];  
-    let particleColor = 'rgba(0, 212, 255, 0.9)';
     const pSizes = Array.from({ length: 80 }, () => Math.random() * 2.8 + 1.5);
 
     function getLemniscata(t, scale) {
@@ -726,6 +580,7 @@ a { color: var(--accent); text-decoration: none; }
 
     function draw() {
         requestAnimationFrame(draw);
+        
         let avg = 0;
         if (analyser) {
             const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -734,8 +589,10 @@ a { color: var(--accent); text-decoration: none; }
         }
 
         ctx.clearRect(0, 0, canvas.width, canvas.height);
+
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
+        
         const scale = (Math.min(canvas.width, canvas.height) * 0.4) + (avg * 0.45);
         time += 0.015 + (avg * 0.0005); 
 
@@ -743,6 +600,7 @@ a { color: var(--accent); text-decoration: none; }
         for (let i = 0; i < 80; i++) {
             const t = (i / 80) * Math.PI * 2;
             const pos = getLemniscata(t, scale);
+            
             const shakeX = (Math.random() - 0.5) * (avg * 0.3);
             const shakeY = (Math.random() - 0.5) * (avg * 0.3);
             
@@ -766,12 +624,13 @@ a { color: var(--accent); text-decoration: none; }
         ctx.stroke();
 
         ctx.beginPath();
-        ctx.strokeStyle = 'rgba(60, 60, 60, 0.7)'; 
-        ctx.lineWidth = 6; 
+        ctx.strokeStyle = 'rgba(60, 60, 60, 0.7)';
+        ctx.lineWidth = 6;
         darkHistory.forEach((h, i) => i === 0 ? ctx.moveTo(h.x, h.y) : ctx.lineTo(h.x, h.y));
         ctx.stroke();
 
         ctx.globalCompositeOperation = 'source-over';
+        
         ctx.fillStyle = "#fff";
         ctx.beginPath(); ctx.arc(centerX + pL.x, centerY + pL.y, 6, 0, 6.28); ctx.fill();
 
@@ -792,9 +651,9 @@ a { color: var(--accent); text-decoration: none; }
       initAudio();
       const track = playlist[currentTrack];
       if (track.name.includes("Lobo") || track.name.includes("Wolf")) {
-        particleColor = 'rgba(255, 0, 0, 0.9)'; 
+        particleColor = 'rgba(255, 0, 0, 0.9)';
       } else {
-        particleColor = 'rgba(0, 212, 255, 0.9)'; 
+        particleColor = 'rgba(0, 212, 255, 0.9)';
       }
       if (!isPlaying) {
         isPlaying = true; isPaused = false;
@@ -837,6 +696,7 @@ a { color: var(--accent); text-decoration: none; }
       o.start(); o.stop(audioCtx.currentTime + d);
     }
 
+    /* VIDEOS Y CARRUSEL */
     const selector = document.getElementById('videoSelector');
     const player = document.getElementById('videoPlayer');
     const swipeArea = document.getElementById('swipeArea');
@@ -854,7 +714,7 @@ a { color: var(--accent); text-decoration: none; }
     let currentIndex = -1;
     let touchStartY = 0;
 
-    videos.forEach((vid, idx) => {
+    videos.forEach((vid) => {
       const opt = document.createElement('option');
       opt.value = basePath + vid;
       opt.textContent = vid.replace('grok_video_', '').replace('.mp4', '');
