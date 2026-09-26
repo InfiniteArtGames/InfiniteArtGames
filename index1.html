@@ -200,7 +200,6 @@
             }
         }
     
-/* 3. ANIMACIONES */
 @keyframes gradientMove { 
     0% { background-position: 0% 50%; } 
     100% { background-position: 200% 50%; } 
@@ -216,7 +215,6 @@
     to { opacity: 1; } 
 }
 
-/* 4. ELEMENTOS DE TEXTO Y SECCIONES */
 .poema { 
     font-size: 2.0em; 
     font-style: italic; 
@@ -413,20 +411,20 @@ a { color: var(--accent); text-decoration: none; }
         <p id="kaluErrorMsg" style="color: #ff4444; font-size: 0.75em; margin-top: 10px; display: none;">Clave incorrecta. Intenta nuevamente.</p>
       </div>
 
-      <!-- Paso 2: Contenido APK del 1 al 10 -->
+      <!-- Paso 2: Contenido APK del 1 al 10 con carpeta raíz 'Kalu' -->
       <div id="kaluContentSection" style="display: none;">
-        <p style="font-size: 0.8em; color: var(--accent);">Archivos APK Disponibles [1 - 10]</p>
+        <p style="font-size: 0.8em; color: var(--accent);">Archivos APK Disponibles [Game 1 - 10]</p>
         <div class="apk-list">
-          <div class="apk-item"><span>APK 01: Sét-su Engine</span><a href="APKs/apk1.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 02: Infinite Art</span><a href="APKs/apk2.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 03: Shana World</span><a href="APKs/apk3.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 04: Setsu Wolf</span><a href="APKs/apk4.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 05: Dani R Aesthetic</span><a href="APKs/apk5.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 06: Nexo Prototype</span><a href="APKs/apk6.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 07: Vector Runner</span><a href="APKs/apk7.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 08: Cybertronica</span><a href="APKs/apk8.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 09: Infinity Ball</span><a href="APKs/apk9.apk" class="btn-download" download>DESCARGAR</a></div>
-          <div class="apk-item"><span>APK 10: Ultimate Core</span><a href="APKs/apk10.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 1</span><a href="Kalu/apk1.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 2</span><a href="Kalu/apk2.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 3</span><a href="Kalu/apk3.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 4</span><a href="Kalu/apk4.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 5</span><a href="Kalu/apk5.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 6</span><a href="Kalu/apk6.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 7</span><a href="Kalu/apk7.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 8</span><a href="Kalu/apk8.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 9</span><a href="Kalu/apk9.apk" class="btn-download" download>DESCARGAR</a></div>
+          <div class="apk-item"><span>Game 10</span><a href="Kalu/apk10.apk" class="btn-download" download>DESCARGAR</a></div>
         </div>
       </div>
     </div>
@@ -591,7 +589,6 @@ a { color: var(--accent); text-decoration: none; }
 
     function cerrarKaluModal() {
       document.getElementById('kaluModal').style.display = 'none';
-      // Limpiar datos al cerrar por seguridad
       document.getElementById('kaluPasswordInput').value = '';
       document.getElementById('kaluErrorMsg').style.display = 'none';
       document.getElementById('kaluAuthSection').style.display = 'block';
@@ -840,7 +837,6 @@ a { color: var(--accent); text-decoration: none; }
       o.start(); o.stop(audioCtx.currentTime + d);
     }
 
-    /* VIDEOS Y CARRUSEL */
     const selector = document.getElementById('videoSelector');
     const player = document.getElementById('videoPlayer');
     const swipeArea = document.getElementById('swipeArea');
