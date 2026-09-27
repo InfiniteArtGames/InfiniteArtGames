@@ -14,7 +14,7 @@
     
     body {
       margin: 0; padding: 0;
-      background: url('Imágenes/BG.jpg') no-repeat center/cover fixed;
+      background: url('Imágenes/image-12.jpg') no-repeat center/cover fixed;
       background-attachment: fixed;
       background-color: #000;
       color: #fff;
@@ -26,9 +26,10 @@
 /* --- BLOQUE DEL TÍTULO --- */
         h1.main-title {
             margin: 0 !important;
-            padding: 12vh 60px 6vh 60px; 
+            padding: 10vh 20px 6vh 20px; 
             min-height: 25vh; 
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             width: 100vw;
@@ -52,29 +53,27 @@
             box-shadow: inset 0 0 60px rgba(0, 0, 0, 0.9);
         }
 
-        /* --- BOTÓN KALU (PANEL DEL TÍTULO - DERECHA INFERIOR) --- */
+        /* --- BOTÓN TIENDA (CENTRADO DEBAJO DEL TÍTULO) --- */
         .btn-kalu {
-            position: absolute;
-            bottom: 15px;
-            right: 20px;
+            margin-top: 20px;
             background: linear-gradient(45deg, #ff0055, var(--primary));
             color: #fff;
             border: 2px solid var(--accent);
-            padding: 8px 18px;
+            padding: 12px 35px;
             border-radius: 30px;
             cursor: pointer;
             font-family: 'Orbitron', sans-serif;
             font-weight: bold;
-            font-size: 0.85em;
-            letter-spacing: 2px;
-            box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+            font-size: 0.95em;
+            letter-spacing: 3px;
+            box-shadow: 0 0 20px rgba(255, 0, 85, 0.6);
             transition: 0.3s;
             z-index: 20;
         }
 
         .btn-kalu:hover {
             transform: scale(1.08);
-            box-shadow: 0 0 25px var(--accent);
+            box-shadow: 0 0 30px var(--accent);
             background: linear-gradient(45deg, var(--primary), #ff0055);
         }
 
@@ -184,7 +183,7 @@
         /* --- AJUSTE MÓVIL --- */
         @media (max-width: 480px) {
             h1.main-title {
-                padding: 8vh 15px 4vh 15px; 
+                padding: 6vh 15px 4vh 15px; 
                 min-height: 150px;
                 background-attachment: scroll; 
             }
@@ -193,10 +192,9 @@
                 font-size: 1.5em;
             }
             .btn-kalu {
-                bottom: 10px;
-                right: 10px;
-                padding: 6px 12px;
-                font-size: 0.7em;
+                padding: 10px 25px;
+                font-size: 0.8em;
+                letter-spacing: 2px;
             }
         }
     
@@ -400,7 +398,7 @@ a { color: var(--accent); text-decoration: none; }
   <div id="kaluModal" class="kalu-modal">
     <div class="kalu-content">
       <span class="kalu-close" onclick="cerrarKaluModal()">&times;</span>
-      <h3 style="color:var(--accent); margin-top:0;">REPOSITORIO KALU ∞</h3>
+      <h3 style="color:var(--accent); margin-top:0;">REPOSITORIO TIENDA ∞</h3>
       
       <!-- Paso 1: Autenticación -->
       <div id="kaluAuthSection">
@@ -411,7 +409,7 @@ a { color: var(--accent); text-decoration: none; }
         <p id="kaluErrorMsg" style="color: #ff4444; font-size: 0.75em; margin-top: 10px; display: none;">Clave incorrecta. Intenta nuevamente.</p>
       </div>
 
-      <!-- Paso 2: Contenido APK del 1 al 10 con carpeta raíz 'Kalu' y nombres en mayúscula exacta -->
+      <!-- Paso 2: Contenido APK del 1 al 10 -->
       <div id="kaluContentSection" style="display: none;">
         <p style="font-size: 0.8em; color: var(--accent);">Archivos APK Disponibles [Game 1 - 10]</p>
         <div class="apk-list">
@@ -432,8 +430,8 @@ a { color: var(--accent); text-decoration: none; }
 
   <h1 class="main-title">
     <span class="text-glow">Infinite Art Games</span>
-    <!-- BOTÓN KALU AÑADIDO EN LA ESQUINA INFERIOR DERECHA DEL TÍTULO -->
-    <button class="btn-kalu" onclick="abrirKaluModal()">KALU ∞</button>
+    <!-- BOTÓN TIENDA CENTRADO DEBAJO DEL TÍTULO -->
+    <button class="btn-kalu" onclick="abrirKaluModal()">TIENDA</button>
   </h1> 
 
   <div class="container">
